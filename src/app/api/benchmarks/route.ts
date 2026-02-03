@@ -37,23 +37,21 @@ export async function GET(request: Request) {
     if (!provider)
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    // Generate 24h history
-    const data = [];
-    const now = Date.now();
-    const baseLat = provider.current_metrics.latency_p50;
-
-    for (let i = 24; i >= 0; i--) {
-      data.push({
-        timestamp: new Date(now - i * 3600 * 1000).toISOString(),
-        value: Math.max(20, baseLat + (Math.random() * 40 - 20)) // +/- 20ms variance
-      });
-    }
+    // For meaningful charts, we need history. But since we cannot mock data, 
+    // and we don't have a persistent database in this backendless setup,
+    // we will return the single current real-time data point.
+    const data = [
+      {
+        timestamp: new Date().toISOString(),
+        value: provider.current_metrics.latency_p50
+      }
+    ];
 
     return NextResponse.json({
       data,
       metric: 'latency_p50',
       unit: 'ms',
-      timeframe: '24h',
+      timeframe: 'real-time',
       provider: providerSlug
     });
   }
@@ -81,7 +79,13 @@ export async function GET(request: Request) {
       uptime_percent:
         provA.current_metrics.uptime_percent -
         provB.current_metrics.uptime_percent,
-      final_score: provA.scores.final_score - provB.scores.final_score
+      final_score: provA.scores.final_score - provB.scores.final_score,
+      winner:
+        provA.scores.final_score > provB.scores.final_score
+          ? 'provider_a'
+          : provA.scores.final_score < provB.scores.final_score
+            ? 'provider_b'
+            : 'tie'
     };
 
     return NextResponse.json({ provider_a: provA, provider_b: provB, deltas });
