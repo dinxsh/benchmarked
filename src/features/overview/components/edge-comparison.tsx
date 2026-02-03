@@ -96,10 +96,15 @@ export function EdgeCloudComparison() {
         }
 
         const fastestCloud = cloudJson.providers?.[0];
-        cloudLatency = fastestCloud?.latency || 45;
+        if (fastestCloud?.latency) {
+          cloudLatency = fastestCloud.latency;
+        } else {
+          console.warn("No cloud provider data returned");
+          // Only set if we actually got a number
+        }
       } catch (e) {
         console.error("Cloud test failed", e);
-        cloudLatency = 50; // Fallback
+        // Do not set cloudLatency to a fake number
       }
 
       finishProgress('cloud');
