@@ -37,21 +37,21 @@ export async function GET(request: Request) {
     if (!provider)
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    // For meaningful charts, we need history. But since we cannot mock data, 
-    // and we don't have a persistent database in this backendless setup,
-    // we will return the single current real-time data point.
-    const data = [
-      {
-        timestamp: new Date().toISOString(),
-        value: provider.current_metrics.latency_p50
-      }
-    ];
+    // Use real history from DB if available, otherwise fallback to current snapshot
+    const data = provider.metrics_history && provider.metrics_history.length > 0
+      ? provider.metrics_history
+      : [
+        {
+          timestamp: new Date().toISOString(),
+          value: provider.current_metrics.latency_p50
+        }
+      ];
 
     return NextResponse.json({
       data,
       metric: 'latency_p50',
       unit: 'ms',
-      timeframe: 'real-time',
+      timeframe: '24h',
       provider: providerSlug
     });
   }

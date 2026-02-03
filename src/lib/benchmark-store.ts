@@ -62,7 +62,8 @@ class BenchmarkStore {
       scores: doc.scores,
       rank: 0, // Best effort or need to fetch all to rank
       trend: 'stable',
-      health_status: doc.metrics.uptime_percent > 98 ? 'healthy' : 'degraded'
+      health_status: doc.metrics.uptime_percent > 98 ? 'healthy' : 'degraded',
+      metrics_history: doc.metrics_history
     };
   }
 }

@@ -42,6 +42,7 @@ export interface Provider {
   rank: number;
   trend: 'up' | 'down' | 'stable';
   health_status: 'healthy' | 'degraded' | 'unstable';
+  metrics_history?: { timestamp: string | Date; value: number }[];
 }
 
 export interface IProviderAdapter {
