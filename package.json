@@ -71,6 +71,7 @@
     "kbar": "^0.1.0-beta.45",
     "lucide-react": "^0.476.0",
     "match-sorter": "^8.0.0",
+    "mongoose": "^9.1.5",
     "motion": "^11.17.0",
     "next": "^16.0.7",
     "next-themes": "^0.4.6",
@@ -109,6 +110,7 @@
     "lint-staged": "^15.2.11",
     "prettier": "3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.11",
+    "tsx": "^4.21.0",
     "tw-animate-css": "^1.2.4"
   }
 }
