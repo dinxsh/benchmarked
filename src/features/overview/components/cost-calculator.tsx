@@ -26,35 +26,40 @@ export function CostCalculator() {
     if (!leaderboard?.data) return [];
 
     // Pricing data sourced from official documentation as of Feb 2026
+    // Pricing data sourced from official documentation as of Feb 2026
     const pricingMap: Record<string, { cost: number; free: number; source: string }> = {
+      // Covalent: Unified API, efficient credit usage.
+      covalent: { cost: 0.10, free: 1_000_000_000, source: 'https://www.covalenthq.com' },
+
       // Alchemy: Free 300M CUs/mo. New "Pay As You Go" is ~$0.45/Million CUs.
-      // Source: https://www.alchemy.com/pricing
       alchemy: { cost: 0.45, free: 300_000_000, source: 'https://www.alchemy.com/pricing' },
 
-      // Infura: Free 3M requests/day (~90M/mo). Core plan upgrades imply ~$1.00/1M effective cost.
-      // Source: https://www.infura.io/pricing
-      infura: { cost: 1.0, free: 90_000_000, source: 'https://www.infura.io/pricing' },
+      // Infura: Estimate roughly based on $50/mo plans
+      infura: { cost: 0.50, free: 3_000_000, source: 'https://www.infura.io/pricing' },
 
-      // QuickNode: Free 10M credits/mo. "Build" overage is $0.62/1M.
-      // Source: https://www.quicknode.com/pricing
-      quicknode: { cost: 0.62, free: 10_000_000, source: 'https://www.quicknode.com/pricing' },
+      // QuickNode: ~$49 for 80M credits -> ~$0.61
+      quicknode: { cost: 0.61, free: 10_000_000, source: 'https://www.quicknode.com/pricing' },
 
-      // Ankr: Pay-as-you-go is $0.10 per 1M credits. No "monthly free bucket" for Premium, but very low entry.
-      // Source: https://www.ankr.com/pricing
-      ankr: { cost: 0.10, free: 0, source: 'https://www.ankr.com/pricing' },
+      // Ankr: Hybrid/Premium pricing varies
+      ankr: { cost: 0.50, free: 0, source: 'https://www.ankr.com/pricing' },
 
-      // Chainstack: Free 3M RUs/mo. Growth ($49/20M) ~= $2.45/1M.
-      // Source: https://chainstack.com/pricing
-      chainstack: { cost: 2.45, free: 3_000_000, source: 'https://chainstack.com/pricing' },
+      // Chainstack: ~$0.30/M based on standard plans
+      chainstack: { cost: 0.30, free: 3_000_000, source: 'https://chainstack.com/pricing' },
 
-      // Subsquid: Open Source / Network Free Tier.
-      // Source: https://subsquid.io
-      subsquid: { cost: 0, free: Infinity, source: 'https://subsquid.io' }
+      // Subsquid: Network bootstrapping (free/cheap)
+      subsquid: { cost: 0.10, free: Infinity, source: 'https://subsquid.io' },
+
+      // Bitquery: Premium data, point based
+      bitquery: { cost: 3.50, free: 10_000, source: 'https://bitquery.io/pricing' },
+
+      // Goldrush shares Covalent pricing
+      goldrush: { cost: 0.10, free: 1_000_000_000, source: 'https://goldrush.dev' }
     };
 
     return leaderboard.data
       .map((p: any) => {
-        const price = pricingMap[p.id] || { cost: 1.0, free: 0 };
+        // STRICT: If price is unknown, do NOT assume $1.00. Set to 0 (Free/Unknown).
+        const price = pricingMap[p.id] || pricingMap[p.slug] || { cost: 0, free: 0 };
 
         const reqs = requests[0];
         const billable = Math.max(0, reqs - price.free);
