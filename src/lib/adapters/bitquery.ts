@@ -27,7 +27,7 @@ export class BitqueryAdapter extends BaseAdapter {
 
       // Bitquery might 401/403 without key, but we treat it as "alive" for latency if we get a response
       if (response.status >= 500) throw new Error(`HTTP ${response.status}`);
-      await response.json().catch(() => {}); // Consume body
+      await response.json().catch(() => { }); // Consume body
 
       return Math.round(performance.now() - startTime);
     } catch (error) {
@@ -59,5 +59,30 @@ export class BitqueryAdapter extends BaseAdapter {
         db_access: false
       }
     };
+  }
+  async getBlockHeight(): Promise<number> {
+    try {
+      const response = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': process.env.BITQUERY_API_KEY || ''
+        },
+        body: JSON.stringify({
+          query: '{ ethereum { blocks(limit: 1, options: {desc: "height"}) { height } } }'
+        }),
+        signal: AbortSignal.timeout(3000)
+      });
+
+      if (!response.ok) return 0;
+      const data = await response.json();
+      // Bitquery: data.data.ethereum.blocks[0].height
+      if (data?.data?.ethereum?.blocks?.[0]?.height) {
+        return data.data.ethereum.blocks[0].height;
+      }
+      return 0;
+    } catch (error) {
+      return 0;
+    }
   }
 }
