@@ -110,7 +110,7 @@ class BenchmarkStore {
           current_metrics: item.metrics,
           scores: item.scores,
           rank: index + 1,
-          trend: Math.random() > 0.5 ? 'up' : 'stable', // Synthetic trend for demo
+          trend: 'stable', // Real trend requires history tracking, which is out of scope for backendless currently.
           health_status:
             item.metrics.uptime_percent > 98 ? 'healthy' : 'degraded'
         };
