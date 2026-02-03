@@ -57,7 +57,7 @@ export default function AppSidebar() {
     emailAddresses: [{ emailAddress: 'admin@benchmarked.xyz' }]
   };
 
-  const organization = { id: 'org_benchmark', name: 'benchmark.xyz' };
+  const organization = { id: 'org_benchmark', name: 'benchmarked' };
 
   const router = useRouter();
   const filteredItems = useFilteredNavItems(navItems);

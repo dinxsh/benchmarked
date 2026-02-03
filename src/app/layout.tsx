@@ -17,8 +17,8 @@ const META_THEME_COLORS = {
 };
 
 export const metadata: Metadata = {
-  title: 'benchmark.xyz',
-  description: 'Web3 Provider Benchmarking Dashboard'
+  title: 'benchmarked',
+  description: 'Benchmark your fav RPCs'
 };
 
 export const viewport: Viewport = {
