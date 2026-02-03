@@ -18,7 +18,7 @@ const META_THEME_COLORS = {
 
 export const metadata: Metadata = {
   title: 'benchmark.xyz',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  description: 'Web3 Provider Benchmarking Dashboard'
 };
 
 export const viewport: Viewport = {

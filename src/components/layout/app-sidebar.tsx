@@ -52,9 +52,9 @@ export default function AppSidebar() {
 
   // Static dummy data replacing Clerk hooks
   const user = {
-    fullName: 'Demo User',
+    fullName: 'Benchmarked',
     imageUrl: '', // Optional: Add a default image URL if desired
-    emailAddresses: [{ emailAddress: 'demo@example.com' }]
+    emailAddresses: [{ emailAddress: 'admin@benchmarked.xyz' }]
   };
 
   const organization = { id: 'org_benchmark', name: 'benchmark.xyz' };
