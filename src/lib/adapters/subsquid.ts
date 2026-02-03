@@ -61,4 +61,19 @@ export class SubsquidAdapter extends BaseAdapter {
       }
     };
   }
+
+  async getBlockHeight(): Promise<number> {
+    try {
+      const response = await fetch(this.endpoint, {
+        method: 'GET',
+        signal: AbortSignal.timeout(3000)
+      });
+
+      if (!response.ok) return 0;
+      const text = await response.text();
+      return parseInt(text, 10);
+    } catch (error) {
+      return 0;
+    }
+  }
 }
