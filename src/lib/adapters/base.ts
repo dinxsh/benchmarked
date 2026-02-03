@@ -81,4 +81,32 @@ export abstract class BaseAdapter implements IProviderAdapter {
     const index = Math.ceil((p / 100) * arr.length) - 1;
     return arr[Math.max(0, index)];
   }
+
+  async getBlockHeight(): Promise<number> {
+    try {
+      if (!this.endpoint) return 0;
+
+      const response = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_blockNumber',
+          params: [],
+          id: 1
+        }),
+        signal: AbortSignal.timeout(3000)
+      });
+
+      if (!response.ok) return 0;
+
+      const data = await response.json();
+      if (data.result) {
+        return parseInt(data.result, 16);
+      }
+      return 0;
+    } catch (error) {
+      return 0;
+    }
+  }
 }
