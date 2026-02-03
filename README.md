@@ -1,4 +1,4 @@
-<h1 align="center"># 📊 Benchmarked Dashboard
+<h1 align="center"> Benchmarked </h1>
 
 <div align="center">
 
@@ -8,52 +8,42 @@
 [![Shadcn UI](https://img.shields.io/badge/Shadcn-UI-000000?style=flat-square&logo=shadcnui)](https://ui.shadcn.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-**Real-time Web3 Provider Performance Benchmarks**
+**Bench mark your fav RPCs in real-time**
 
-<img src="/public/shadcn-dashboard.png" alt="Benchmarked Dashboard Cover" width="100%" style="border-radius: 8px; margin: 20px 0;" />
-
-[View Demo](https://benchmarked.xyz) · [Report Bug](https://github.com/dinxsh/benchmarked/issues) · [Request Feature](https://github.com/dinxsh/benchmarked/issues)
+[View Demo](https://try-benchmarked.vercel.app) · [Report Bug](https://github.com/dinxsh/benchmarked/issues) · [Request Feature](https://github.com/dinxsh/benchmarked/issues)
 
 </div>
 
----
+## Table of Contents
 
-## 📖 Table of Contents
-
-- [Overview](#-overview)
-- [Key Features](#-key-features)
-- [Technical Architecture](#-technical-architecture)
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Technical Architecture](#technical-architecture)
   - [System Design](#system-design)
   - [Data Pipeline](#data-pipeline)
   - [Tech Stack](#tech-stack)
-- [Getting Started](#-getting-started)
-- [Project Structure](#-project-structure)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
 
----
-
-## 🚀 Overview
+## Overview
 
 **Benchmarked** is a specialized analytics dashboard designed to bring transparency to Web3 infrastructure. It measures, compares, and visualizes the performance of major RPC providers (Alchemy, Infura, QuickNode, etc.) in real-time.
 
 By leveraging a **Backendless Architecture**, it provides a lightweight yet powerful tool for developers and enterprises to make data-driven decisions about their infrastructure partners.
 
----
-
-## ✨ Key Features
+## Key Features
 
 | Feature | Description |
 |---------|-------------|
-| **🏆 Leaderboard** | Real-time ranking based on weighted scores of Latency (p50/p95), Uptime, and Error Rates. |
-| **📊 Deep Analytics** | Detailed performance profiles with historical trends (24h, 7d, 30d) and distribution breakdowns. |
-| **⚔️ Comparison** | Side-by-side "Head-to-Head" mode to compare specific metrics between two providers. |
-| **🏢 Workspaces** | Multi-tenant support via Clerk, allowing teams to manage private benchmarks and API keys. |
-| **⚡ Real-time** | Automatic polling and score updates ensure data is always fresh. |
+| **Leaderboard** | Real-time ranking based on weighted scores of Latency (p50/p95), Uptime, and Error Rates. |
+| **Deep Analytics** | Detailed performance profiles with historical trends (24h, 7d, 30d) and distribution breakdowns. |
+| **Comparison** | Side-by-side "Head-to-Head" mode to compare specific metrics between two providers. |
+| **Workspaces** | Multi-tenant support via Clerk, allowing teams to manage private benchmarks and API keys. |
+| **Real-time** | Automatic polling and score updates ensure data is always fresh. |
 
----
-
-## 🏗 Technical Architecture
+## Technical Architecture
 
 ### System Design
 
@@ -98,9 +88,7 @@ graph TD
 - **State**: [Zustand](https://github.com/pmndrs/zustand) (Global) & [Nuqs](https://nuqs.47ng.com) (URL-based)
 - **Auth**: [Clerk](https://clerk.com) for authentication and organization management
 
----
-
-## ⚡ Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -143,9 +131,7 @@ graph TD
     ```
     Visit [http://localhost:3000](http://localhost:3000).
 
----
-
-## 📂 Project Structure
+## Project Structure
 
 ```plaintext
 src/
@@ -162,9 +148,7 @@ src/
 └── config/               # App Constants & Navigation
 ```
 
----
-
-## 🤝 Contributing
+## Contributing
 
 Contributions make the open-source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
@@ -174,9 +158,7 @@ Contributions make the open-source community an amazing place to learn, inspire,
 4.  Push to the Branch (`git push origin feature/AmazingFeature`)
 5.  Open a Pull Request
 
----
-
-## 📝 License
+## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
@@ -185,13 +167,13 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 SEO keywords:
 
-open source admin dashboard, nextjs admin dashboard, nextjs dashboard template,
+web3 analytics dashboard, realtime rpc monitoring, blockchain infrastructure dashboard,
 
-shadcn ui dashboard, admin dashboard starter, next.js 16, typescript dashboard,
+nextjs web3 template, rpc node analytics, web3 data visualization, ethereum rpc dashboard,
 
-dashboard ui template, nextjs shadcn admin panel, react admin dashboard,
+dApp performance monitoring, web3 developer dashboard, realtime blockchain data,
 
-tailwind css admin dashboard
+shadcn web3 dashboard
 
 -->
 
