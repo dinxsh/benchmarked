@@ -1,4 +1,4 @@
-import { IProviderAdapter, ProviderMetrics } from '../benchmark-types';
+import { IProviderAdapter, ProviderMetrics, Provider } from '../benchmark-types';
 
 export abstract class BaseAdapter implements IProviderAdapter {
   abstract id: string;
@@ -6,7 +6,10 @@ export abstract class BaseAdapter implements IProviderAdapter {
   protected endpoint: string = '';
   protected sampleSize: number = 3; // Reduced for frontend performance
 
-  abstract getMetadata(): any;
+  abstract getMetadata(): Omit<
+    Provider,
+    'current_metrics' | 'scores' | 'rank' | 'trend' | 'health_status'
+  >;
 
   async measure(): Promise<ProviderMetrics> {
     const samples: number[] = [];
@@ -68,7 +71,7 @@ export abstract class BaseAdapter implements IProviderAdapter {
       if (response.status >= 500) throw new Error(`HTTP ${response.status}`);
 
       // Consume body
-      await response.text().catch(() => {});
+      await response.text().catch(() => { });
 
       return Math.round(performance.now() - startTime);
     } catch (error) {
@@ -106,6 +109,7 @@ export abstract class BaseAdapter implements IProviderAdapter {
       }
       return 0;
     } catch (error) {
+      console.warn(`Failed to get block height for ${this.id}:`, error);
       return 0;
     }
   }

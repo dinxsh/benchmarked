@@ -28,7 +28,8 @@ async function updateBenchmarks() {
 
         console.log(`Found ${adapterList.length} adapters`);
 
-        for (const adapter of adapterList) {
+        // Run all measurements in parallel
+        await Promise.all(adapterList.map(async (adapter) => {
             console.log(`Measuring ${adapter.name}...`);
 
             try {
@@ -52,7 +53,7 @@ async function updateBenchmarks() {
                         $push: {
                             metrics_history: {
                                 $each: [{ timestamp: new Date(), value: metrics.latency_p50 }],
-                                $slice: -10 // Keep last 10 points
+                                $slice: -24 // Keep last 24 points
                             }
                         }
                     },
@@ -63,7 +64,7 @@ async function updateBenchmarks() {
             } catch (e) {
                 console.error(`Failed to measure ${adapter.name}:`, e);
             }
-        }
+        }));
 
         console.log('Benchmark update complete');
         process.exit(0);
@@ -73,7 +74,7 @@ async function updateBenchmarks() {
     }
 }
 
-function calculateScores(metrics, pricing, capabilities) {
+function calculateScores(metrics: ProviderMetrics, pricing: any, capabilities: any) {
     // 1. Latency Score (0-40) - Lower is better. <50ms = 40, >500ms = 0
     const latScore = Math.max(0, 40 * (1 - metrics.latency_p50 / 500));
 
