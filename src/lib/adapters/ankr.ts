@@ -3,6 +3,7 @@ import { BaseAdapter } from './base';
 export class AnkrAdapter extends BaseAdapter {
   id = 'ankr';
   name = 'Ankr';
+  // Trigger HMR update
 
   constructor() {
     super();
@@ -38,5 +39,36 @@ export class AnkrAdapter extends BaseAdapter {
         custom_indexing: false
       }
     };
+  }
+
+  async getBlockHeight(): Promise<number> {
+    try {
+      const response = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_blockNumber',
+          params: [],
+          id: 1
+        }),
+        signal: AbortSignal.timeout(5000)
+      });
+
+      if (!response.ok) {
+        // console.error(\`Ankr Error: \${response.status}\`);
+        return 0;
+      }
+      const data = await response.json();
+      if (data.result) {
+        return parseInt(data.result, 16);
+      }
+      return 0;
+    } catch (error) {
+      return 0;
+    }
   }
 }
