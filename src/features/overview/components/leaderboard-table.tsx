@@ -27,7 +27,14 @@ export function LeaderboardTable() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Market Leaderboard</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Market Leaderboard</CardTitle>
+          {leaderboard?.last_updated && (
+            <span className="text-xs text-muted-foreground font-normal">
+              Updated: {new Date(leaderboard.last_updated).toLocaleTimeString()}
+            </span>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <Table>
@@ -75,35 +82,46 @@ export function LeaderboardTable() {
                 <TableCell>
                   <Badge
                     variant={
-                      (provider.current_metrics?.latency_p50 || 0) < 150
-                        ? 'default'
-                        : 'secondary'
+                      (provider.current_metrics?.latency_p50 || 0) < 50
+                        ? 'default' // Greenish (Shadcn default is usually black/primary, need overrides or utilize outline for colors)
+                        : (provider.current_metrics?.latency_p50 || 0) < 150
+                          ? 'secondary'
+                          : 'destructive'
+                    }
+                    className={
+                      (provider.current_metrics?.latency_p50 || 0) < 50
+                        ? 'bg-emerald-500 hover:bg-emerald-600 border-transparent text-white'
+                        : (provider.current_metrics?.latency_p50 || 0) < 150
+                          ? 'bg-amber-500 hover:bg-amber-600 border-transparent text-white'
+                          : ''
                     }
                   >
                     {provider.current_metrics?.latency_p50 ?? 0} ms
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {provider.current_metrics?.uptime_percent ?? 0}%
+                  {provider.current_metrics?.uptime_percent?.toFixed(2) ?? '0.00'}%
                 </TableCell>
                 <TableCell>
                   <Badge
                     variant='outline'
                     className={
                       provider.health_status === 'healthy'
-                        ? 'border-green-500 text-green-500'
-                        : 'border-yellow-500 text-yellow-500'
+                        ? 'border-emerald-500 text-emerald-500'
+                        : 'border-amber-500 text-amber-500'
                     }
                   >
                     {provider.health_status}
                   </Badge>
                 </TableCell>
                 <TableCell className='text-right'>
-                  {provider.trend === 'up'
-                    ? '↗'
-                    : provider.trend === 'down'
-                      ? '↘'
-                      : '→'}
+                  {provider.trend === 'up' ? (
+                    <span className="text-emerald-500 font-bold">↗</span>
+                  ) : provider.trend === 'down' ? (
+                    <span className="text-red-500 font-bold">↘</span>
+                  ) : (
+                    <span className="text-muted-foreground">→</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   <IconChevronRight className='text-muted-foreground h-4 w-4' />

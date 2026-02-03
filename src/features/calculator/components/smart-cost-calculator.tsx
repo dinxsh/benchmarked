@@ -33,30 +33,21 @@ export function SmartCostCalculator() {
 
     // Inputs
     const [monthlyRequests, setMonthlyRequests] = useState([10000000]); // 10M
-    const [isPremiumCompute, setIsPremiumCompute] = useState(false); // Complexity
-    const [responseSize, setResponseSize] = useState([1]); // KB
+
 
     const toggleFullscreen = () => setIsFullscreen(!isFullscreen);
 
     // Advanced Pricing Logic
+
     const calculation = useMemo(() => {
         const reqs = monthlyRequests[0];
-        const sizeKB = responseSize[0];
-
-        // Compute Multiplier: Premium requests (traces, debug) cost much more
-        const computeMultiplier = isPremiumCompute ? 5 : 1;
-
-        // Bandwidth: approx $0.08 per GB
-        // Total GB = (reqs * sizeKB) / 1,000,000
-        const totalGB = (reqs * sizeKB) / 1000000;
-        const bandwidthCost = totalGB * 0.08;
 
         const providers = [
             {
                 id: 1,
                 name: 'Covalent',
                 basePrice: 0.10, // Estimate based on credit efficiency for data
-                freeLimit: 1000000000,
+                freeLimit: 25000,
                 features: ['Unified API', 'Granular Data', 'Long-term Storage']
             },
             {
@@ -83,8 +74,8 @@ export function SmartCostCalculator() {
             {
                 id: 5,
                 name: 'Subsquid',
-                basePrice: 0.10,
-                freeLimit: Infinity, // "Free" for now (Network bootstrapping)
+                basePrice: 0, // TIME BASED: Calculated dynamically (Hardware Tiers)
+                freeLimit: 0,
                 features: ['Decentralized', 'Open']
             },
             {
@@ -132,17 +123,88 @@ export function SmartCostCalculator() {
         ];
 
         const calculated: ProviderCost[] = providers.map(p => {
-            // Logic: Max(0, (Reqs - Limit)) / 1M * Base * Multiplier + Bandwidth
-            const billableRatio = Math.max(0, reqs - p.freeLimit);
-            const computeCost = (billableRatio / 1000000) * p.basePrice * computeMultiplier;
-            // Some providers charge differently for bandwidth, simplified here:
-            const total = computeCost + (['Subsquid', 'Covalent'].includes(p.name) ? 0 : bandwidthCost);
+            let cost = 0;
+            let freeTierDisplay = '';
+
+            // Pricing matches docs/pricing.md strict mode
+            switch (p.name) {
+                case 'Alchemy':
+                    freeTierDisplay = '300M CUs';
+                    if (reqs <= 300_000_000) cost = 0;
+                    else cost = ((reqs - 300_000_000) / 1_000_000) * 0.45;
+                    break;
+                case 'Infura':
+                    freeTierDisplay = '3M reqs/mo';
+                    if (reqs <= 3_000_000) cost = 0;
+                    else if (reqs <= 6_000_000) cost = 50;
+                    else if (reqs <= 30_000_000) cost = 225;
+                    else if (reqs <= 150_000_000) cost = 1000;
+                    // Linear unit cost from Growth tier: $1000/150M = ~$6.66/M
+                    else cost = 1000 + ((reqs - 150_000_000) / 1_000_000) * 6.66;
+                    break;
+                case 'Chainstack':
+                    freeTierDisplay = '3M reqs/mo';
+                    if (reqs <= 3_000_000) cost = 0;
+                    else if (reqs <= 20_000_000) cost = 49;
+                    else if (reqs <= 80_000_000) cost = 199;
+                    else if (reqs <= 140_000_000) cost = 349;
+                    else if (reqs <= 400_000_000) cost = 990;
+                    else cost = 990 + ((reqs - 400_000_000) / 1_000_000) * 15;
+                    break;
+                case 'QuickNode':
+                    freeTierDisplay = '10M credits';
+                    if (reqs <= 10_000_000) cost = 0;
+                    else if (reqs <= 80_000_000) cost = 49;
+                    else if (reqs <= 450_000_000) cost = 249;
+                    else if (reqs <= 950_000_000) cost = 499;
+                    else if (reqs <= 2_000_000_000) cost = 999;
+                    else cost = 999 + ((reqs - 2_000_000_000) / 1_000_000) * 0.5;
+                    break;
+                case 'Ankr':
+                    freeTierDisplay = '30M credits';
+                    if (reqs <= 30_000_000) cost = 0;
+                    // $0.10 per 1M PAYG
+                    else cost = ((reqs - 30_000_000) / 1_000_000) * 0.10;
+                    break;
+                case 'GetBlock':
+                    freeTierDisplay = '40k reqs';
+                    if (reqs <= 40_000) cost = 0;
+                    else if (reqs <= 500_000) cost = 6;
+                    else if (reqs <= 1_000_000) cost = 10;
+                    else if (reqs <= 5_000_000) cost = 30;
+                    else if (reqs <= 10_000_000) cost = 50;
+                    else if (reqs <= 50_000_000) cost = 200;
+                    else cost = 500;
+                    break;
+                case 'The Graph':
+                    freeTierDisplay = '100k queries';
+                    if (reqs <= 100_000) cost = 0;
+                    else cost = ((reqs - 100_000) / 100_000) * 2;
+                    break;
+                case 'Bitquery':
+                    freeTierDisplay = '10k trial';
+                    if (reqs <= 10_000) cost = 0;
+                    else cost = 249;
+                    break;
+                case 'Covalent':
+                    freeTierDisplay = '100k calls';
+                    if (reqs <= 100_000) cost = 0;
+                    else cost = 50;
+                    break;
+                case 'Subsquid':
+                    freeTierDisplay = 'Subscription';
+                    cost = 0;
+                    break;
+                default:
+                    cost = 0;
+            }
 
             return {
                 ...p,
-                cost: total,
-                // Handle Infinity case for display
-                freeTier: p.freeLimit === Infinity ? 'Unlimited' : formatNumber(p.freeLimit)
+                cost,
+                basePrice: 0,
+                freeTier: freeTierDisplay,
+                // freeLimit: 0, // removed to avoid type error if not in interface or optional
             };
         }).sort((a, b) => a.cost - b.cost);
 
@@ -157,7 +219,7 @@ export function SmartCostCalculator() {
 
         return { list: calculated, winner, savings, maxCost };
 
-    }, [monthlyRequests, isPremiumCompute, responseSize]);
+    }, [monthlyRequests]);
 
     return (
         <Card
@@ -211,36 +273,7 @@ export function SmartCostCalculator() {
                             />
                         </div>
 
-                        {/* Compute Units Toggle */}
-                        <div className="flex items-center justify-between p-4 rounded-lg bg-muted/20 border border-border/30">
-                            <div className="space-y-0.5">
-                                <label className="text-sm font-semibold flex items-center gap-2">
-                                    <IconCpu className="h-4 w-4 text-muted-foreground" />
-                                    Premium Compute
-                                </label>
-                                <p className="text-[10px] text-muted-foreground">Trace API, Archive, Debug calls (5x cost)</p>
-                            </div>
-                            <Switch checked={isPremiumCompute} onCheckedChange={setIsPremiumCompute} />
-                        </div>
 
-                        {/* Response Size Slider */}
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <label className="text-sm font-semibold tracking-wide text-foreground flex items-center gap-2">
-                                    <IconDatabaseExport className="h-4 w-4 text-muted-foreground" />
-                                    Avg Response Size
-                                </label>
-                                <Badge variant="outline" className="font-mono">{responseSize[0]} KB</Badge>
-                            </div>
-                            <Slider
-                                value={responseSize}
-                                onValueChange={setResponseSize}
-                                max={100}
-                                min={1}
-                                step={1}
-                                className="w-full"
-                            />
-                        </div>
 
                         {/* Summary Box (Only in non-fullscreen or bottom) */}
                         <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-4">

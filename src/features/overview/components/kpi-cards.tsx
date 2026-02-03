@@ -31,11 +31,11 @@ export function KPICards() {
   );
   const avgLatency = validLatencyProviders.length
     ? Math.round(
-        validLatencyProviders.reduce(
-          (acc: number, p: any) => acc + p.current_metrics.latency_p50,
-          0
-        ) / validLatencyProviders.length
-      )
+      validLatencyProviders.reduce(
+        (acc: number, p: any) => acc + p.current_metrics.latency_p50,
+        0
+      ) / validLatencyProviders.length
+    )
     : 0;
   const uptimeTotal = providers.reduce(
     (acc: number, p: any) => acc + (p.current_metrics?.uptime_percent || 0),
@@ -50,12 +50,14 @@ export function KPICards() {
       <Card>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>Top Provider</CardTitle>
-          <IconTrophy className='text-muted-foreground h-4 w-4' />
+          <div className='rounded-full bg-primary/10 p-2 text-primary'>
+            <IconTrophy className='h-4 w-4' />
+          </div>
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold'>{topProvider?.name || 'N/A'}</div>
           <p className='text-muted-foreground text-xs'>
-            Score: {topProvider?.scores?.final_score ?? 'N/A'}
+            Score: <span className="font-medium text-foreground">{topProvider?.scores?.final_score ?? 'N/A'}</span>
           </p>
         </CardContent>
       </Card>
@@ -64,7 +66,9 @@ export function KPICards() {
           <CardTitle className='text-sm font-medium'>
             Avg Latency (p50)
           </CardTitle>
-          <IconBolt className='text-muted-foreground h-4 w-4' />
+          <div className='rounded-full bg-blue-500/10 p-2 text-blue-500'>
+            <IconBolt className='h-4 w-4' />
+          </div>
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold'>{avgLatency} ms</div>
@@ -76,7 +80,9 @@ export function KPICards() {
       <Card>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>Network Uptime</CardTitle>
-          <IconActivity className='text-muted-foreground h-4 w-4' />
+          <div className='rounded-full bg-green-500/10 p-2 text-green-500'>
+            <IconActivity className='h-4 w-4' />
+          </div>
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold'>{avgUptime}%</div>
@@ -88,7 +94,9 @@ export function KPICards() {
           <CardTitle className='text-sm font-medium'>
             Active Providers
           </CardTitle>
-          <IconServer className='text-muted-foreground h-4 w-4' />
+          <div className='rounded-full bg-orange-500/10 p-2 text-orange-500'>
+            <IconServer className='h-4 w-4' />
+          </div>
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold'>{providers.length}</div>

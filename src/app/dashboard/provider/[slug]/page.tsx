@@ -201,7 +201,7 @@ export default function ProviderDetailPage() {
                         dataKey='value'
                         stroke='var(--primary)'
                         strokeWidth={2}
-                        dot={false}
+                        dot={{ r: 4, fill: 'var(--primary)' }} // Ensure dots are always visible for single points
                         activeDot={{
                           r: 6,
                           style: { fill: 'var(--primary)', opacity: 0.8 }

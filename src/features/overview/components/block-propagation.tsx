@@ -58,10 +58,13 @@ export function BlockPropagation() {
             Real-time block discovery competition. Which provider sees the chain tip first?
           </p>
         </div>
-        <div className='flex items-center space-x-2 rounded-full border border-neutral-800 bg-neutral-900 px-3 py-1'>
-          <IconClock className='h-4 w-4 animate-pulse text-emerald-500' />
+        <div className='flex items-center space-x-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1 shadow-[0_0_10px_rgba(16,185,129,0.1)]'>
+          <div className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </div>
           <span className='font-mono text-sm text-neutral-300'>
-            Head: <span className='text-white'>#{data?.latestBlock?.toLocaleString() ?? '...'}</span>
+            Head: <span className='text-white font-bold'>#{data?.latestBlock?.toLocaleString() ?? '...'}</span>
           </span>
         </div>
       </CardHeader>
@@ -108,7 +111,11 @@ export function BlockPropagation() {
                   <div className='relative h-2 w-full overflow-hidden rounded-full bg-neutral-900'>
                     {p.status !== 'error' ? (
                       <div
-                        className={`h-full transition-all duration-700 ease-out relative overflow-hidden ${isWinner ? 'bg-emerald-500' : isSynced ? 'bg-neutral-600' : 'bg-amber-600'
+                        className={`h-full transition-all duration-700 ease-out relative overflow-hidden ${isWinner
+                          ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                          : isSynced
+                            ? 'bg-neutral-600'
+                            : 'bg-amber-600'
                           }`}
                         style={{
                           width: isSynced ? '100%' : `${Math.max(5, 100 - p.blocksBehind * 10)}%`
