@@ -37,7 +37,7 @@ export class GoldRushAdapter extends BaseAdapter {
       id: this.id,
       name: this.name,
       slug: this.id,
-      logo_url: 'https://www.covalenthq.com/static/images/covalent-logo.png', // Rebranding might use different logo, sticking to safe one or updating if found
+      logo_url: '/providers/goldrush.png',
       website_url: 'https://goldrush.dev',
       supported_chains: [
         'ethereum',

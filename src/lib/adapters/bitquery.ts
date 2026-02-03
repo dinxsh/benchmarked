@@ -40,8 +40,7 @@ export class BitqueryAdapter extends BaseAdapter {
       id: this.id,
       name: this.name,
       slug: this.id,
-      logo_url:
-        'https://bitquery.io/wp-content/uploads/2020/09/bitquery_logo_w.png',
+      logo_url: '/providers/bitquery.png',
       website_url: 'https://bitquery.io',
       supported_chains: ['ethereum', 'bsc', 'polygon', 'solana', 'tron', 'eos'],
       pricing: {

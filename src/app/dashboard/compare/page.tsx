@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCompare } from '@/hooks/use-api';
 import { useState } from 'react';
@@ -193,12 +194,17 @@ function ProviderCard({
       )}
 
       <CardHeader className='flex flex-col items-center pb-2 text-center'>
-        <div className='bg-background mb-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border p-2 shadow-sm'>
-          <img
-            src={provider.logo_url}
-            alt={provider.name}
-            className='h-full w-full object-contain'
-          />
+        <div className='bg-background mb-4 flex items-center justify-center p-2 shadow-sm'>
+          <Avatar className='h-20 w-20 rounded-none'>
+            <AvatarImage
+              src={provider.logo_url}
+              alt={provider.name}
+              className='object-contain'
+            />
+            <AvatarFallback className='rounded-none text-2xl font-bold'>
+              {provider.name[0]}
+            </AvatarFallback>
+          </Avatar>
         </div>
         <CardTitle className='text-3xl'>{provider.name}</CardTitle>
         <Badge variant='secondary' className='mt-2'>

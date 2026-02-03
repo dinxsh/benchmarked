@@ -15,7 +15,7 @@ export class AnkrAdapter extends BaseAdapter {
       id: this.id,
       name: this.name,
       slug: this.id,
-      logo_url: 'https://www.ankr.com/favicon.ico',
+      logo_url: '/providers/ankr.png',
       website_url: 'https://www.ankr.com',
       supported_chains: [
         'ethereum',

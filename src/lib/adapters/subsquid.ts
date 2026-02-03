@@ -34,7 +34,7 @@ export class SubsquidAdapter extends BaseAdapter {
       id: this.id,
       name: this.name,
       slug: this.id,
-      logo_url: 'https://docs.subsquid.io/img/logo.svg',
+      logo_url: '/providers/sqd.png',
       website_url: 'https://subsquid.io',
       supported_chains: [
         'ethereum',

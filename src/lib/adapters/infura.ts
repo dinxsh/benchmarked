@@ -15,7 +15,7 @@ export class InfuraAdapter extends BaseAdapter {
       id: this.id,
       name: this.name,
       slug: this.id,
-      logo_url: 'https://infura.io/favicon.ico',
+      logo_url: '/providers/infura.png',
       website_url: 'https://infura.io',
       supported_chains: ['ethereum', 'polygon', 'arbitrum'],
       pricing: {
