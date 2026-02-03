@@ -66,4 +66,25 @@ export class GoldRushAdapter extends BaseAdapter {
       }
     };
   }
+  async getBlockHeight(): Promise<number> {
+    try {
+      const response = await fetch(this.endpoint, {
+        method: 'GET',
+        headers: {
+          // 'Authorization': \`Bearer \${process.env.GOLDRUSH_API_KEY}\`
+        },
+        signal: AbortSignal.timeout(3000)
+      });
+
+      if (!response.ok) return 0;
+      const data = await response.json();
+      // Covalent response structure: data.data.items[0].height
+      if (data?.data?.items?.[0]?.height) {
+        return data.data.items[0].height;
+      }
+      return 0;
+    } catch (error) {
+      return 0;
+    }
+  }
 }
