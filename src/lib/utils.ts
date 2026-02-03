@@ -18,9 +18,15 @@ export function formatBytes(
   const accurateSizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB'];
   if (bytes === 0) return '0 Byte';
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return `${(bytes / Math.pow(1024, i)).toFixed(decimals)} ${
-    sizeType === 'accurate'
+  return `${(bytes / Math.pow(1024, i)).toFixed(decimals)} ${sizeType === 'accurate'
       ? (accurateSizes[i] ?? 'Bytest')
       : (sizes[i] ?? 'Bytes')
-  }`;
+    }`;
+}
+
+export function formatNumber(num: number): string {
+  if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B';
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+  return num.toString();
 }
