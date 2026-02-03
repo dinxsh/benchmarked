@@ -20,6 +20,9 @@ import {
 } from '@/components/ui/sidebar';
 import { Icon } from '@/components/icons';
 
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
 export function NavMain({
   items
 }: {
@@ -34,6 +37,7 @@ export function NavMain({
     }[];
   }[];
 }) {
+  const pathname = usePathname();
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -50,7 +54,8 @@ export function NavMain({
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     tooltip={item.title}
-                    className='bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear'
+                    isActive={pathname === item.url}
+                    className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
                   >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
@@ -61,10 +66,13 @@ export function NavMain({
                   <SidebarMenuSub>
                     {item.items?.map((subItem) => (
                       <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton asChild>
-                          <a href={subItem.url}>
+                        <SidebarMenuSubButton
+                          asChild
+                          isActive={pathname === subItem.url}
+                        >
+                          <Link href={subItem.url}>
                             <span>{subItem.title}</span>
-                          </a>
+                          </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     ))}

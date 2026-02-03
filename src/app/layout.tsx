@@ -1,4 +1,5 @@
 import Providers from '@/components/layout/providers';
+import QueryProvider from '@/components/providers/query-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { fontVariables } from '@/components/themes/font.config';
 import { DEFAULT_THEME } from '@/components/themes/theme.config';
@@ -16,7 +17,7 @@ const META_THEME_COLORS = {
 };
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn',
+  title: 'benchmark.xyz',
   description: 'Basic dashboard with Next.js and Shadcn'
 };
 
@@ -64,10 +65,12 @@ export default async function RootLayout({
             disableTransitionOnChange
             enableColorScheme
           >
-            <Providers activeThemeValue={themeToApply}>
-              <Toaster />
-              {children}
-            </Providers>
+            <QueryProvider>
+              <Providers activeThemeValue={themeToApply}>
+                <Toaster />
+                {children}
+              </Providers>
+            </QueryProvider>
           </ThemeProvider>
         </NuqsAdapter>
       </body>

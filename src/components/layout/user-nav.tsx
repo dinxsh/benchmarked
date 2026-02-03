@@ -10,11 +10,17 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
-import { SignOutButton, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+
 export function UserNav() {
-  const { user } = useUser();
   const router = useRouter();
+
+  const user = {
+    fullName: 'Demo User',
+    imageUrl: '',
+    emailAddresses: [{ emailAddress: 'demo@example.com' }]
+  };
+
   if (user) {
     return (
       <DropdownMenu>
@@ -41,16 +47,12 @@ export function UserNav() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem>Billing</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>New Team</DropdownMenuItem>
+            <DropdownMenuItem disabled>Settings</DropdownMenuItem>
+            <DropdownMenuItem disabled>New Team</DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <SignOutButton redirectUrl='/auth/sign-in' />
+          <DropdownMenuItem onClick={() => router.push('/')}>
+            Sign out
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
