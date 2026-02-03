@@ -7,8 +7,8 @@ export class SubsquidAdapter extends BaseAdapter {
   constructor() {
     super();
     // Using a public squid for demo
+    // Using public archive endpoint which returns block height
     this.endpoint =
-      process.env.SUBSQUID_ENDPOINT ||
       'https://v2.archive.subsquid.io/network/ethereum-mainnet/height';
   }
 
