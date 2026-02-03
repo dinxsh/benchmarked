@@ -1,0 +1,36 @@
+
+name: Update Benchmarks
+
+on:
+  schedule:
+    # Run every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Update Script
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+          QUICKNODE_API_KEY: ${{ secrets.QUICKNODE_API_KEY }}
+          CHAINSTACK_API_KEY: ${{ secrets.CHAINSTACK_API_KEY }}
+          BITQUERY_API_KEY: ${{ secrets.BITQUERY_API_KEY }}
+          # Add other keys as required
+        run: npx tsx scripts/update-benchmarks.ts
