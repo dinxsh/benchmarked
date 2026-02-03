@@ -38,6 +38,9 @@ By leveraging a **Backendless Architecture**, it provides a lightweight yet powe
 | Feature | Description |
 |---------|-------------|
 | **Leaderboard** | Real-time ranking based on weighted scores of Latency (p50/p95), Uptime, and Error Rates. |
+| **Block Propagation** | Live race visualization showing how fast each provider discovers new blocks compared to the chain head. |
+| **Smart Cost Estimator** | Interactive calculator to project monthly infrastructure costs based on request volume and archival needs. |
+| **Edge vs Cloud** | Real-time latency test comparing browser-side (Edge) vs server-side (Cloud) performance. |
 | **Deep Analytics** | Detailed performance profiles with historical trends (24h, 7d, 30d) and distribution breakdowns. |
 | **Comparison** | Side-by-side "Head-to-Head" mode to compare specific metrics between two providers. |
 | **Workspaces** | Multi-tenant support via Clerk, allowing teams to manage private benchmarks and API keys. |
