@@ -54,38 +54,80 @@ export function SmartCostCalculator() {
         const providers = [
             {
                 id: 1,
-                name: 'Alchemy',
-                basePrice: 1.50, // Per million
-                freeLimit: 300000000,
-                features: ['Reliable', 'Deep History']
+                name: 'Covalent',
+                basePrice: 0.10, // Estimate based on credit efficiency for data
+                freeLimit: 1000000000,
+                features: ['Unified API', 'Granular Data', 'Long-term Storage']
             },
             {
                 id: 2,
-                name: 'QuickNode',
-                basePrice: 2.00,
-                freeLimit: 10000000,
-                features: ['Fast', 'Global']
+                name: 'Alchemy',
+                basePrice: 0.45, // 2025 Pricing: Starts at $0.45/million CUs
+                freeLimit: 300000000, // 300M CUs/month free
+                features: ['Reliable', 'Deep History']
             },
             {
                 id: 3,
+                name: 'QuickNode',
+                basePrice: 0.61, // ~$49 for 80M credits
+                freeLimit: 10000000, // 10M free
+                features: ['Fast', 'Global']
+            },
+            {
+                id: 4,
                 name: 'Infura',
-                basePrice: 1.00,
+                basePrice: 0.50, // Estimate roughly based on $50/mo plans
                 freeLimit: 3000000,
                 features: ['Standard']
             },
             {
-                id: 4,
+                id: 5,
                 name: 'Subsquid',
-                basePrice: 0.10, // Very cheap
-                freeLimit: Infinity, // "Free" for demo
+                basePrice: 0.10,
+                freeLimit: Infinity, // "Free" for now (Network bootstrapping)
                 features: ['Decentralized', 'Open']
             },
             {
-                id: 5,
+                id: 6,
                 name: 'Ankr',
-                basePrice: 0.50,
+                basePrice: 0.50, // Hybrid/Premium pricing varies
                 freeLimit: 0,
                 features: ['Hybrid']
+            },
+            {
+                id: 7,
+                name: 'Chainstack',
+                basePrice: 0.30,
+                freeLimit: 3000000,
+                features: ['Multi-cloud']
+            },
+            {
+                id: 8,
+                name: 'GetBlock',
+                basePrice: 0.60,
+                freeLimit: 40000,
+                features: ['User-friendly']
+            },
+            {
+                id: 9,
+                name: 'BlockPi',
+                basePrice: 0.20,
+                freeLimit: 0,
+                features: ['DePIN', 'Low Latency']
+            },
+            {
+                id: 10,
+                name: 'Bitquery',
+                basePrice: 3.50, // Specialized Data API (Premium)
+                freeLimit: 10000,
+                features: ['Complex Queries', 'Analytics']
+            },
+            {
+                id: 11,
+                name: 'The Graph',
+                basePrice: 1.20, // Query fees vary
+                freeLimit: 100000,
+                features: ['Indexed Data']
             }
         ];
 
@@ -94,12 +136,13 @@ export function SmartCostCalculator() {
             const billableRatio = Math.max(0, reqs - p.freeLimit);
             const computeCost = (billableRatio / 1000000) * p.basePrice * computeMultiplier;
             // Some providers charge differently for bandwidth, simplified here:
-            const total = computeCost + (p.name === 'Subsquid' ? 0 : bandwidthCost);
+            const total = computeCost + (['Subsquid', 'Covalent'].includes(p.name) ? 0 : bandwidthCost);
 
             return {
                 ...p,
                 cost: total,
-                freeTier: formatNumber(p.freeLimit) === 'Infinity' ? 'Unlimited' : formatNumber(p.freeLimit)
+                // Handle Infinity case for display
+                freeTier: p.freeLimit === Infinity ? 'Unlimited' : formatNumber(p.freeLimit)
             };
         }).sort((a, b) => a.cost - b.cost);
 
@@ -144,10 +187,10 @@ export function SmartCostCalculator() {
             </CardHeader>
 
             <CardContent className="relative z-10 pt-8 pb-4">
-                <div className={cn("grid gap-8 lg:gap-12", isFullscreen ? "grid-cols-1 md:grid-cols-12 max-w-7xl mx-auto h-full" : "grid-cols-1")}>
+                <div className={cn("grid gap-8 lg:gap-12", isFullscreen ? "grid-cols-1 md:grid-cols-12 max-w-7xl mx-auto h-full" : "grid-cols-1 lg:grid-cols-12")}>
 
                     {/* Controls Panel */}
-                    <div className={cn("space-y-8 p-6 rounded-xl border border-border/50 bg-card/50", isFullscreen ? "md:col-span-4" : "")}>
+                    <div className={cn("space-y-8 p-6 rounded-xl border border-border/50 bg-card/50", "lg:col-span-5", isFullscreen ? "md:col-span-4" : "")}>
 
                         {/* Request Slider */}
                         <div className="space-y-4">
@@ -212,7 +255,7 @@ export function SmartCostCalculator() {
                     </div>
 
                     {/* Visualization & List Panel */}
-                    <div className={cn("space-y-6", isFullscreen ? "md:col-span-8 overflow-y-auto pr-2" : "")}>
+                    <div className={cn("space-y-6", "lg:col-span-7", isFullscreen ? "md:col-span-8 overflow-y-auto pr-2" : "")}>
                         {/* Chart Header */}
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="font-semibold text-lg">Cost Comparison</h3>
