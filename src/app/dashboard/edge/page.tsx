@@ -13,7 +13,7 @@ export default function EdgeComparisonPage() {
                         Test the latency difference between your browser (Edge) and our optimized servers (Cloud).
                     </p>
                 </div>
-                <div className='max-w-3xl'>
+                <div className='w-full'>
                     <EdgeCloudComparison />
                 </div>
             </div>
