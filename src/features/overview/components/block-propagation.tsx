@@ -38,80 +38,92 @@ export function BlockPropagation() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 4000); // 4s polling (simulating blocks)
+    const interval = setInterval(fetchData, 4000);
     return () => clearInterval(interval);
   }, []);
 
+  // Find the true winner (synced + lowest latency)
+  const winnerId = data?.providers?.find(
+    (p) => p.status === 'leading'
+  )?.id;
+
   return (
-    <Card className='col-span-1 md:col-span-2 lg:col-span-3'>
-      <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-        <CardTitle className='text-base font-medium'>
-          Block Propagation Race (Live)
-        </CardTitle>
-        <div className='text-muted-foreground flex items-center space-x-2 text-sm'>
-          <IconClock className='h-4 w-4 animate-pulse text-green-500' />
-          <span>
-            Current Head: #{data?.latestBlock?.toLocaleString() ?? '...'}
+    <Card className='col-span-1 border-neutral-800 bg-neutral-950/50 md:col-span-2 lg:col-span-3'>
+      <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-6'>
+        <div className='space-y-1'>
+          <CardTitle className='text-xl font-semibold tracking-tight text-white'>
+            Block Propagation Race
+          </CardTitle>
+          <p className='text-sm text-neutral-400'>
+            Real-time block discovery competition. Which provider sees the chain tip first?
+          </p>
+        </div>
+        <div className='flex items-center space-x-2 rounded-full border border-neutral-800 bg-neutral-900 px-3 py-1'>
+          <IconClock className='h-4 w-4 animate-pulse text-emerald-500' />
+          <span className='font-mono text-sm text-neutral-300'>
+            Head: <span className='text-white'>#{data?.latestBlock?.toLocaleString() ?? '...'}</span>
           </span>
         </div>
       </CardHeader>
-      <CardContent className='space-y-6 pt-6'>
+      <CardContent className='space-y-6'>
         {loading ? (
-          <div>Loading race data...</div>
+          <div className='flex h-40 items-center justify-center text-neutral-500'>Initializing race data...</div>
         ) : (
-          <div className='space-y-5'>
-            {data?.providers.map((p) => (
-              <div key={p.id} className='space-y-2'>
-                <div className='flex items-center justify-between text-sm'>
-                  <div className='flex items-center gap-2'>
-                    <span className='font-medium'>{p.name}</span>
-                    {p.status === 'leading' && (
-                      <Badge
-                        variant='default'
-                        className='h-5 bg-green-500/15 px-1.5 text-[10px] text-green-600 hover:bg-green-500/25'
-                      >
-                        WINNER
-                      </Badge>
-                    )}
-                    {p.status === 'error' && (
-                      <Badge
-                        variant='destructive'
-                        className='h-5 px-1.5 text-[10px]'
-                      >
-                        OFFLINE
-                      </Badge>
-                    )}
-                  </div>
-                  <div className='text-muted-foreground text-xs'>
-                    {p.status === 'leading'
-                      ? `${p.latency}ms discovery`
-                      : p.status === 'error'
-                        ? 'Error'
-                        : `-${p.blocksBehind} blocks behind`}
-                  </div>
-                </div>
+          <div className='space-y-6'>
+            {data?.providers.map((p) => {
+              const isWinner = p.id === winnerId;
+              const isSynced = p.status === 'leading';
 
-                {/* Visual Bar */}
-                <div className='bg-secondary relative h-3 w-full overflow-hidden rounded-full'>
-                  {p.status !== 'error' ? (
-                    <div
-                      className={`h-full transition-all duration-500 ease-out ${
-                        p.status === 'leading' ? 'bg-green-500' : 'bg-amber-500'
-                      }`}
-                      style={{
-                        // If leading, width is 100%. If lagging, reduce width by 10% per block behind
-                        width:
-                          p.status === 'leading'
-                            ? '100%'
-                            : `${Math.max(5, 100 - p.blocksBehind * 10)}%`
-                      }}
-                    />
-                  ) : (
-                    <div className='h-full w-full bg-red-500/20' />
-                  )}
+              return (
+                <div key={p.id} className='space-y-2'>
+                  <div className='flex items-center justify-between text-sm'>
+                    <div className='flex items-center gap-3'>
+                      <span className={`font-medium ${isWinner ? 'text-emerald-400' : 'text-neutral-300'}`}>
+                        {p.name}
+                      </span>
+                      {isWinner && (
+                        <Badge variant='default' className='border-emerald-500/20 bg-emerald-500/10 text-[10px] font-bold tracking-wider text-emerald-500 uppercase'>
+                          Fastest
+                        </Badge>
+                      )}
+                      {!isWinner && isSynced && (
+                        <Badge variant='secondary' className='bg-neutral-800 text-[10px] text-neutral-400'>
+                          Synced
+                        </Badge>
+                      )}
+                      {p.status === 'error' && (
+                        <Badge variant='destructive' className='opacity-50 text-[10px]'>Offline</Badge>
+                      )}
+                    </div>
+                    <div className='font-mono text-xs text-neutral-500'>
+                      {p.status === 'leading'
+                        ? `${p.latency}ms`
+                        : p.status === 'error'
+                          ? window.location.hostname === 'localhost' ? 'Check Console' : 'Timeout'
+                          : `-${p.blocksBehind}`}
+                    </div>
+                  </div>
+
+                  {/* Modern Bar */}
+                  <div className='relative h-2 w-full overflow-hidden rounded-full bg-neutral-900'>
+                    {p.status !== 'error' ? (
+                      <div
+                        className={`h-full transition-all duration-700 ease-out relative overflow-hidden ${isWinner ? 'bg-emerald-500' : isSynced ? 'bg-neutral-600' : 'bg-amber-600'
+                          }`}
+                        style={{
+                          width: isSynced ? '100%' : `${Math.max(5, 100 - p.blocksBehind * 10)}%`
+                        }}
+                      >
+                        {/* Shimmer effect for winner */}
+                        {isWinner && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent w-full h-full -translate-x-full animate-shimmer" />}
+                      </div>
+                    ) : (
+                      <div className='h-full w-full bg-red-900/20' />
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </CardContent>
