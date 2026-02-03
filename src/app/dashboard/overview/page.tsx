@@ -10,25 +10,8 @@ export default function OverviewPage() {
       <div className='flex items-center justify-between space-y-2'>
         <h2 className='text-3xl font-bold tracking-tight'>Overview</h2>
         <div className='flex items-center space-x-2'>
-          {/* <CalendarDateRangePicker /> */}
           <Button>Download</Button>
         </div>
-      </div>
-
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
-        {/* Row 1: Race (Full width on mobile, 2/3 on desktop) + Cost Calculator */}
-        <div className='col-span-1 md:col-span-2'>
-          <BlockPropagation />
-        </div>
-        <div className='col-span-1'>
-          <CostCalculator />
-        </div>
-
-        {/* Row 2: Edge Comparison + Placeholder/Other Widgets */}
-        <div className='col-span-1'>
-          <EdgeCloudComparison />
-        </div>
-        {/* Add more widgets here if needed to fill the grid */}
       </div>
 
       <Tabs defaultValue='overview' className='space-y-4'>
@@ -39,7 +22,18 @@ export default function OverviewPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value='overview' className='space-y-4'>
-          {/* Existing content or new content can go here */}
+          <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-7'>
+            {/* Left Column (Main) */}
+            <div className='col-span-1 flex flex-col gap-4 md:col-span-2 lg:col-span-4'>
+              <BlockPropagation />
+              <EdgeCloudComparison />
+            </div>
+
+            {/* Right Column (Sidebar-ish) */}
+            <div className='col-span-1 flex flex-col gap-4 lg:col-span-3'>
+              <CostCalculator />
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
