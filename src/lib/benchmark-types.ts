@@ -52,4 +52,5 @@ export interface IProviderAdapter {
     Provider,
     'current_metrics' | 'scores' | 'rank' | 'trend' | 'health_status'
   >;
+  getBlockHeight(): Promise<number>;
 }
