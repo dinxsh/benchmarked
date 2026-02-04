@@ -7,6 +7,9 @@ export interface IBenchmark extends Document {
     name: string;
     slug: string;
     metadata: any; // Adapter metadata (pricing, capabilities, etc.)
+    details?: {
+        last_response_body?: any;
+    }
     metrics: ProviderMetrics;
     scores: ProviderScores;
     metrics_history: { timestamp: Date; value: number }[]; // Snapshot of recent history
@@ -19,12 +22,16 @@ const BenchmarkSchema: Schema = new Schema(
         name: { type: String, required: true },
         slug: { type: String, required: true, index: true },
         metadata: { type: Schema.Types.Mixed, default: {} },
+        details: {
+            last_response_body: { type: Schema.Types.Mixed, default: null }
+        },
         metrics: {
             latency_p50: { type: Number, required: true },
             latency_p95: { type: Number, required: true },
             latency_p99: { type: Number, required: true },
             uptime_percent: { type: Number, required: true },
-            error_rate: { type: Number, required: true }
+            error_rate: { type: Number, required: true },
+            response_size_bytes: { type: Number, required: false }
         },
         scores: {
             final_score: { type: Number, required: true },
@@ -32,7 +39,8 @@ const BenchmarkSchema: Schema = new Schema(
             reliability_score: { type: Number, required: true },
             coverage_score: { type: Number, required: true },
             dx_score: { type: Number, required: true },
-            pricing_score: { type: Number, required: true }
+            pricing_score: { type: Number, required: true },
+            response_size_score: { type: Number, required: false }
         },
         metrics_history: [
             {

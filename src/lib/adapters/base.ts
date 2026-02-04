@@ -11,9 +11,11 @@ export abstract class BaseAdapter implements IProviderAdapter {
     'current_metrics' | 'scores' | 'rank' | 'trend' | 'health_status'
   >;
 
-  async measure(): Promise<ProviderMetrics> {
+  async measure(): Promise<ProviderMetrics & { last_response_body?: any; response_size_bytes?: number }> {
     const samples: number[] = [];
     let errorCount = 0;
+    let capturedResponse: any = null;
+    let responseSize: number | undefined = undefined;
 
     for (let i = 0; i < this.sampleSize; i++) {
       try {
@@ -25,13 +27,26 @@ export abstract class BaseAdapter implements IProviderAdapter {
       await new Promise((r) => setTimeout(r, 100));
     }
 
+    // Capture response body and size from one successful call
+    if (samples.length > 0) {
+      try {
+        const responseData = await this.captureResponse();
+        capturedResponse = responseData.body;
+        responseSize = responseData.size;
+      } catch (error) {
+        console.warn(`Failed to capture response for ${this.id}:`, error);
+      }
+    }
+
     if (samples.length === 0) {
       return {
         latency_p50: 0,
         latency_p95: 0,
         latency_p99: 0,
         uptime_percent: 0,
-        error_rate: 100
+        error_rate: 100,
+        last_response_body: capturedResponse,
+        response_size_bytes: responseSize
       };
     }
 
@@ -46,7 +61,9 @@ export abstract class BaseAdapter implements IProviderAdapter {
       latency_p95: this.percentile(samples, 95),
       latency_p99: this.percentile(samples, 99),
       uptime_percent: Number(successRate.toFixed(2)),
-      error_rate: Number((100 - successRate).toFixed(2))
+      error_rate: Number((100 - successRate).toFixed(2)),
+      last_response_body: capturedResponse,
+      response_size_bytes: responseSize
     };
   }
 
@@ -111,6 +128,44 @@ export abstract class BaseAdapter implements IProviderAdapter {
     } catch (error) {
       console.warn(`Failed to get block height for ${this.id}:`, error);
       return 0;
+    }
+  }
+
+  protected async captureResponse(): Promise<{ body: any; size: number }> {
+    try {
+      if (!this.endpoint) throw new Error('No endpoint');
+
+      // Use eth_getBlockByNumber with latest block and full transactions
+      // This gives us a realistic response size
+      const response = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_getBlockByNumber',
+          params: ['latest', true], // true = include full transaction objects
+          id: 1
+        }),
+        signal: AbortSignal.timeout(5000)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Calculate size in bytes (approximate size of JSON response)
+      const jsonString = JSON.stringify(data);
+      const sizeInBytes = new Blob([jsonString]).size;
+
+      return {
+        body: data,
+        size: sizeInBytes
+      };
+    } catch (error) {
+      console.warn(`Failed to capture response for ${this.id}:`, error);
+      throw error;
     }
   }
 }

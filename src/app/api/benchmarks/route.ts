@@ -37,15 +37,11 @@ export async function GET(request: Request) {
     if (!provider)
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    // Use real history from DB if available, otherwise fallback to current snapshot
+    // Use real history from DB if available.
+    // Strictly NO MOCKS as requested.
     const data = provider.metrics_history && provider.metrics_history.length > 0
       ? provider.metrics_history
-      : [
-        {
-          timestamp: new Date().toISOString(),
-          value: provider.current_metrics.latency_p50
-        }
-      ];
+      : [];
 
     return NextResponse.json({
       data,

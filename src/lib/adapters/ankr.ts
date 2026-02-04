@@ -71,4 +71,39 @@ export class AnkrAdapter extends BaseAdapter {
       return 0;
     }
   }
+
+  protected async captureResponse(): Promise<{ body: any; size: number }> {
+    try {
+      const response = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_getBlockByNumber',
+          params: ['latest', true],
+          id: 1
+        }),
+        signal: AbortSignal.timeout(5000)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      const jsonString = JSON.stringify(data);
+      const sizeInBytes = new Blob([jsonString]).size;
+
+      return {
+        body: data,
+        size: sizeInBytes
+      };
+    } catch (error) {
+      console.warn(`Failed to capture response for ${this.id}:`, error);
+      throw error;
+    }
+  }
 }

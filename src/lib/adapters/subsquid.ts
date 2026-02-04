@@ -76,4 +76,31 @@ export class SubsquidAdapter extends BaseAdapter {
       return 0;
     }
   }
+
+  protected async captureResponse(): Promise<{ body: any; size: number }> {
+    try {
+      // Use the height endpoint which returns a simple number
+      const response = await fetch(this.endpoint, {
+        method: 'GET',
+        signal: AbortSignal.timeout(5000)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const text = await response.text();
+      const data = { height: parseInt(text, 10) };
+      const jsonString = JSON.stringify(data);
+      const sizeInBytes = new Blob([jsonString]).size;
+
+      return {
+        body: data,
+        size: sizeInBytes
+      };
+    } catch (error) {
+      console.warn(`Failed to capture response for ${this.id}:`, error);
+      throw error;
+    }
+  }
 }

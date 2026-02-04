@@ -98,4 +98,45 @@ export class BitqueryAdapter extends BaseAdapter {
       return 0;
     }
   }
+
+  protected async captureResponse(): Promise<{ body: any; size: number }> {
+    try {
+      const response = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': process.env.BITQUERY_API_KEY || ''
+        },
+        body: JSON.stringify({
+          query: `
+            query {
+              ethereum {
+                blocks(options: {desc: "height", limit: 1}) {
+                  height
+                  timestamp {
+                    time
+                  }
+                  transactionCount
+                }
+              }
+            }
+          `
+        }),
+        signal: AbortSignal.timeout(5000)
+      });
+
+      // Accept 401 as valid response for size calculation
+      const data = await response.json();
+      const jsonString = JSON.stringify(data);
+      const sizeInBytes = new Blob([jsonString]).size;
+
+      return {
+        body: data,
+        size: sizeInBytes
+      };
+    } catch (error) {
+      console.warn(`Failed to capture response for ${this.id}:`, error);
+      throw error;
+    }
+  }
 }

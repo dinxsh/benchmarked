@@ -14,7 +14,16 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { IconExternalLink, IconCheck, IconX } from '@tabler/icons-react';
+import { IconExternalLink, IconCheck, IconX, IconCode } from '@tabler/icons-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   LineChart,
   Line,
@@ -95,7 +104,7 @@ export default function ProviderDetailPage() {
         </div>
 
         {/* KPI Grid */}
-        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-5'>
           <Card>
             <CardHeader className='pb-2'>
               <CardTitle className='text-sm font-medium'>Final Score</CardTitle>
@@ -142,6 +151,21 @@ export default function ProviderDetailPage() {
                 ${provider.pricing.cost_per_million}
               </div>
               <p className='text-muted-foreground text-xs'>Per 1M requests</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className='pb-2'>
+              <CardTitle className='text-sm font-medium'>
+                Response Size
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='text-2xl font-bold'>
+                {provider.current_metrics.response_size_bytes
+                  ? (provider.current_metrics.response_size_bytes / 1024).toFixed(2)
+                  : '-'}
+              </div>
+              <p className='text-muted-foreground text-xs'>KB per request</p>
             </CardContent>
           </Card>
         </div>
@@ -244,6 +268,54 @@ export default function ProviderDetailPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Example Response Section */}
+        {provider.last_response_body && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Example Response</CardTitle>
+                  <CardDescription>
+                    Real-time API response captured from {provider.name}
+                  </CardDescription>
+                </div>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <IconCode className="mr-2 h-4 w-4" />
+                      View Full Response
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[800px] max-h-[80vh]">
+                    <DialogHeader>
+                      <DialogTitle>Full API Response</DialogTitle>
+                      <DialogDescription>
+                        Complete JSON response from {provider.name}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <ScrollArea className="h-[60vh]">
+                      <div className="rounded-md border bg-muted/50 p-4">
+                        <pre className="font-mono text-xs">
+                          {JSON.stringify(provider.last_response_body, null, 2)}
+                        </pre>
+                      </div>
+                    </ScrollArea>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border bg-muted/50 p-4">
+                <ScrollArea className="h-[200px]">
+                  <pre className="font-mono text-xs">
+                    {JSON.stringify(provider.last_response_body, null, 2)}
+                  </pre>
+                </ScrollArea>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </PageContainer>
   );

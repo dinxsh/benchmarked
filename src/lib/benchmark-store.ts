@@ -20,6 +20,7 @@ class BenchmarkStore {
       slug: doc.slug,
       ...doc.metadata,
       current_metrics: doc.metrics,
+      last_response_body: doc.details?.last_response_body,
       scores: doc.scores,
       rank: 0, // Will calc below
       trend: 'stable',
@@ -38,9 +39,25 @@ class BenchmarkStore {
     data.forEach((p, i) => { p.rank = i + 1; });
 
     // Custom Sort if requested
-    if (sort === 'latency') {
+    if (sort === 'latency' || sort === 'fastest') {
       data.sort(
         (a, b) => a.current_metrics.latency_p50 - b.current_metrics.latency_p50
+      );
+    } else if (sort === 'slowest') {
+      data.sort(
+        (a, b) => b.current_metrics.latency_p50 - a.current_metrics.latency_p50
+      );
+    } else if (sort === 'response_size' || sort === 'smallest') {
+      data.sort(
+        (a, b) => (a.current_metrics.response_size_bytes || 0) - (b.current_metrics.response_size_bytes || 0)
+      );
+    } else if (sort === 'biggest') {
+      data.sort(
+        (a, b) => (b.current_metrics.response_size_bytes || 0) - (a.current_metrics.response_size_bytes || 0)
+      );
+    } else if (sort === 'uptime') {
+      data.sort(
+        (a, b) => b.current_metrics.uptime_percent - a.current_metrics.uptime_percent
       );
     }
 
@@ -59,6 +76,7 @@ class BenchmarkStore {
       slug: doc.slug,
       ...doc.metadata,
       current_metrics: doc.metrics,
+      last_response_body: doc.details?.last_response_body,
       scores: doc.scores,
       rank: 0, // Best effort or need to fetch all to rank
       trend: 'stable',

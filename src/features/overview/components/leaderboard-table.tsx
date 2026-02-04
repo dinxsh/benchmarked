@@ -1,24 +1,75 @@
 'use client';
 
 import { useLeaderboard } from '@/hooks/use-api';
-import { IconChevronRight } from '@tabler/icons-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
+import { useState, useMemo } from 'react';
+import {
+  getCoreRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable
+} from '@tanstack/react-table';
+import { columns } from './leaderboard-columns';
+import { LeaderboardToolbar } from './leaderboard-toolbar';
+import { DataTable } from '@/components/ui/table/data-table';
 
-export function LeaderboardTable() {
+interface LeaderboardTableProps {
+  sortBy?: 'fastest' | 'slowest' | 'smallest' | 'biggest' | null;
+}
+
+export function LeaderboardTable({ sortBy }: LeaderboardTableProps) {
   const { data: leaderboard, isLoading } = useLeaderboard();
   const router = useRouter();
+
+  const data = useMemo(() => {
+    const baseData = leaderboard?.data || [];
+    if (!sortBy) return baseData;
+
+    const sorted = [...baseData];
+    switch (sortBy) {
+      case 'fastest':
+        return sorted.sort((a, b) => a.current_metrics.latency_p50 - b.current_metrics.latency_p50);
+      case 'slowest':
+        return sorted.sort((a, b) => b.current_metrics.latency_p50 - a.current_metrics.latency_p50);
+      case 'smallest':
+        return sorted.sort((a, b) =>
+          (a.current_metrics.response_size_bytes || Infinity) - (b.current_metrics.response_size_bytes || Infinity)
+        );
+      case 'biggest':
+        return sorted.sort((a, b) =>
+          (b.current_metrics.response_size_bytes || 0) - (a.current_metrics.response_size_bytes || 0)
+        );
+      default:
+        return baseData;
+    }
+  }, [leaderboard?.data, sortBy]);
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    initialState: {
+      sorting: [
+        {
+          id: 'rank',
+          desc: false,
+        },
+      ],
+      pagination: {
+        pageSize: 10,
+      },
+    },
+  });
 
   if (isLoading) {
     return <Skeleton className='h-[400px] w-full rounded-xl' />;
@@ -37,99 +88,13 @@ export function LeaderboardTable() {
         </div>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className='w-[50px]'>Rank</TableHead>
-              <TableHead>Provider</TableHead>
-              <TableHead>Score</TableHead>
-              <TableHead>Latency (p50)</TableHead>
-              <TableHead>Uptime</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className='text-right'>Trend</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {leaderboard?.data?.map((provider: any) => (
-              <TableRow
-                key={provider.id}
-                className='hover:bg-muted/50 cursor-pointer'
-                onClick={() =>
-                  router.push(`/dashboard/provider/${provider.slug}`)
-                }
-              >
-                <TableCell className='font-medium'>#{provider.rank}</TableCell>
-                <TableCell>
-                  <div className='flex items-center gap-2'>
-                    <Avatar className='h-8 w-8'>
-                      <AvatarImage
-                        src={provider.logo_url}
-                        alt={provider.name}
-                      />
-                      <AvatarFallback>{provider.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <span className='font-semibold'>{provider.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className='flex items-center gap-2'>
-                    <span className='text-lg font-bold'>
-                      {provider.scores?.final_score ?? 'N/A'}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={
-                      (provider.current_metrics?.latency_p50 || 0) < 50
-                        ? 'default' // Greenish (Shadcn default is usually black/primary, need overrides or utilize outline for colors)
-                        : (provider.current_metrics?.latency_p50 || 0) < 150
-                          ? 'secondary'
-                          : 'destructive'
-                    }
-                    className={
-                      (provider.current_metrics?.latency_p50 || 0) < 50
-                        ? 'bg-emerald-500 hover:bg-emerald-600 border-transparent text-white'
-                        : (provider.current_metrics?.latency_p50 || 0) < 150
-                          ? 'bg-amber-500 hover:bg-amber-600 border-transparent text-white'
-                          : ''
-                    }
-                  >
-                    {provider.current_metrics?.latency_p50 ?? 0} ms
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {provider.current_metrics?.uptime_percent?.toFixed(2) ?? '0.00'}%
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant='outline'
-                    className={
-                      provider.health_status === 'healthy'
-                        ? 'border-emerald-500 text-emerald-500'
-                        : 'border-amber-500 text-amber-500'
-                    }
-                  >
-                    {provider.health_status}
-                  </Badge>
-                </TableCell>
-                <TableCell className='text-right'>
-                  {provider.trend === 'up' ? (
-                    <span className="text-emerald-500 font-bold">↗</span>
-                  ) : provider.trend === 'down' ? (
-                    <span className="text-red-500 font-bold">↘</span>
-                  ) : (
-                    <span className="text-muted-foreground">→</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <IconChevronRight className='text-muted-foreground h-4 w-4' />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable
+          table={table}
+          scrollable={false}
+          onRowClick={(row) => router.push(`/dashboard/provider/${row.original.slug}`)}
+        >
+          <LeaderboardToolbar table={table} />
+        </DataTable>
       </CardContent>
     </Card>
   );
