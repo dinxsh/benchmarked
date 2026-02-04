@@ -118,7 +118,7 @@ export function ScoreRadarChart({ providers }: ScoreRadarChartProps) {
                         />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Radar
-                            name={chartConfig.score?.label || 'Score'}
+                            name={(chartConfig.score?.label as string) || 'Score'}
                             dataKey='score'
                             stroke={chartConfig.score?.color}
                             fill={chartConfig.score?.color}
