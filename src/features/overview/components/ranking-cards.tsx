@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { IconBolt, IconFileZip, IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
+import { formatDecimal } from '@/lib/utils';
 
 interface Provider {
     id: string;
@@ -129,11 +130,13 @@ export function RankingCards({ providers, onFilterClick, activeFilter }: Ranking
                 filterKey="slowest"
                 iconColor="text-red-500"
             />
+
+
             <RankCard
                 title="📦 Smallest Response"
                 icon={IconFileZip}
                 provider={smallest}
-                metric={hasResponseSizeData ? `${((smallest.current_metrics.response_size_bytes || 0) / 1024).toFixed(2)} KB` : 'N/A'}
+                metric={hasResponseSizeData ? `${formatDecimal((smallest.current_metrics.response_size_bytes || 0) / 1024)} KB` : 'N/A'}
                 color="text-green-600"
                 filterKey="smallest"
                 iconColor="text-green-500"
@@ -143,7 +146,7 @@ export function RankingCards({ providers, onFilterClick, activeFilter }: Ranking
                 title="📊 Biggest Response"
                 icon={IconTrendingUp}
                 provider={biggest}
-                metric={hasResponseSizeData ? `${((biggest.current_metrics.response_size_bytes || 0) / 1024).toFixed(2)} KB` : 'N/A'}
+                metric={hasResponseSizeData ? `${formatDecimal((biggest.current_metrics.response_size_bytes || 0) / 1024)} KB` : 'N/A'}
                 color="text-blue-600"
                 filterKey="biggest"
                 iconColor="text-blue-500"

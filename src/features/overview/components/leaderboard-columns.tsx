@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { IconChevronRight } from '@tabler/icons-react';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
+import { formatDecimal } from '@/lib/utils';
 
 export type Provider = {
   id: string;
@@ -119,7 +120,7 @@ export const columns: ColumnDef<Provider>[] = [
     cell: ({ row }) => {
       const uptime = row.original.current_metrics?.uptime_percent;
       return (
-        <div>{uptime?.toFixed(2) ?? '0.00'}%</div>
+        <div>{uptime !== undefined ? formatDecimal(uptime) : '0'}%</div>
       );
     },
     filterFn: (row, id, value) => {
@@ -144,7 +145,7 @@ export const columns: ColumnDef<Provider>[] = [
       const bytes = row.original.current_metrics?.response_size_bytes;
       if (bytes === undefined || bytes === null) return <span className="text-muted-foreground">-</span>;
 
-      const kbs = (bytes / 1024).toFixed(2);
+      const kbs = formatDecimal(bytes / 1024);
       return (
         <div className="font-mono text-xs">
           {kbs} KB

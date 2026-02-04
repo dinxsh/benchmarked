@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMemo } from 'react';
+import { formatDecimal } from '@/lib/utils';
 
 interface Provider {
     id: string;
@@ -64,7 +65,7 @@ export function PerformanceMatrix({ providers }: PerformanceMatrixProps) {
             },
             {
                 label: 'Best Uptime',
-                value: `${bestUptime.current_metrics.uptime_percent.toFixed(2)}%`,
+                value: `${formatDecimal(bestUptime.current_metrics.uptime_percent, 2)}%`,
                 provider: bestUptime.name,
                 color: 'text-emerald-500' // Success
             },
@@ -73,7 +74,7 @@ export function PerformanceMatrix({ providers }: PerformanceMatrixProps) {
                 value: smallest
                     ? (smallest.current_metrics.response_size_bytes || 0) < 1024
                         ? `${smallest.current_metrics.response_size_bytes} B`
-                        : `${((smallest.current_metrics.response_size_bytes || 0) / 1024).toFixed(1)} KB`
+                        : `${formatDecimal((smallest.current_metrics.response_size_bytes || 0) / 1024, 1)} KB`
                     : 'N/A',
                 provider: smallest?.name || 'N/A',
                 color: 'text-blue-500' // Info/Neutral
@@ -83,26 +84,26 @@ export function PerformanceMatrix({ providers }: PerformanceMatrixProps) {
                 value: largest
                     ? (largest.current_metrics.response_size_bytes || 0) < 1024
                         ? `${largest.current_metrics.response_size_bytes} B`
-                        : `${((largest.current_metrics.response_size_bytes || 0) / 1024).toFixed(1)} KB`
+                        : `${formatDecimal((largest.current_metrics.response_size_bytes || 0) / 1024, 1)} KB`
                     : 'N/A',
                 provider: largest?.name || 'N/A',
                 color: 'text-amber-500' // Warning
             },
             {
                 label: 'Most Reliable',
-                value: `${mostReliable.scores.reliability_score.toFixed(1)}`,
+                value: `${formatDecimal(mostReliable.scores.reliability_score, 1)}`,
                 provider: mostReliable.name,
                 color: 'text-emerald-500' // Success
             },
             {
                 label: 'Best Value',
-                value: `${bestPricing.scores.pricing_score.toFixed(1)}`,
+                value: `${formatDecimal(bestPricing.scores.pricing_score, 1)}`,
                 provider: bestPricing.name,
                 color: 'text-emerald-500' // Success
             },
             {
                 label: 'Most Features',
-                value: `${mostFeatures.scores.coverage_score.toFixed(1)}`,
+                value: `${formatDecimal(mostFeatures.scores.coverage_score, 1)}`,
                 provider: mostFeatures.name,
                 color: 'text-indigo-500' // Feature/Special
             }

@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { IconBolt, IconTarget, IconChartBar, IconTrophy } from '@tabler/icons-react';
 import { useMemo } from 'react';
+import { formatDecimal } from '@/lib/utils';
 
 interface Provider {
     id: string;
@@ -47,10 +48,10 @@ export function PerformanceStats({ providers }: PerformanceStatsProps) {
 
             return {
                 avgLatency: Math.round(avgLatency),
-                avgUptime: avgUptime.toFixed(1),
+                avgUptime: formatDecimal(avgUptime, 1),
                 totalProviders: providers.length,
                 topProvider: topProvider?.name || 'N/A',
-                topScore: topProvider?.scores?.final_score?.toFixed(1) || '0'
+                topScore: topProvider?.scores?.final_score ? formatDecimal(topProvider.scores.final_score, 1) : '0'
             };
         } catch (error) {
             console.error('Error calculating stats:', error);
