@@ -33,8 +33,9 @@ export function formatNumber(num: number): string {
 
 export function formatDecimal(num: number, decimals: number = 2): string {
   const fixed = num.toFixed(decimals);
-  // Removes .00 at the end, but keeps .10, .50 etc if that's preferred, 
-  // or use parseFloat(fixed).toString() to remove all trailing zeros.
-  // User asked "if nos after decimal point is .00 dont include it"
-  return fixed.replace(/\.00$/, '');
+  // parseFloat parses the fixed string back to a number, stripping trailing zeros
+  // e.g. "100.00" -> 100 -> "100"
+  // e.g. "100.0" -> 100 -> "100"
+  // e.g. "99.50" -> 99.5 -> "99.5"
+  return parseFloat(fixed).toString();
 }
