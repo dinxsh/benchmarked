@@ -57,4 +57,53 @@ export interface IProviderAdapter {
     'current_metrics' | 'scores' | 'rank' | 'trend' | 'health_status'
   >;
   getBlockHeight(): Promise<number>;
+  getTokenPrice?(params: TokenPriceParams): Promise<TokenPriceResult>;
+}
+
+export interface TokenPriceParams {
+  tokenAddress: string;
+  tokenSymbol?: string;
+  network: string;
+  mode?: TokenPriceBenchmarkMode;
+}
+
+export interface TokenPriceResult {
+  price: number;
+  priceUSD: string;
+  timestamp: string;
+  latency: number;
+  additionalData?: {
+    marketCap?: string;
+    volume24h?: string;
+    priceChange24h?: string;
+    symbol?: string;
+    name?: string;
+  };
+}
+
+export enum TokenPriceBenchmarkMode {
+  PRICE_ONLY = 'price',
+  FULL_DATA = 'full',
+  HISTORICAL = 'historical'
+}
+
+export interface TokenPriceBenchmarkResult {
+  provider: {
+    id: string;
+    name: string;
+    type: string;
+    logo: string;
+    color: string;
+    hasTokenPrice: boolean;
+    endpoint: string;
+    method: string;
+    description: string;
+  };
+  status: 'success' | 'error' | 'unavailable';
+  latency: number;
+  price: number | null;
+  priceUSD?: string;
+  timestamp?: string;
+  error?: string;
+  additionalData?: any;
 }

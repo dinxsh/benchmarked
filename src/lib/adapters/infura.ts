@@ -32,4 +32,13 @@ export class InfuraAdapter extends BaseAdapter {
       }
     };
   }
+
+  async getTokenPrice(params: import('../benchmark-types').TokenPriceParams): Promise<import('../benchmark-types').TokenPriceResult> {
+    // Infura is a pure RPC provider and does not have a native token price API
+    // To get prices, you would need to:
+    // 1. Integrate with an external price oracle (CoinGecko, CoinMarketCap, Chainlink)
+    // 2. Query DEX smart contracts for liquidity pool reserves
+    // 3. Use a DEX aggregator API (1inch, 0x)
+    throw new Error('Infura is an RPC provider only. No native price API available.');
+  }
 }

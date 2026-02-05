@@ -67,7 +67,12 @@ export function DataTable<TData>({
                         key={row.id}
                         data-state={row.getIsSelected() && 'selected'}
                         onClick={() => onRowClick?.(row)}
-                        className={cn(onRowClick && 'cursor-pointer hover:bg-muted/50')}
+                        className={cn(
+                          onRowClick && 'cursor-pointer hover:bg-muted/50',
+                          (row.original as any)?.name?.toLowerCase().includes('goldrush') || (row.original as any)?.name?.toLowerCase().includes('covalent')
+                            ? 'bg-gradient-to-r from-amber-50 to-transparent dark:from-amber-950/20 border-l-4 border-amber-500'
+                            : ''
+                        )}
                       >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell
@@ -132,7 +137,12 @@ export function DataTable<TData>({
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
                     onClick={() => onRowClick?.(row)}
-                    className={cn(onRowClick && 'cursor-pointer hover:bg-muted/50')}
+                    className={cn(
+                      onRowClick && 'cursor-pointer hover:bg-muted/50',
+                      (row.original as any)?.name?.toLowerCase().includes('goldrush') || (row.original as any)?.name?.toLowerCase().includes('covalent')
+                        ? 'bg-gradient-to-r from-amber-50 to-transparent dark:from-amber-950/20 border-l-4 border-amber-500'
+                        : ''
+                    )}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell

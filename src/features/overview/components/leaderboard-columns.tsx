@@ -4,8 +4,10 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { IconChevronRight } from '@tabler/icons-react';
+import { Trophy } from 'lucide-react';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { formatDecimal } from '@/lib/utils';
+import { isGoldRush } from '@/lib/goldrush-theme';
 
 export type Provider = {
   id: string;
@@ -32,7 +34,18 @@ export const columns: ColumnDef<Provider>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Rank' />
     ),
-    cell: ({ row }) => <div className='w-[50px] font-medium'>#{row.getValue('rank')}</div>,
+    cell: ({ row }) => {
+      const provider = row.original;
+      const isGR = isGoldRush(provider.name);
+      return (
+        <div className='w-[50px] font-medium flex items-center gap-1'>
+          {isGR && <Trophy className="h-4 w-4 text-amber-500" />}
+          <span className={isGR ? 'text-amber-600 dark:text-amber-400 font-bold' : ''}>
+            #{row.getValue('rank')}
+          </span>
+        </div>
+      );
+    },
     enableSorting: true,
     enableHiding: false,
     sortingFn: 'basic',
@@ -44,13 +57,18 @@ export const columns: ColumnDef<Provider>[] = [
     ),
     cell: ({ row }) => {
       const provider = row.original;
+      const isGR = isGoldRush(provider.name);
       return (
         <div className='flex items-center gap-2'>
-          <Avatar className='h-8 w-8'>
+          <Avatar className={isGR ? 'h-8 w-8 ring-2 ring-amber-500' : 'h-8 w-8'}>
             <AvatarImage src={provider.logo_url} alt={provider.name} />
             <AvatarFallback>{provider.name[0]}</AvatarFallback>
           </Avatar>
-          <span className='font-semibold'>{provider.name}</span>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className={isGR ? 'font-bold text-lg' : 'font-semibold'}>{provider.name}</span>
+            </div>
+          </div>
         </div>
       );
     },

@@ -106,4 +106,74 @@ export class AnkrAdapter extends BaseAdapter {
       throw error;
     }
   }
+
+  async getTokenPrice(params: import('../benchmark-types').TokenPriceParams): Promise<import('../benchmark-types').TokenPriceResult> {
+    const startTime = performance.now();
+    try {
+      // Ankr requires API key for token price endpoint
+      const apiKey = process.env.ANKR_API_KEY || '';
+      if (!apiKey) {
+        throw new Error('Ankr API Key required for token price endpoint');
+      }
+
+      // Use authenticated endpoint with API key
+      const endpoint = `https://rpc.ankr.com/multichain/${apiKey}`;
+      const blockchain = params.network === 'eth-mainnet' ? 'eth' : params.network.replace('-mainnet', '');
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'ankr_getTokenPrice',
+          params: {
+            blockchain: blockchain,
+            contractAddress: params.tokenAddress // Single address, not array
+          },
+          id: 1
+        }),
+        signal: AbortSignal.timeout(5000)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      const latency = Math.round(performance.now() - startTime);
+
+      if (data.error) {
+        throw new Error(data.error.message || 'Ankr API error');
+      }
+
+      // Ankr returns an array of token prices in result.assets
+      const assets = data.result?.assets || data.result;
+      const tokenData = Array.isArray(assets) ? assets[0] : assets;
+
+      if (!tokenData) {
+        throw new Error('No price data in response');
+      }
+
+      const price = parseFloat(tokenData.usdPrice || '0');
+      if (!price || isNaN(price)) {
+        throw new Error('Invalid price value');
+      }
+
+      return {
+        price,
+        priceUSD: price.toFixed(2),
+        timestamp: new Date().toISOString(),
+        latency,
+        additionalData: params.mode === 'full' ? {
+          symbol: tokenData.symbol,
+          name: tokenData.name || tokenData.tokenName
+        } : undefined
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
 }

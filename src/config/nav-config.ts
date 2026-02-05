@@ -24,5 +24,13 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['c', 'c'],
     items: []
+  },
+  {
+    title: 'Token Price',
+    url: '/dashboard/token-price',
+    icon: 'billing',
+    isActive: false,
+    shortcut: ['t', 'p'],
+    items: []
   }
 ];

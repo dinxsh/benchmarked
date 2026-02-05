@@ -1,8 +1,10 @@
-export * from './alchemy';
-export * from './infura';
-export * from './quicknode';
-export * from './goldrush';
-export * from './ankr';
-export * from './chainstack';
-export * from './bitquery';
-export * from './subsquid';
+export { AlchemyAdapter } from './alchemy';
+export { InfuraAdapter } from './infura';
+export { QuickNodeAdapter } from './quicknode';
+export { AnkrAdapter } from './ankr';
+export { ChainstackAdapter } from './chainstack';
+export { BitqueryAdapter } from './bitquery';
+export { SubsquidAdapter } from './subsquid';
+export { GoldRushAdapter } from './goldrush';
+export { MoralisAdapter } from './moralis';
+export { CoinGeckoAdapter } from './coingecko';

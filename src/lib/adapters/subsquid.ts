@@ -103,4 +103,15 @@ export class SubsquidAdapter extends BaseAdapter {
       throw error;
     }
   }
+
+  async getTokenPrice(params: import('../benchmark-types').TokenPriceParams): Promise<import('../benchmark-types').TokenPriceResult> {
+    // Subsquid is a blockchain indexing framework, not a price provider
+    // You can index DEX trades and calculate prices from historical data,
+    // but there's no real-time price API endpoint
+    // To get prices, you would need to:
+    // 1. Query indexed DEX trade data from your Subsquid instance
+    // 2. Calculate TWAP (Time-Weighted Average Price) from trades
+    // 3. Or integrate with external price sources (CoinGecko, etc.)
+    throw new Error('Subsquid is a data indexer. For prices, query indexed DEX trades or use external price oracle.');
+  }
 }
