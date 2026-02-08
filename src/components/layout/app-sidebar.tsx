@@ -32,6 +32,7 @@ import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { navItems } from '@/config/nav-config';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useFilteredNavItems } from '@/hooks/use-nav';
+import { usePrefetch } from '@/hooks/use-prefetch';
 import {
   IconBell,
   IconChevronRight,
@@ -49,6 +50,7 @@ import { OrgSwitcher } from '../org-switcher';
 export default function AppSidebar() {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
+  const { prefetchDashboard } = usePrefetch();
 
   // Static dummy data replacing Clerk hooks
   const user = {
@@ -61,6 +63,13 @@ export default function AppSidebar() {
 
   const router = useRouter();
   const filteredItems = useFilteredNavItems(navItems);
+
+  // Prefetch handler for dashboard routes
+  const handlePrefetch = React.useCallback((url: string) => {
+    if (url.startsWith('/dashboard')) {
+      prefetchDashboard();
+    }
+  }, [prefetchDashboard]);
 
   React.useEffect(() => {
     // Side effects based on sidebar state changes
@@ -103,7 +112,10 @@ export default function AppSidebar() {
                               asChild
                               isActive={pathname === subItem.url}
                             >
-                              <Link href={subItem.url}>
+                              <Link
+                                href={subItem.url}
+                                onMouseEnter={() => handlePrefetch(subItem.url)}
+                              >
                                 <span>{subItem.title}</span>
                               </Link>
                             </SidebarMenuSubButton>
@@ -120,7 +132,10 @@ export default function AppSidebar() {
                     tooltip={item.title}
                     isActive={pathname === item.url}
                   >
-                    <Link href={item.url}>
+                    <Link
+                      href={item.url}
+                      onMouseEnter={() => handlePrefetch(item.url)}
+                    >
                       <Icon />
                       <span>{item.title}</span>
                     </Link>

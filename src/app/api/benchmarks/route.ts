@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server';
 import { benchmarkStore } from '@/lib/benchmark-store';
 
+// Helper to add cache headers
+function jsonWithCache(data: any, maxAge: number = 300) {
+  return NextResponse.json(data, {
+    headers: {
+      'Cache-Control': `public, s-maxage=${maxAge}, stale-while-revalidate=${maxAge * 2}`,
+      'CDN-Cache-Control': `public, s-maxage=${maxAge}`,
+      'Vercel-CDN-Cache-Control': `public, s-maxage=${maxAge}`,
+    },
+  });
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type') || 'leaderboard';
@@ -9,7 +20,8 @@ export async function GET(request: Request) {
     const chain = searchParams.get('chain') || undefined;
     const sort = searchParams.get('sort') || undefined;
     const data = await benchmarkStore.getLeaderboard(chain, sort);
-    return NextResponse.json({ data, last_updated: new Date().toISOString() });
+    // Cache for 5 minutes, allow stale for 10 minutes
+    return jsonWithCache({ data, last_updated: new Date().toISOString() }, 300);
   }
 
   if (type === 'provider') {
@@ -21,10 +33,11 @@ export async function GET(request: Request) {
     if (!provider)
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    return NextResponse.json({
+    // Cache for 2 minutes
+    return jsonWithCache({
       provider,
       last_updated: new Date().toISOString()
-    });
+    }, 120);
   }
 
   if (type === 'metrics') {
@@ -43,13 +56,14 @@ export async function GET(request: Request) {
       ? provider.metrics_history
       : [];
 
-    return NextResponse.json({
+    // Cache for 5 minutes
+    return jsonWithCache({
       data,
       metric: 'latency_p50',
       unit: 'ms',
       timeframe: '24h',
       provider: providerSlug
-    });
+    }, 300);
   }
 
   if (type === 'compare') {
@@ -84,7 +98,8 @@ export async function GET(request: Request) {
             : 'tie'
     };
 
-    return NextResponse.json({ provider_a: provA, provider_b: provB, deltas });
+    // Cache for 5 minutes
+    return jsonWithCache({ provider_a: provA, provider_b: provB, deltas }, 300);
   }
 
   return NextResponse.json({ error: 'Invalid type' }, { status: 400 });

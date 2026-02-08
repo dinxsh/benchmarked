@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
+import Link from 'next/link';
 import { StreamingBenchmarkResult } from '@/lib/benchmark-types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Award, Zap, Activity, DollarSign, CheckCircle } from 'lucide-react';
@@ -10,6 +11,7 @@ import { LatencyScatterChart } from '@/components/charts/LatencyScatterChart';
 import { ValueScoreChart } from '@/components/charts/ValueScoreChart';
 import { ReliabilityTimelineChart } from '@/components/charts/ReliabilityTimelineChart';
 import { CapabilitiesMatrixChart } from '@/components/charts/CapabilitiesMatrixChart';
+import { usePrefetch } from '@/hooks/use-prefetch';
 
 type CodeLanguage = 'typescript' | 'python' | 'curl' | 'go';
 
@@ -26,6 +28,8 @@ export default function GoldRushMarketingPage() {
     streamingVelocity: 42000,
     activeConnections: 1247
   });
+
+  const { prefetchDashboard } = usePrefetch();
 
   // Language colors
   const languageColors: Record<CodeLanguage, { bg: string; text: string; border: string }> = {
@@ -412,7 +416,14 @@ func main() {
             <a href="https://goldrush.dev/products" className="hover:text-white transition-colors">Products</a>
             <a href="https://goldrush.dev/docs" className="hover:text-white transition-colors">Documentation</a>
             <a href="https://goldrush.dev/pricing" className="hover:text-white transition-colors">Pricing</a>
-            <a href="/dashboard" className="hover:text-white transition-colors">Benchmarks</a>
+            <Link
+              href="/dashboard"
+              className="hover:text-white transition-colors"
+              onMouseEnter={() => prefetchDashboard()}
+              prefetch={true}
+            >
+              Benchmarks
+            </Link>
           </nav>
           <div className="flex gap-4">
             <a
@@ -1001,7 +1012,16 @@ func main() {
               <li><a href="https://goldrush.dev/products/foundational-api" className="hover:text-white transition-colors">Foundational API</a></li>
               <li><a href="https://goldrush.dev/products/streaming-api" className="hover:text-white transition-colors">Streaming API</a></li>
               <li><a href="https://goldrush.dev/pricing" className="hover:text-white transition-colors">Pricing</a></li>
-              <li><a href="/dashboard" className="hover:text-white transition-colors">Benchmarks</a></li>
+              <li>
+                <Link
+                  href="/dashboard"
+                  className="hover:text-white transition-colors"
+                  onMouseEnter={() => prefetchDashboard()}
+                  prefetch={true}
+                >
+                  Benchmarks
+                </Link>
+              </li>
             </ul>
           </div>
 
