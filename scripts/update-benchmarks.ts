@@ -8,7 +8,7 @@ config({ path: resolve(process.cwd(), '.env.local') });
 import dbConnect from '../src/lib/db';
 import Benchmark from '../src/models/Benchmark';
 import * as adapters from '../src/lib/adapters';
-import { ProviderMetrics, ProviderScores } from '../src/lib/benchmark-types';
+import { ProviderMetrics, ProviderScores, IProviderAdapter } from '../src/lib/benchmark-types';
 
 async function updateBenchmarks() {
     console.log('Starting benchmark update...');
@@ -26,10 +26,15 @@ async function updateBenchmarks() {
             (AdapterClass) => new AdapterClass()
         );
 
-        console.log(`Found ${adapterList.length} adapters`);
+        // Filter out streaming adapters - they don't have measure() method
+        const regularAdapters = adapterList.filter(
+            (adapter) => 'measure' in adapter && typeof adapter.measure === 'function'
+        ) as IProviderAdapter[];
+
+        console.log(`Found ${regularAdapters.length} regular adapters (${adapterList.length} total)`);
 
         // Run all measurements in parallel
-        await Promise.all(adapterList.map(async (adapter) => {
+        await Promise.all(regularAdapters.map(async (adapter) => {
             console.log(`Measuring ${adapter.name}...`);
 
             try {

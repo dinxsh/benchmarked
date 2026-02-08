@@ -38,13 +38,14 @@ export function DataTable<TData>({
           <div className='absolute inset-0 flex overflow-hidden rounded-lg border'>
             <ScrollArea className='h-full w-full'>
               <Table>
-                <TableHeader className='bg-muted sticky top-0 z-10'>
+                <TableHeader className='bg-black/40 sticky top-0 z-10 border-b-2 border-[#E6A23C]/20'>
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
                         <TableHead
                           key={header.id}
                           colSpan={header.colSpan}
+                          className="font-bold text-white"
                           style={{
                             ...getCommonPinningStyles({ column: header.column })
                           }}
@@ -62,13 +63,15 @@ export function DataTable<TData>({
                 </TableHeader>
                 <TableBody>
                   {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
+                    table.getRowModel().rows.map((row, index) => (
                       <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && 'selected'}
                         onClick={() => onRowClick?.(row)}
                         className={cn(
-                          onRowClick && 'cursor-pointer hover:bg-muted/50',
+                          'hover:bg-[#E6A23C]/5 transition-colors',
+                          index % 2 === 0 ? '' : 'bg-black/20',
+                          onRowClick && 'cursor-pointer',
                           (row.original as any)?.name?.toLowerCase().includes('goldrush') || (row.original as any)?.name?.toLowerCase().includes('covalent')
                             ? 'bg-gradient-to-r from-amber-50 to-transparent dark:from-amber-950/20 border-l-4 border-amber-500'
                             : ''
@@ -108,13 +111,14 @@ export function DataTable<TData>({
       ) : (
         <div className='rounded-lg border'>
           <Table>
-            <TableHeader className='bg-muted'>
+            <TableHeader className='bg-black/40 border-b-2 border-[#E6A23C]/20'>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
                       colSpan={header.colSpan}
+                      className="font-bold text-white"
                       style={{
                         ...getCommonPinningStyles({ column: header.column })
                       }}
@@ -132,13 +136,15 @@ export function DataTable<TData>({
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
+                table.getRowModel().rows.map((row, index) => (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
                     onClick={() => onRowClick?.(row)}
                     className={cn(
-                      onRowClick && 'cursor-pointer hover:bg-muted/50',
+                      'hover:bg-[#E6A23C]/5 transition-colors',
+                      index % 2 === 0 ? '' : 'bg-black/20',
+                      onRowClick && 'cursor-pointer',
                       (row.original as any)?.name?.toLowerCase().includes('goldrush') || (row.original as any)?.name?.toLowerCase().includes('covalent')
                         ? 'bg-gradient-to-r from-amber-50 to-transparent dark:from-amber-950/20 border-l-4 border-amber-500'
                         : ''

@@ -107,3 +107,87 @@ export interface TokenPriceBenchmarkResult {
   error?: string;
   additionalData?: any;
 }
+
+// ============================================================================
+// STREAMING API BENCHMARK TYPES
+// ============================================================================
+
+export interface StreamingMetrics {
+  connection_latency: number;        // Time to establish WebSocket connection (ms)
+  first_data_latency: number;        // Time to receive first streaming data (ms)
+  throughput: number;                // Messages per second
+  message_count: number;             // Total messages received during test
+  connection_drops: number;          // Number of disconnections
+  reconnection_count: number;        // Number of successful reconnections
+  data_completeness: number;         // Percentage of expected data received (0-100)
+  uptime_percent: number;            // Connection stability percentage
+  average_message_size: number;      // Average message size in bytes
+  error_rate: number;                // Percentage of error messages
+}
+
+export interface StreamingBenchmarkParams {
+  network: string;                   // e.g., 'ethereum', 'polygon'
+  streamType: StreamingDataType;     // Type of data to stream
+  duration?: number;                 // Test duration in milliseconds (default: 30000)
+  expectedMessageRate?: number;      // Expected messages per second (for completeness calc)
+}
+
+export enum StreamingDataType {
+  NEW_BLOCKS = 'newBlocks',
+  NEW_TRANSACTIONS = 'newTransactions', 
+  TOKEN_TRANSFERS = 'tokenTransfers',
+  PRICE_FEEDS = 'priceFeeds',
+  DEX_TRADES = 'dexTrades',
+  PENDING_TRANSACTIONS = 'pendingTransactions'
+}
+
+export interface StreamingBenchmarkResult {
+  provider: {
+    id: string;
+    name: string;
+    type: 'WebSocket' | 'SSE' | 'GraphQL Subscription';
+    logo: string;
+    color: string;
+    hasStreaming: boolean;
+    endpoint: string;
+    protocol: string;
+    description: string;
+  };
+  status: 'success' | 'error' | 'unavailable' | 'timeout';
+  metrics: StreamingMetrics;
+  testDuration: number;              // Actual test duration in ms
+  error?: string;
+  sampleMessages?: any[];            // Sample messages received during test
+}
+
+export interface IStreamingAdapter {
+  id: string;
+  name: string;
+  protocol: 'WebSocket' | 'SSE' | 'GraphQL Subscription';
+  getMetadata(): {
+    id: string;
+    name: string;
+    logo_url: string;
+    website_url: string;
+    supported_chains: string[];
+    streaming_capabilities: StreamingDataType[];
+    pricing: {
+      cost_per_million_messages?: number;
+      rate_limit: string;
+    };
+  };
+  benchmarkStream(params: StreamingBenchmarkParams): Promise<StreamingBenchmarkResult>;
+}
+
+export interface StreamingProviderInfo {
+  id: string;
+  name: string;
+  type: 'WebSocket' | 'SSE' | 'GraphQL Subscription';
+  logo: string;
+  color: string;
+  hasStreaming: boolean;
+  endpoint: string;
+  protocol: string;
+  description: string;
+  adapter: IStreamingAdapter;
+}

@@ -18,6 +18,14 @@ export const navItems: NavItem[] = [
     items: []
   },
   {
+    title: 'Streaming APIs',
+    url: '/dashboard/streaming',
+    icon: 'arrowRight',
+    isActive: false,
+    shortcut: ['s', 'a'],
+    items: []
+  },
+  {
     title: 'Compare',
     url: '/dashboard/compare',
     icon: 'kanban',

@@ -8,9 +8,14 @@ export async function GET() {
     (AdapterClass) => new AdapterClass()
   );
 
+  // Filter out streaming adapters - they don't have getBlockHeight() method
+  const regularAdapters = adapterInstances.filter(
+    (adapter) => 'getBlockHeight' in adapter && typeof adapter.getBlockHeight === 'function'
+  ) as any[];
+
   // Execute all requests in parallel
   const results = await Promise.all(
-    adapterInstances.map(async (adapter) => {
+    regularAdapters.map(async (adapter) => {
       const start = performance.now();
       const height = await adapter.getBlockHeight();
       const latency = Math.round(performance.now() - start);

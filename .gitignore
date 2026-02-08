@@ -5,6 +5,9 @@
 /.pnp
 .pnp.js
 
+./claude
+/claude
+
 backend/node_modules
 
 # testing

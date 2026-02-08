@@ -36,12 +36,21 @@ export const columns: ColumnDef<Provider>[] = [
     ),
     cell: ({ row }) => {
       const provider = row.original;
+      const rank = row.getValue('rank') as number;
       const isGR = isGoldRush(provider.name);
+
+      const getRankBadgeStyle = (rank: number) => {
+        if (rank === 1) return 'bg-[#FFD700] text-black';
+        if (rank === 2) return 'bg-[#C0C0C0] text-black';
+        if (rank === 3) return 'bg-[#CD7F32] text-white';
+        return 'bg-black/40 text-white';
+      };
+
       return (
         <div className='w-[50px] font-medium flex items-center gap-1'>
           {isGR && <Trophy className="h-4 w-4 text-amber-500" />}
-          <span className={isGR ? 'text-amber-600 dark:text-amber-400 font-bold' : ''}>
-            #{row.getValue('rank')}
+          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${getRankBadgeStyle(rank)}`}>
+            {rank}
           </span>
         </div>
       );
