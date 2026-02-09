@@ -2,7 +2,7 @@
  * Default theme that loads when no user preference is set
  * Change this value to set a different default theme
  */
-export const DEFAULT_THEME = 'claude';
+export const DEFAULT_THEME = 'birdeye';
 
 export const THEMES = [
   {
@@ -28,5 +28,9 @@ export const THEMES = [
   {
     name: 'Notebook',
     value: 'notebook'
+  },
+  {
+    name: 'Birdeye',
+    value: 'birdeye'
   }
 ];

@@ -1,5 +1,7 @@
 import { BaseStreamingAdapter } from './base-streaming';
 import { StreamingBenchmarkParams, StreamingMetrics, StreamingDataType } from '../benchmark-types';
+import { TradingPair, OHLCVData, LivePairUpdate, DexStreamMessage } from '../dex-types';
+import WebSocket from 'ws';
 
 export class MegaETHStreamingAdapter extends BaseStreamingAdapter {
   id = 'goldrush-streaming';
@@ -337,17 +339,235 @@ export class MegaETHStreamingAdapter extends BaseStreamingAdapter {
 
   // Override to provide optimized metrics for MegaETH
   protected calculateDataCompleteness(
-    messageCount: number, 
-    expectedMessageRate: number, 
+    messageCount: number,
+    expectedMessageRate: number,
     actualDuration: number
   ): number {
     if (!expectedMessageRate || actualDuration === 0) return 100;
-    
+
     // MegaETH often exceeds expected rates due to optimization
     const expectedMessages = (expectedMessageRate * actualDuration) / 1000;
     const completeness = (messageCount / expectedMessages) * 100;
-    
+
     // Cap at 100% but don't penalize for receiving more data than expected
     return Math.min(110, completeness); // Allow slight over-delivery
+  }
+
+  /**
+   * Subscribe to new pair creation events
+   * Returns unsubscribe function
+   */
+  async subscribeToNewPairs(
+    callback: (pair: TradingPair) => void,
+    errorCallback?: (error: Error) => void
+  ): Promise<() => void> {
+    const wsUrl = this.getWebSocketUrl('megaeth-mainnet', StreamingDataType.DEX_TRADES);
+    let ws: WebSocket | null = null;
+    let isActive = true;
+
+    try {
+      ws = new WebSocket(wsUrl);
+
+      ws.on('open', () => {
+        console.log('[MegaETH] Connected to new pairs stream');
+        // Subscribe to new pairs channel
+        const subscribeMessage = {
+          id: Date.now(),
+          method: 'subscribe',
+          params: {
+            channel: 'new_pairs',
+            network: 'megaeth-mainnet',
+            options: {
+              includeMetadata: true,
+              realTime: true
+            }
+          }
+        };
+        ws?.send(JSON.stringify(subscribeMessage));
+      });
+
+      ws.on('message', (data: Buffer) => {
+        if (!isActive) return;
+
+        try {
+          const message = JSON.parse(data.toString()) as DexStreamMessage;
+
+          if (message.type === 'new_pair') {
+            const pair: TradingPair = {
+              pairAddress: message.data.pairAddress,
+              poolAddress: message.data.poolAddress || message.data.pairAddress,
+              token0: message.data.token0,
+              token1: message.data.token1,
+              dexName: message.data.dexName,
+              createdAt: message.data.timestamp,
+              createdBlock: message.data.blockNumber
+            };
+            callback(pair);
+          }
+        } catch (error) {
+          console.error('[MegaETH] Error parsing new pair message:', error);
+          errorCallback?.(error as Error);
+        }
+      });
+
+      ws.on('error', (error) => {
+        console.error('[MegaETH] WebSocket error:', error);
+        errorCallback?.(error as Error);
+      });
+
+      ws.on('close', () => {
+        console.log('[MegaETH] New pairs stream closed');
+        if (isActive) {
+          // Attempt reconnection after 5 seconds
+          setTimeout(() => {
+            if (isActive) {
+              this.subscribeToNewPairs(callback, errorCallback);
+            }
+          }, 5000);
+        }
+      });
+
+    } catch (error) {
+      console.error('[MegaETH] Failed to connect to new pairs stream:', error);
+      errorCallback?.(error as Error);
+    }
+
+    // Return unsubscribe function
+    return () => {
+      isActive = false;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    };
+  }
+
+  /**
+   * Subscribe to OHLCV updates for specific pairs
+   * Returns unsubscribe function
+   */
+  async subscribeToOHLCV(
+    pairAddresses: string[],
+    interval: '1m' | '5m' | '15m' = '1m',
+    callback: (ohlcv: OHLCVData) => void,
+    errorCallback?: (error: Error) => void
+  ): Promise<() => void> {
+    const wsUrl = this.getWebSocketUrl('megaeth-mainnet', StreamingDataType.DEX_TRADES);
+    let ws: WebSocket | null = null;
+    let isActive = true;
+
+    try {
+      ws = new WebSocket(wsUrl);
+
+      ws.on('open', () => {
+        console.log('[MegaETH] Connected to OHLCV stream');
+        // Subscribe to OHLCV updates for multiple pairs
+        const subscribeMessage = {
+          id: Date.now(),
+          method: 'subscribe',
+          params: {
+            channel: 'ohlcv',
+            network: 'megaeth-mainnet',
+            pairs: pairAddresses,
+            interval,
+            options: {
+              includeMetadata: true,
+              realTime: true
+            }
+          }
+        };
+        ws?.send(JSON.stringify(subscribeMessage));
+      });
+
+      ws.on('message', (data: Buffer) => {
+        if (!isActive) return;
+
+        try {
+          const message = JSON.parse(data.toString()) as DexStreamMessage;
+
+          if (message.type === 'ohlcv_update') {
+            const ohlcv: OHLCVData = {
+              pairAddress: message.data.pairAddress,
+              timestamp: message.data.timestamp,
+              open: message.data.open,
+              high: message.data.high,
+              low: message.data.low,
+              close: message.data.close,
+              volume: message.data.volume,
+              volumeUSD: message.data.volumeUSD,
+              txCount: message.data.txCount
+            };
+            callback(ohlcv);
+          }
+        } catch (error) {
+          console.error('[MegaETH] Error parsing OHLCV message:', error);
+          errorCallback?.(error as Error);
+        }
+      });
+
+      ws.on('error', (error) => {
+        console.error('[MegaETH] WebSocket error:', error);
+        errorCallback?.(error as Error);
+      });
+
+      ws.on('close', () => {
+        console.log('[MegaETH] OHLCV stream closed');
+        if (isActive) {
+          // Attempt reconnection after 5 seconds
+          setTimeout(() => {
+            if (isActive) {
+              this.subscribeToOHLCV(pairAddresses, interval, callback, errorCallback);
+            }
+          }, 5000);
+        }
+      });
+
+    } catch (error) {
+      console.error('[MegaETH] Failed to connect to OHLCV stream:', error);
+      errorCallback?.(error as Error);
+    }
+
+    // Return unsubscribe function
+    return () => {
+      isActive = false;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    };
+  }
+
+  /**
+   * Get current prices for multiple pairs (snapshot)
+   */
+  async getPairPrices(pairAddresses: string[]): Promise<Map<string, LivePairUpdate>> {
+    // This would typically be a REST API call to GoldRush
+    const results = new Map<string, LivePairUpdate>();
+
+    try {
+      const apiUrl = process.env.GOLDRUSH_API_ENDPOINT || 'https://api.goldrush.dev/v1';
+      const response = await fetch(`${apiUrl}/megaeth-mainnet/dex/pairs/bulk`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        body: JSON.stringify({ pairs: pairAddresses })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch pair prices: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Parse response and populate results map
+      for (const item of data.items || []) {
+        results.set(item.pairAddress, item as LivePairUpdate);
+      }
+
+    } catch (error) {
+      console.error('[MegaETH] Error fetching pair prices:', error);
+    }
+
+    return results;
   }
 }

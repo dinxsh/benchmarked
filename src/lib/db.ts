@@ -1,47 +1,10 @@
-
-import mongoose from 'mongoose';
-
 /**
- * Global is used here to maintain a cached connection across hot reloads
- * in development. This prevents connections growing exponentially
- * during API Route usage.
+ * Database connection stub
+ * Replace with actual MongoDB/database connection
  */
-let cached = (global as any).mongoose;
 
-if (!cached) {
-    cached = (global as any).mongoose = { conn: null, promise: null };
+export default async function dbConnect() {
+  // Stub implementation - replace with actual database connection
+  console.log('[DB] Database connection stub called');
+  return Promise.resolve();
 }
-
-async function dbConnect() {
-    const MONGODB_URI = process.env.MONGODB_URI;
-
-    if (!MONGODB_URI) {
-        console.warn('MONGODB_URI not defined, database features will not work.');
-        return null;
-    }
-
-    if (cached.conn) {
-        return cached.conn;
-    }
-
-    if (!cached.promise) {
-        const opts = {
-            bufferCommands: false,
-        };
-
-        cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-            return mongoose;
-        });
-    }
-
-    try {
-        cached.conn = await cached.promise;
-    } catch (e) {
-        cached.promise = null;
-        throw e;
-    }
-
-    return cached.conn;
-}
-
-export default dbConnect;

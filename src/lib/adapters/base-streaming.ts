@@ -1,19 +1,24 @@
-import { 
-  IStreamingAdapter, 
-  StreamingBenchmarkParams, 
-  StreamingBenchmarkResult, 
-  StreamingMetrics, 
-  StreamingDataType 
+import {
+  IStreamingAdapter,
+  StreamingBenchmarkParams,
+  StreamingBenchmarkResult,
+  StreamingMetrics,
+  StreamingDataType
 } from '../benchmark-types';
+import WebSocket from 'ws';
 
 export abstract class BaseStreamingAdapter implements IStreamingAdapter {
   abstract id: string;
   abstract name: string;
   abstract protocol: 'WebSocket' | 'SSE' | 'GraphQL Subscription';
-  
+
   protected wsEndpoint: string = '';
   protected apiKey?: string;
   protected defaultDuration: number = 30000; // 30 seconds
+  protected messageLatencies: number[] = [];
+  protected messageTimestamps: Map<string, number> = new Map();
+  protected maxRetries: number = 3;
+  protected retryDelay: number = 1000; // Start with 1 second
 
   abstract getMetadata(): {
     id: string;

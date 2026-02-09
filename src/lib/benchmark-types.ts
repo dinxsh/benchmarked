@@ -115,6 +115,9 @@ export interface TokenPriceBenchmarkResult {
 export interface StreamingMetrics {
   connection_latency: number;        // Time to establish WebSocket connection (ms)
   first_data_latency: number;        // Time to receive first streaming data (ms)
+  message_latency_p50?: number;      // 50th percentile message latency (median)
+  message_latency_p95?: number;      // 95th percentile message latency
+  message_latency_p99?: number;      // 99th percentile message latency
   throughput: number;                // Messages per second
   message_count: number;             // Total messages received during test
   connection_drops: number;          // Number of disconnections
@@ -123,6 +126,7 @@ export interface StreamingMetrics {
   uptime_percent: number;            // Connection stability percentage
   average_message_size: number;      // Average message size in bytes
   error_rate: number;                // Percentage of error messages
+  recovery_time_ms?: number;         // Average recovery time after disconnection (ms)
 }
 
 export interface StreamingBenchmarkParams {

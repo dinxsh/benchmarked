@@ -1,63 +1,49 @@
+/**
+ * Benchmark model stub
+ * Replace with actual database model
+ */
 
-import mongoose, { Schema, Document, Model } from 'mongoose';
-import { ProviderMetrics, ProviderScores } from '@/lib/benchmark-types';
-
-export interface IBenchmark extends Document {
-    providerId: string; // e.g., 'alchemy'
-    name: string;
-    slug: string;
-    metadata: any; // Adapter metadata (pricing, capabilities, etc.)
-    details?: {
-        last_response_body?: any;
-    }
-    metrics: ProviderMetrics;
-    scores: ProviderScores;
-    metrics_history: { timestamp: Date; value: number }[]; // Snapshot of recent history
-    timestamp: Date;
+interface BenchmarkDoc {
+  _id?: string;
+  provider: string;
+  network: string;
+  timestamp: Date;
+  metrics: any;
+  scores: any;
 }
 
-const BenchmarkSchema: Schema = new Schema(
-    {
-        providerId: { type: String, required: true, index: true },
-        name: { type: String, required: true },
-        slug: { type: String, required: true, index: true },
-        metadata: { type: Schema.Types.Mixed, default: {} },
-        details: {
-            last_response_body: { type: Schema.Types.Mixed, default: null }
-        },
-        metrics: {
-            latency_p50: { type: Number, required: true },
-            latency_p95: { type: Number, required: true },
-            latency_p99: { type: Number, required: true },
-            uptime_percent: { type: Number, required: true },
-            error_rate: { type: Number, required: true },
-            response_size_bytes: { type: Number, required: false }
-        },
-        scores: {
-            final_score: { type: Number, required: true },
-            latency_score: { type: Number, required: true },
-            reliability_score: { type: Number, required: true },
-            coverage_score: { type: Number, required: true },
-            dx_score: { type: Number, required: true },
-            pricing_score: { type: Number, required: true },
-            response_size_score: { type: Number, required: false }
-        },
-        metrics_history: [
-            {
-                timestamp: { type: Date, required: true },
-                value: { type: Number, required: true }
-            }
-        ],
-        timestamp: { type: Date, default: Date.now }
-    },
-    {
-        timestamps: true
-    }
-);
+class BenchmarkStub {
+  async create(data: BenchmarkDoc) {
+    console.log('[Benchmark] Create called with:', data.provider);
+    return data;
+  }
 
-// If model exists, use it. Otherwise, create it.
-// This prevents OverwriteModelError during hot reload in dev.
-const Benchmark: Model<IBenchmark> =
-    mongoose.models.Benchmark || mongoose.model<IBenchmark>('Benchmark', BenchmarkSchema);
+  async find(query: any) {
+    console.log('[Benchmark] Find called with:', query);
+    return [];
+  }
+
+  async findOne(query: any) {
+    console.log('[Benchmark] FindOne called with:', query);
+    return null;
+  }
+
+  async updateOne(query: any, update: any) {
+    console.log('[Benchmark] UpdateOne called');
+    return { modifiedCount: 0 };
+  }
+
+  async deleteMany(query: any) {
+    console.log('[Benchmark] DeleteMany called');
+    return { deletedCount: 0 };
+  }
+
+  async findOneAndUpdate(query: any, update: any, options?: any) {
+    console.log('[Benchmark] FindOneAndUpdate called');
+    return null;
+  }
+}
+
+const Benchmark = new BenchmarkStub();
 
 export default Benchmark;

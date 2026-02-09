@@ -1,3 +1,4 @@
+// update-benchmarks.ts - Refactored to use in-memory cache instead of MongoDB
 
 import { config } from 'dotenv';
 import { resolve } from 'path';
@@ -5,106 +6,137 @@ import { resolve } from 'path';
 // Load environment variables from .env.local
 config({ path: resolve(process.cwd(), '.env.local') });
 
-import dbConnect from '../src/lib/db';
-import Benchmark from '../src/models/Benchmark';
+import { benchmarkCache } from '../src/lib/benchmark-cache';
 import * as adapters from '../src/lib/adapters';
-import { ProviderMetrics, ProviderScores, IProviderAdapter } from '../src/lib/benchmark-types';
+import {
+  IProviderAdapter,
+  IStreamingAdapter,
+  StreamingBenchmarkParams,
+  StreamingDataType
+} from '../src/lib/benchmark-types';
 
 async function updateBenchmarks() {
-    console.log('Starting benchmark update...');
+  console.log('Starting benchmark update...');
 
-    if (!process.env.MONGODB_URI) {
-        console.error('MONGODB_URI is not defined');
-        process.exit(1);
+  try {
+    const adapterList = Object.values(adapters).map(
+      (AdapterClass) => new AdapterClass()
+    );
+
+    // Separate regular and streaming adapters
+    const regularAdapters = adapterList.filter(
+      (adapter) =>
+        'measure' in adapter && typeof adapter.measure === 'function'
+    ) as IProviderAdapter[];
+
+    const streamingAdapters = adapterList.filter(
+      (adapter) =>
+        'benchmarkStream' in adapter &&
+        typeof adapter.benchmarkStream === 'function'
+    ) as IStreamingAdapter[];
+
+    console.log(
+      `Found ${regularAdapters.length} regular adapters, ${streamingAdapters.length} streaming adapters`
+    );
+
+    // Update regular (REST) providers
+    if (regularAdapters.length > 0) {
+      console.log('\n=== Updating Regular (REST) Providers ===');
+      await Promise.all(
+        regularAdapters.map(async (adapter) => {
+          console.log(`Measuring ${adapter.name}...`);
+
+          try {
+            const metrics = await adapter.measure();
+            const metadata = adapter.getMetadata();
+
+            // Store in cache using REST adapter metrics
+            // Note: REST adapters don't have streaming-specific metrics
+            benchmarkCache.set(metadata.slug, {
+              providerId: metadata.id,
+              name: metadata.name,
+              metrics: {
+                // Map REST metrics to streaming format
+                connection_latency: metrics.latency_p50,
+                first_data_latency: 0,
+                message_latency_p50: metrics.latency_p50,
+                message_latency_p95: metrics.latency_p95 || 0,
+                message_latency_p99: metrics.latency_p99 || 0,
+                throughput: 0,
+                message_count: 0,
+                connection_drops: 0,
+                reconnection_count: 0,
+                data_completeness: 100,
+                uptime_percent: metrics.uptime_percent,
+                average_message_size: metrics.response_size_bytes || 0,
+                error_rate: metrics.error_rate,
+                recovery_time_ms: 0
+              }
+            });
+
+            console.log(
+              `✓ Updated ${adapter.name} (Latency: ${metrics.latency_p50}ms)`
+            );
+          } catch (e) {
+            console.error(`✗ Failed to measure ${adapter.name}:`, e);
+          }
+        })
+      );
     }
 
-    try {
-        await dbConnect();
-        console.log('Connected to MongoDB');
+    // Update streaming providers
+    if (streamingAdapters.length > 0) {
+      console.log('\n=== Updating Streaming Providers ===');
 
-        const adapterList = Object.values(adapters).map(
-            (AdapterClass) => new AdapterClass()
-        );
+      const benchmarkParams: StreamingBenchmarkParams = {
+        network: 'ethereum',
+        streamType: StreamingDataType.NEW_BLOCKS,
+        duration: 30000, // 30 seconds
+        expectedMessageRate: 10
+      };
 
-        // Filter out streaming adapters - they don't have measure() method
-        const regularAdapters = adapterList.filter(
-            (adapter) => 'measure' in adapter && typeof adapter.measure === 'function'
-        ) as IProviderAdapter[];
+      await Promise.all(
+        streamingAdapters.map(async (adapter) => {
+          console.log(`Benchmarking ${adapter.name}...`);
 
-        console.log(`Found ${regularAdapters.length} regular adapters (${adapterList.length} total)`);
+          try {
+            const result = await adapter.benchmarkStream(benchmarkParams);
 
-        // Run all measurements in parallel
-        await Promise.all(regularAdapters.map(async (adapter) => {
-            console.log(`Measuring ${adapter.name}...`);
+            if (result.status === 'success') {
+              const metadata = adapter.getMetadata();
 
-            try {
-                const metrics = await adapter.measure();
-                const metadata = adapter.getMetadata();
-                const scores = calculateScores(metrics, metadata.pricing, metadata.capabilities);
+              // Store in cache
+              benchmarkCache.set(adapter.id, {
+                providerId: adapter.id,
+                name: adapter.name,
+                metrics: result.metrics
+              });
 
-                // Update or Insert
-                await Benchmark.findOneAndUpdate(
-                    { slug: metadata.slug },
-                    {
-                        providerId: metadata.id,
-                        name: metadata.name,
-                        slug: metadata.slug,
-                        metadata,
-                        metrics,
-                        scores,
-                        timestamp: new Date(),
-                        // Push to history, keep last 24 points (assuming hourly/frequent updates)
-                        // For now, simpler: just push a new point. In prod, careful with unbounded arrays.
-                        $push: {
-                            metrics_history: {
-                                $each: [{ timestamp: new Date(), value: metrics.latency_p50 }],
-                                $slice: -24 // Keep last 24 points
-                            }
-                        }
-                    },
-                    { upsert: true, new: true }
-                );
-
-                console.log(`Updated ${adapter.name} (Latency: ${metrics.latency_p50}ms)`);
-            } catch (e) {
-                console.error(`Failed to measure ${adapter.name}:`, e);
+              console.log(
+                `✓ Updated ${adapter.name} - Latency: ${result.metrics.connection_latency}ms, Throughput: ${result.metrics.throughput.toFixed(2)} msg/s`
+              );
+            } else {
+              console.error(`✗ Failed: ${adapter.name} - ${result.error}`);
             }
-        }));
-
-        console.log('Benchmark update complete');
-        process.exit(0);
-    } catch (error) {
-        console.error('Fatal error during update:', error);
-        process.exit(1);
+          } catch (error) {
+            console.error(`✗ Error benchmarking ${adapter.name}:`, error);
+          }
+        })
+      );
     }
-}
 
-function calculateScores(metrics: ProviderMetrics, pricing: any, capabilities: any) {
-    // 1. Latency Score (0-40) - Lower is better. <50ms = 40, >500ms = 0
-    const latScore = Math.max(0, 40 * (1 - metrics.latency_p50 / 500));
+    console.log('\n=== Benchmark Update Complete ===');
+    const stats = benchmarkCache.getStats();
+    console.log(`Cache stats: ${stats.totalEntries} providers stored`);
+    console.log(
+      `Memory usage: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`
+    );
 
-    // 2. Reliability Score (0-30) - Higher is better
-    const relScore = Math.max(0, 30 * (metrics.uptime_percent / 100));
-
-    // 3. Coverage (0-20)
-    let capScore = 10; // Base
-    if (capabilities.historical_depth === 'full') capScore += 5;
-    if (capabilities.traces) capScore += 5;
-
-    // 4. Pricing & DX (0-10)
-    let priceScore = 5;
-    if (pricing.cost_per_million < 1.0) priceScore += 5;
-
-    const final = latScore + relScore + capScore + priceScore;
-
-    return {
-        final_score: Number(final.toFixed(1)),
-        latency_score: Number(latScore.toFixed(1)),
-        reliability_score: Number(relScore.toFixed(1)),
-        coverage_score: Number(capScore.toFixed(1)),
-        dx_score: 5, // Placeholder
-        pricing_score: Number(priceScore.toFixed(1))
-    };
+    process.exit(0);
+  } catch (error) {
+    console.error('Fatal error during update:', error);
+    process.exit(1);
+  }
 }
 
 updateBenchmarks();
