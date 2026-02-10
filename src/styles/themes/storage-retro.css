@@ -1,0 +1,278 @@
+/**
+ * Storage Visualizer - Retro Theme Extension
+ * Additional styles for the EVM Storage Explorer with retro aesthetic
+ */
+
+/* Storage Grid Layout */
+.storage-grid {
+  animation: fade-in 0.6s ease-out;
+}
+
+/* Storage Cell Base Styles */
+.storage-cell {
+  position: relative;
+  font-family: var(--font-mono, monospace);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  will-change: transform, box-shadow;
+}
+
+/* Storage Cell Hover Effects */
+.storage-cell:hover {
+  box-shadow: 0 0 16px rgba(212, 165, 116, 0.4); /* Amber glow */
+  z-index: 10;
+}
+
+/* Storage Cell Active (Click) Effects */
+.storage-cell:active {
+  box-shadow: 0 0 8px rgba(212, 165, 116, 0.3);
+}
+
+/* Staggered Fade-In Animation for Grid Cells */
+@keyframes fade-in-stagger {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.storage-cell {
+  animation: fade-in-stagger 0.4s ease-out both;
+}
+
+/* Apply stagger delay based on position (using CSS counter) */
+.storage-grid .storage-cell:nth-child(1) { animation-delay: 0.02s; }
+.storage-grid .storage-cell:nth-child(2) { animation-delay: 0.04s; }
+.storage-grid .storage-cell:nth-child(3) { animation-delay: 0.06s; }
+.storage-grid .storage-cell:nth-child(4) { animation-delay: 0.08s; }
+.storage-grid .storage-cell:nth-child(5) { animation-delay: 0.10s; }
+.storage-grid .storage-cell:nth-child(6) { animation-delay: 0.12s; }
+.storage-grid .storage-cell:nth-child(7) { animation-delay: 0.14s; }
+.storage-grid .storage-cell:nth-child(8) { animation-delay: 0.16s; }
+/* For cells beyond 8, use a max delay */
+.storage-grid .storage-cell:nth-child(n+9) { animation-delay: 0.18s; }
+
+/* Pulse Animation for Updated Cells */
+@keyframes pulse-update {
+  0%, 100% {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(212, 165, 116, 0.6);
+  }
+}
+
+.storage-cell[data-updated="true"] {
+  animation: pulse-update 1s ease-in-out;
+}
+
+/* Glow Animation (for hover) */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(212, 165, 116, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(212, 165, 116, 0.6);
+  }
+}
+
+.storage-cell:hover {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Type-Specific Glow Colors */
+.storage-cell[data-type="address"]:hover {
+  box-shadow: 0 0 16px rgba(212, 165, 116, 0.5); /* Amber */
+}
+
+.storage-cell[data-type="uint256"]:hover {
+  box-shadow: 0 0 16px rgba(127, 170, 139, 0.5); /* Green */
+}
+
+.storage-cell[data-type="int256"]:hover {
+  box-shadow: 0 0 16px rgba(123, 139, 184, 0.5); /* Blue */
+}
+
+.storage-cell[data-type="bool"]:hover {
+  box-shadow: 0 0 16px rgba(159, 122, 184, 0.5); /* Purple */
+}
+
+.storage-cell[data-type="string"]:hover {
+  box-shadow: 0 0 16px rgba(184, 122, 159, 0.5); /* Pink */
+}
+
+.storage-cell[data-type="bytes32"]:hover,
+.storage-cell[data-type="bytes"]:hover {
+  box-shadow: 0 0 16px rgba(122, 184, 184, 0.5); /* Cyan */
+}
+
+/* Fade-In Animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Monospace Typography for All Storage Content */
+[data-theme='retro'] .storage-cell,
+[data-theme='retro'] .storage-cell * {
+  font-family: var(--font-mono, monospace);
+}
+
+/* Dark Mode Adjustments */
+[data-theme='retro'].dark .storage-cell {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='retro'].dark .storage-cell:hover {
+  box-shadow: 0 0 20px rgba(224, 181, 128, 0.5); /* Brighter amber in dark */
+}
+
+/* Loading Skeleton Pulse */
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.storage-grid [data-skeleton="true"] {
+  animation: skeleton-pulse 2s ease-in-out infinite;
+}
+
+/* Smooth Scroll Behavior */
+[data-theme='retro'] {
+  scroll-behavior: smooth;
+}
+
+/* Focus Styles for Accessibility */
+.storage-cell:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Modal Overlay Backdrop Blur */
+[data-theme='retro'] [data-radix-dialog-overlay] {
+  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='retro'].dark [data-radix-dialog-overlay] {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* Responsive Grid Adjustments */
+@media (max-width: 768px) {
+  .storage-grid {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 8px;
+  }
+
+  .storage-cell {
+    min-height: 70px;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .storage-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 6px;
+  }
+
+  .storage-cell {
+    min-height: 60px;
+    padding: 6px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .storage-grid {
+    grid-template-columns: repeat(16, 1fr);
+    gap: 2px;
+  }
+
+  .storage-cell {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+
+  .storage-cell:hover {
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+/* Performance Optimizations */
+.storage-grid {
+  /* Use GPU acceleration for smoother animations */
+  transform: translateZ(0);
+  will-change: scroll-position;
+}
+
+.storage-cell {
+  /* Optimize repaints */
+  contain: layout style paint;
+}
+
+/* Tooltip Styles Enhancement */
+[data-theme='retro'] [data-radix-tooltip-content] {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  max-width: 400px;
+  animation: fade-in 0.2s ease-out;
+}
+
+/* Badge Styles for Type Indicators */
+[data-theme='retro'] .storage-cell [class*="badge"] {
+  font-size: 8px;
+  padding: 2px 4px;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
+/* Amber Accent Highlights */
+[data-theme='retro'] .accent-highlight {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+[data-theme='retro'].dark .accent-highlight {
+  color: oklch(0.75 0.12 75); /* Brighter amber in dark mode */
+}
+
+/* Terminal-Style Scrollbar (Optional Enhancement) */
+[data-theme='retro'] .storage-grid::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+[data-theme='retro'] .storage-grid::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+
+[data-theme='retro'] .storage-grid::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 6px;
+}
+
+[data-theme='retro'] .storage-grid::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.60 0.10 75);
+}
+
+/* Custom Selection Color */
+[data-theme='retro'] ::selection {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}

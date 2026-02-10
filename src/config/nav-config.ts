@@ -40,5 +40,13 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['t', 'p'],
     items: []
+  },
+  {
+    title: 'Storage',
+    url: '/dashboard/storage',
+    icon: 'product',
+    isActive: false,
+    shortcut: ['s', 't'],
+    items: []
   }
 ];
