@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { MegaETHStreamingAdapter } from '@/lib/adapters/megaeth-streaming';
 import { dexCache } from '@/lib/dex-cache';
+import { DataLoader } from '@/lib/data-loader';
 
 // Global streaming state (persists across requests)
 let streamingActive = false;
@@ -8,6 +9,10 @@ let unsubscribers: (() => void)[] = [];
 
 export async function POST() {
   try {
+    // Auto-load CSV data on first stream init
+    const dataLoader = DataLoader.getInstance();
+    await dataLoader.loadInitialData();
+
     if (streamingActive) {
       return NextResponse.json({
         success: true,

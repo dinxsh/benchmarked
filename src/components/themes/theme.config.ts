@@ -32,5 +32,9 @@ export const THEMES = [
   {
     name: 'Birdeye',
     value: 'birdeye'
+  },
+  {
+    name: 'Retro',
+    value: 'retro'
   }
 ];

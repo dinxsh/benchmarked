@@ -3,7 +3,7 @@
  * In-memory cache optimized for high-frequency DEX data with TTL and circular buffers
  */
 
-import { TradingPair, LivePairUpdate, OHLCVData } from './dex-types';
+import { TradingPair, LivePairUpdate, OHLCVData, TokenInfo } from './dex-types';
 
 class DexCache {
   // Storage maps
@@ -405,6 +405,126 @@ class DexCache {
       liquidityScore * 0.25;
 
     return Math.round(score);
+  }
+
+  /**
+   * Get all unique tokens from pairs
+   */
+  getUniqueTokens(): Array<{
+    token: TokenInfo;
+    pairCount: number;
+    totalVolume24hUSD: number;
+    totalLiquidity: number;
+    priceUSD: number;
+    priceChange24h: number;
+  }> {
+    const tokenMap = new Map<string, {
+      token: TokenInfo;
+      pairCount: number;
+      totalVolume: number;
+      totalLiquidity: number;
+      prices: number[];
+      priceChanges: number[];
+    }>();
+
+    // Aggregate data from all pairs
+    this.livePairUpdates.forEach((update, pairAddress) => {
+      const pair = this.pairs.get(pairAddress);
+      if (!pair) return;
+
+      // Process token0
+      this.aggregateTokenData(tokenMap, pair.token0, update);
+
+      // Process token1
+      this.aggregateTokenData(tokenMap, pair.token1, update);
+    });
+
+    // Convert to array and calculate averages
+    return Array.from(tokenMap.values()).map(data => ({
+      token: data.token,
+      pairCount: data.pairCount,
+      totalVolume24hUSD: data.totalVolume,
+      totalLiquidity: data.totalLiquidity,
+      priceUSD: data.prices.length > 0
+        ? data.prices.reduce((a, b) => a + b, 0) / data.prices.length
+        : 0,
+      priceChange24h: data.priceChanges.length > 0
+        ? data.priceChanges.reduce((a, b) => a + b, 0) / data.priceChanges.length
+        : 0
+    }));
+  }
+
+  private aggregateTokenData(
+    tokenMap: Map<string, any>,
+    token: TokenInfo,
+    update: LivePairUpdate
+  ): void {
+    const key = token.address.toLowerCase();
+
+    if (!tokenMap.has(key)) {
+      tokenMap.set(key, {
+        token,
+        pairCount: 0,
+        totalVolume: 0,
+        totalLiquidity: 0,
+        prices: [],
+        priceChanges: []
+      });
+    }
+
+    const data = tokenMap.get(key)!;
+    data.pairCount++;
+    data.totalVolume += update.volume24hUSD || 0;
+    data.totalLiquidity += update.liquidityUSD || 0;
+
+    if (update.priceUSD > 0) {
+      data.prices.push(update.priceUSD);
+    }
+
+    if (update.priceChange24h !== undefined) {
+      data.priceChanges.push(update.priceChange24h);
+    }
+  }
+
+  /**
+   * Get all pairs for a specific token
+   */
+  getPairsForToken(tokenAddress: string): Array<{
+    pair: TradingPair;
+    priceUSD: number;
+    volume24hUSD: number;
+    liquidityUSD: number;
+    priceChange24h: number;
+    txCount24h: number;
+  }> {
+    const address = tokenAddress.toLowerCase();
+    const pairs: Array<{
+      pair: TradingPair;
+      priceUSD: number;
+      volume24hUSD: number;
+      liquidityUSD: number;
+      priceChange24h: number;
+      txCount24h: number;
+    }> = [];
+
+    this.livePairUpdates.forEach((update, pairAddress) => {
+      const pair = this.pairs.get(pairAddress);
+      if (!pair) return;
+
+      if (pair.token0.address.toLowerCase() === address ||
+          pair.token1.address.toLowerCase() === address) {
+        pairs.push({
+          pair,
+          priceUSD: update.priceUSD,
+          volume24hUSD: update.volume24hUSD,
+          liquidityUSD: update.liquidityUSD,
+          priceChange24h: update.priceChange24h,
+          txCount24h: update.txCount24h
+        });
+      }
+    });
+
+    return pairs.sort((a, b) => b.volume24hUSD - a.volume24hUSD);
   }
 }
 

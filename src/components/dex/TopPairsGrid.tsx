@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { LivePairUpdate } from '@/lib/dex-types';
 import { useRealtimePairs } from '@/hooks/use-realtime-pairs';
 
@@ -14,22 +12,22 @@ export function TopPairsGrid({ onPairSelect }: TopPairsGridProps) {
   const [flashStates, setFlashStates] = useState<Map<string, 'green' | 'red' | null>>(new Map());
   const previousPricesRef = useRef<Map<string, number>>(new Map());
 
-  // Memoize the price update callback to prevent infinite re-renders
+  // Memoize the price update callback with slower pulse animation
   const handlePriceUpdate = useCallback((update: LivePairUpdate) => {
     const previousPrice = previousPricesRef.current.get(update.pair.pairAddress);
     if (previousPrice !== undefined && previousPrice !== update.priceUSD) {
-      // Flash green if price increased, red if decreased
+      // Pulse green if price increased, red if decreased
       const flashColor = update.priceUSD > previousPrice ? 'green' : 'red';
       setFlashStates(prev => new Map(prev).set(update.pair.pairAddress, flashColor));
 
-      // Clear flash after 500ms
+      // Clear pulse after 1200ms (slower than brutalist)
       setTimeout(() => {
         setFlashStates(prev => {
           const next = new Map(prev);
           next.delete(update.pair.pairAddress);
           return next;
         });
-      }, 500);
+      }, 1200);
     }
     previousPricesRef.current.set(update.pair.pairAddress, update.priceUSD);
   }, []);
@@ -49,91 +47,118 @@ export function TopPairsGrid({ onPairSelect }: TopPairsGridProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="h-4 w-4 border-2 border-foreground border-t-transparent animate-spin" />
+      <div className="flex items-center justify-center py-12">
+        <div className="h-6 w-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!pairs || pairs.length === 0) {
     return (
-      <div className="text-center py-8 text-[10px] font-mono text-muted-foreground uppercase border-2 border-dashed border-muted-foreground/30 m-2">
-        NO PAIRS AVAILABLE. UPLOAD CSV TO GET STARTED.
+      <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+        <div className="w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center mb-3">
+          <svg
+            className="w-6 h-6 text-muted-foreground"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <p className="text-sm font-medium text-muted-foreground mb-1">
+          No pairs available
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Upload CSV or wait for streaming data
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="w-full overflow-x-auto">
-      {/* Connection Status Indicator */}
-      <div className="flex items-center justify-end gap-2 px-2 py-1 border-b border-muted">
-        <div className="flex items-center gap-1.5">
-          <div className={`h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-accent animate-pulse' : 'bg-muted-foreground'}`} />
-          <span className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
-            {isConnected ? 'LIVE' : 'DISCONNECTED'}
-          </span>
+    <div className="w-full">
+      {/* Header Section */}
+      <div className="px-4 py-3 border-b border-border bg-card">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Top 20 Pairs by Volume
+          </h2>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-success animate-pulse' : 'bg-muted-foreground'}`} />
+              <span className="text-xs font-medium text-muted-foreground">
+                {isConnected ? 'Live' : 'Disconnected'}
+              </span>
+            </div>
+            {isConnected && latency > 0 && (
+              <span className="text-xs text-muted-foreground">
+                {latency}ms
+              </span>
+            )}
+          </div>
         </div>
-        {isConnected && latency > 0 && (
-          <Badge variant="outline" className="h-5 px-1.5 text-[8px] font-mono border-muted-foreground/30">
-            {latency}ms
-          </Badge>
-        )}
       </div>
 
-      <table className="w-full border-collapse font-mono text-[11px]">
+      {/* Table */}
+      <table className="w-full">
         <thead>
-          <tr className="border-b border-foreground bg-muted/30">
-            <th className="text-left py-1 px-2 text-[10px] font-bold uppercase tracking-wider">RNK</th>
-            <th className="text-left py-1 px-2 text-[10px] font-bold uppercase tracking-wider">PAIR</th>
-            <th className="text-right py-1 px-2 text-[10px] font-bold uppercase tracking-wider">PRICE</th>
-            <th className="text-right py-1 px-2 text-[10px] font-bold uppercase tracking-wider">24H %</th>
-            <th className="text-right py-1 px-2 text-[10px] font-bold uppercase tracking-wider">VOLUME</th>
-            <th className="text-right py-1 px-2 text-[10px] font-bold uppercase tracking-wider">LIQUIDITY</th>
-            <th className="text-right py-1 px-2 text-[10px] font-bold uppercase tracking-wider">TXS</th>
+          <tr className="border-b border-border bg-muted/30">
+            <th className="text-left py-2 px-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Pair
+            </th>
+            <th className="text-right py-2 px-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Price
+            </th>
+            <th className="text-right py-2 px-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              24h Change
+            </th>
+            <th className="text-right py-2 px-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Volume
+            </th>
+            <th className="text-right py-2 px-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Liquidity
+            </th>
           </tr>
         </thead>
         <tbody>
-          {pairs.map((pair: LivePairUpdate, idx: number) => {
+          {pairs.slice(0, 20).map((pair: LivePairUpdate, idx: number) => {
             const flashState = flashStates.get(pair.pair.pairAddress);
-            const flashClass = flashState === 'green' ? 'flash-green' : flashState === 'red' ? 'flash-red' : '';
+            const pulseClass = flashState === 'green' ? 'pulse-green' : flashState === 'red' ? 'pulse-red' : '';
 
             return (
               <tr
                 key={pair.pair.pairAddress}
-                className={`border-b border-muted ${
-                  idx % 2 === 0 ? 'bg-background' : 'bg-muted/10'
-                } hover:bg-muted/30 transition-colors cursor-pointer ${flashClass}`}
+                className={`border-b border-border cursor-pointer ${pulseClass}`}
                 onClick={() => onPairSelect?.(pair.pair.pairAddress)}
               >
-                <td className="py-1.5 px-2 font-bold text-muted-foreground">
-                  #{idx + 1}
+                <td className="py-3 px-4">
+                  <div className="font-medium text-foreground">
+                    {pair.pair.token0.symbol}/{pair.pair.token1.symbol}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {pair.pair.dexName}
+                  </div>
                 </td>
-                <td className="py-1.5 px-2">
-                  <div className="font-semibold">{pair.pair.token0.symbol}/{pair.pair.token1.symbol}</div>
-                  <div className="text-[9px] text-muted-foreground uppercase">{pair.pair.dexName}</div>
-                </td>
-                <td className="py-1.5 px-2 text-right font-semibold tabular-nums">
+                <td className="py-3 px-4 text-right font-mono text-sm tabular-nums text-foreground">
                   ${pair.priceUSD.toFixed(6)}
                 </td>
-                <td className={`py-1.5 px-2 text-right font-bold tabular-nums ${
-                  pair.priceChange24h > 0 ? 'text-accent' : 'text-destructive'
+                <td className={`py-3 px-4 text-right font-mono text-sm font-medium tabular-nums ${
+                  pair.priceChange24h > 0 ? 'text-success' : 'text-destructive'
                 }`}>
-                  {pair.priceChange24h > 0 ? (
-                    <TrendingUp className="inline h-3 w-3 mr-1" />
-                  ) : (
-                    <TrendingDown className="inline h-3 w-3 mr-1" />
-                  )}
                   {pair.priceChange24h > 0 ? '+' : ''}
                   {pair.priceChange24h.toFixed(2)}%
                 </td>
-                <td className="py-1.5 px-2 text-right tabular-nums">
+                <td className="py-3 px-4 text-right font-mono text-sm tabular-nums text-muted-foreground">
                   ${formatNumber(pair.volume24hUSD)}
                 </td>
-                <td className="py-1.5 px-2 text-right tabular-nums">
+                <td className="py-3 px-4 text-right font-mono text-sm tabular-nums text-muted-foreground">
                   ${formatNumber(pair.liquidityUSD)}
-                </td>
-                <td className="py-1.5 px-2 text-right tabular-nums">
-                  {pair.txCount24h}
                 </td>
               </tr>
             );

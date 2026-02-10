@@ -6,6 +6,7 @@
 @import './themes/mono.css';
 @import './themes/notebook.css';
 @import './themes/birdeye.css';
+@import './themes/retro.css';
 
 body {
   @apply overscroll-none;
