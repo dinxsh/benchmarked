@@ -1,40 +1,12 @@
 /**
- * Default theme that loads when no user preference is set
- * Change this value to set a different default theme
+ * Single enforced theme — Hyperliquid terminal dark
+ * Theme switching is disabled; this is the only theme.
  */
-export const DEFAULT_THEME = 'birdeye';
+export const DEFAULT_THEME = 'hyperliquid';
 
 export const THEMES = [
   {
-    name: 'Claude',
-    value: 'claude'
-  },
-  {
-    name: 'Neobrutualism',
-    value: 'neobrutualism'
-  },
-  {
-    name: 'Supabase',
-    value: 'supabase'
-  },
-  {
-    name: 'Vercel',
-    value: 'vercel'
-  },
-  {
-    name: 'Mono',
-    value: 'mono'
-  },
-  {
-    name: 'Notebook',
-    value: 'notebook'
-  },
-  {
-    name: 'Birdeye',
-    value: 'birdeye'
-  },
-  {
-    name: 'Retro',
-    value: 'retro'
+    name: 'Hyperliquid',
+    value: 'hyperliquid'
   }
 ];
