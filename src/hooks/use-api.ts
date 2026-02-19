@@ -41,3 +41,17 @@ export function useCompare(providerA: string, providerB: string) {
     staleTime: 5 * 60 * 1000
   });
 }
+
+export function useSolanaBenchmarks(params?: { run?: boolean }) {
+  return useQuery({
+    queryKey: ['solana-benchmarks', params],
+    queryFn: () =>
+      fetch(`/api/benchmarks/solana${params?.run ? '?run=true' : ''}`)
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        }),
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 60 * 1000,
+  });
+}

@@ -48,5 +48,13 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['s', 't'],
     items: []
+  },
+  {
+    title: 'Solana',
+    url: '/dashboard/solana',
+    icon: 'arrowRight',
+    isActive: false,
+    shortcut: ['s', 'o'],
+    items: []
   }
 ];
