@@ -32,6 +32,7 @@ export class SolanaMobulaAdapter extends BaseAdapter {
       slug: this.id,
       logo_url: 'https://mobula.io/favicon.ico',
       website_url: 'https://mobula.io',
+      provider_type: 'data-api' as const,
       supported_chains: ['solana', 'ethereum', 'bsc', 'polygon'],
       pricing: {
         cost_per_million: 1.0,

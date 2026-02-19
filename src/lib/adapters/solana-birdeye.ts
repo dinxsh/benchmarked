@@ -33,6 +33,7 @@ export class SolanaBirdeyeAdapter extends BaseAdapter {
       slug: this.id,
       logo_url: 'https://birdeye.so/favicon.ico',
       website_url: 'https://birdeye.so',
+      provider_type: 'data-api' as const,
       supported_chains: ['solana'],
       pricing: {
         cost_per_million: 2.0,

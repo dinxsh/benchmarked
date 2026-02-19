@@ -4,6 +4,9 @@ import { SolanaBirdeyeAdapter } from '@/lib/adapters/solana-birdeye';
 import { SolanaMobulaAdapter } from '@/lib/adapters/solana-mobula';
 import { SolanaLaserTeamAdapter } from '@/lib/adapters/solana-laserteam';
 import { SolanaAlchemyAdapter } from '@/lib/adapters/solana-alchemy';
+import { SolanaHeliusAdapter } from '@/lib/adapters/solana-helius';
+import { SolanaAnkrAdapter } from '@/lib/adapters/solana-ankr';
+import { SolanaQuickNodeAdapter } from '@/lib/adapters/solana-quicknode';
 
 function jsonWithCache(data: unknown, maxAge: number = 300) {
   return NextResponse.json(data, {
@@ -16,17 +19,18 @@ function jsonWithCache(data: unknown, maxAge: number = 300) {
 }
 
 // Composite score: Latency 35% + Uptime 35% + Throughput 30%
+// maxLatency=1000ms (fairer for REST/Data APIs), maxThroughput=500rps
 function computeScore(
   latency_p50: number,
   uptime_percent: number,
   throughput_rps: number
 ): number {
-  const maxLatency = 500;
+  const maxLatency = 1000;
   const latencyScore = Math.max(0, 100 - (latency_p50 / maxLatency) * 100);
 
   const uptimeScore = uptime_percent;
 
-  const maxThroughput = 300;
+  const maxThroughput = 500;
   const throughputScore = Math.min(100, (throughput_rps / maxThroughput) * 100);
 
   return Number((latencyScore * 0.35 + uptimeScore * 0.35 + throughputScore * 0.30).toFixed(1));
@@ -40,6 +44,9 @@ export async function GET(request: Request) {
   const adapters = [
     new SolanaGoldRushAdapter(),
     new SolanaAlchemyAdapter(),
+    new SolanaHeliusAdapter(),
+    new SolanaAnkrAdapter(),
+    new SolanaQuickNodeAdapter(),
     new SolanaBirdeyeAdapter(),
     new SolanaMobulaAdapter(),
     new SolanaLaserTeamAdapter(),
@@ -75,7 +82,15 @@ export async function GET(request: Request) {
       return {
         ...metadata,
         is_us: (adapter as any).isUs ?? false,
-        metrics,
+        metrics: {
+          latency_p50: metrics.latency_p50,
+          latency_p95: metrics.latency_p95,
+          latency_p99: metrics.latency_p99,
+          uptime_percent: metrics.uptime_percent,
+          error_rate: metrics.error_rate ?? 0,
+          throughput_rps: metrics.throughput_rps,
+          slot_height: metrics.slot_height ?? 0,
+        },
         score,
         is_mock: metrics.is_mock ?? false
       };

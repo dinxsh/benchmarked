@@ -36,6 +36,7 @@ export class SolanaAlchemyAdapter extends BaseAdapter {
       slug: this.id,
       logo_url: 'https://www.alchemy.com/favicon.ico',
       website_url: 'https://www.alchemy.com',
+      provider_type: 'json-rpc' as const,
       supported_chains: ['solana', 'ethereum', 'polygon', 'arbitrum', 'optimism', 'base'],
       pricing: {
         cost_per_million: 1.5,

@@ -1,34 +1,22 @@
 import { BaseAdapter } from './base';
 
-const TEST_ADDRESS = 'So11111111111111111111111111111111111111112';
-
-// Mock ranges for when API key is missing (realistic Solana data)
 const MOCK = {
-  latency_p50: 142,
-  latency_p95: 289,
-  latency_p99: 412,
-  uptime_percent: 99.2,
-  throughput_rps: 82,
+  latency_p50: 110,
+  latency_p95: 215,
+  latency_p99: 315,
+  uptime_percent: 99.5,
+  throughput_rps: 145,
   slot_height: 280000000
 };
 
-export class SolanaGoldRushAdapter extends BaseAdapter {
-  id = 'solana-goldrush';
-  name = 'GoldRush';
-  isUs = true;
+export class SolanaQuickNodeAdapter extends BaseAdapter {
+  id = 'solana-quicknode';
+  name = 'QuickNode';
 
   constructor() {
     super();
+    this.endpoint = process.env.QUICKNODE_SOLANA_ENDPOINT || '';
     this.sampleSize = 3;
-  }
-
-  private get apiKey() {
-    return process.env.GOLDRUSH_API_KEY || '';
-  }
-
-  private get solanaEndpoint() {
-    if (!this.apiKey) return '';
-    return `https://api.covalenthq.com/v1/solana-mainnet/block_v2/latest/?key=${this.apiKey}`;
   }
 
   getMetadata() {
@@ -36,13 +24,13 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
       id: this.id,
       name: this.name,
       slug: this.id,
-      logo_url: '/providers/goldrush.png',
-      website_url: 'https://goldrush.dev',
-      provider_type: 'rest-api' as const,
-      supported_chains: ['solana', 'ethereum', 'polygon', 'avalanche', 'bsc', 'arbitrum', 'optimism', 'base', '50+ more'],
+      logo_url: 'https://www.quicknode.com/favicon.ico',
+      website_url: 'https://www.quicknode.com/chains/sol',
+      provider_type: 'json-rpc' as const,
+      supported_chains: ['solana', 'ethereum', 'polygon', 'avalanche', 'arbitrum', 'optimism', 'base', '20+ more'],
       pricing: {
-        cost_per_million: 0.5,
-        rate_limit: '50 req/sec'
+        cost_per_million: 0,
+        rate_limit: '25 req/s (free)'
       },
       capabilities: {
         transactions: true,
@@ -51,36 +39,37 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
         nft_metadata: true,
         historical_depth: 'full',
         custom_indexing: true,
-        traces: false,
+        traces: true,
         db_access: false
       }
     };
   }
 
   protected async testCall(): Promise<number> {
-    // No API key → return mock latency with slight jitter
-    if (!this.apiKey) {
-      const jitter = Math.round((Math.random() - 0.5) * 40);
+    if (!this.endpoint) {
+      const jitter = Math.round((Math.random() - 0.5) * 35);
       return MOCK.latency_p50 + jitter;
     }
-
     const startTime = performance.now();
-    const response = await fetch(this.solanaEndpoint, {
-      method: 'GET',
+    const response = await fetch(this.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getSlot', params: [] }),
       signal: AbortSignal.timeout(5000)
     });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (response.status === 401 || response.status >= 500) throw new Error(`HTTP ${response.status}`);
     await response.text();
     return Math.round(performance.now() - startTime);
   }
 
   protected async captureResponse(): Promise<{ body: any; size: number }> {
-    if (!this.apiKey) {
-      const body = { mock: true, provider: this.id };
-      return { body, size: JSON.stringify(body).length };
+    if (!this.endpoint) {
+      return { body: { mock: true, provider: this.id }, size: 40 };
     }
-    const response = await fetch(this.solanaEndpoint, {
-      method: 'GET',
+    const response = await fetch(this.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getSlot', params: [] }),
       signal: AbortSignal.timeout(5000)
     });
     if (!response.ok) return { body: null, size: 0 };
@@ -90,21 +79,24 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
   }
 
   async getBlockHeight(): Promise<number> {
-    if (!this.apiKey) return MOCK.slot_height;
+    if (!this.endpoint) return MOCK.slot_height;
     try {
-      const response = await fetch(this.solanaEndpoint, {
+      const response = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getSlot', params: [] }),
         signal: AbortSignal.timeout(3000)
       });
       if (!response.ok) return MOCK.slot_height;
       const data = await response.json();
-      return data?.data?.items?.[0]?.height ?? MOCK.slot_height;
+      return typeof data.result === 'number' ? data.result : MOCK.slot_height;
     } catch {
       return MOCK.slot_height;
     }
   }
 
   async measureThroughput(): Promise<number> {
-    if (!this.apiKey) return MOCK.throughput_rps;
+    if (!this.endpoint) return MOCK.throughput_rps;
     const CONCURRENT = 10;
     const start = performance.now();
     await Promise.allSettled(Array.from({ length: CONCURRENT }, () => this.testCall()));
@@ -113,7 +105,7 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
   }
 
   async measureWithThroughput() {
-    if (!this.apiKey) {
+    if (!this.endpoint) {
       return {
         latency_p50: MOCK.latency_p50,
         latency_p95: MOCK.latency_p95,
@@ -125,11 +117,11 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
         is_mock: true
       };
     }
-    const [metrics, throughput_rps] = await Promise.all([
+    const [metrics, throughput_rps, slot_height] = await Promise.all([
       this.measure(),
-      this.measureThroughput()
+      this.measureThroughput(),
+      this.getBlockHeight()
     ]);
-    // If the endpoint is misconfigured / key lacks Solana access, fall back to mock
     if (metrics.error_rate === 100) {
       return {
         latency_p50: MOCK.latency_p50,
@@ -142,6 +134,6 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
         is_mock: true
       };
     }
-    return { ...metrics, throughput_rps, slot_height: await this.getBlockHeight(), is_mock: false };
+    return { ...metrics, throughput_rps, slot_height, is_mock: false };
   }
 }
