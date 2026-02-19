@@ -95,12 +95,7 @@ export function useContractStorage(
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     refetchOnWindowFocus: false,
-    refetchOnReconnect: true,
-    onError: (error: Error) => {
-      toast.error('Failed to load storage', {
-        description: error.message
-      });
-    }
+    refetchOnReconnect: true
   });
 }
 
@@ -127,12 +122,7 @@ export function useContractMetadata(
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     refetchOnWindowFocus: false,
-    refetchOnReconnect: true,
-    onError: (error: Error) => {
-      toast.error('Failed to load contract metadata', {
-        description: error.message
-      });
-    }
+    refetchOnReconnect: true
   });
 }
 

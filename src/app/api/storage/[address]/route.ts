@@ -32,12 +32,12 @@ function isValidAddress(address: string): boolean {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
   const startTime = performance.now();
 
   try {
-    const { address } = params;
+    const { address } = await params;
     const { searchParams } = new URL(request.url);
 
     // Validate address

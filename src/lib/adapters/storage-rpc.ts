@@ -323,7 +323,7 @@ export class StorageRPCAdapter {
     try {
       const code = await this.makeRPCCall<string>(request);
       // Contract has code beyond '0x'
-      return code && code !== '0x' && code.length > 2;
+      return !!(code && code !== '0x' && code.length > 2);
     } catch (error) {
       console.error('[StorageRPCAdapter] Failed to check if address is contract:', error);
       return false;

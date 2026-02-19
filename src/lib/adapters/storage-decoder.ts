@@ -64,10 +64,10 @@ export class StorageDecoder {
   ): StorageSlot[] {
     const slots: StorageSlot[] = [];
 
-    for (const [slotNumber, rawValue] of slotsMap.entries()) {
+    slotsMap.forEach((rawValue, slotNumber) => {
       const slot = this.decodeSlot(slotNumber, rawValue, undefined, storageLayout);
       slots.push(slot);
-    }
+    });
 
     // Sort by slot number
     slots.sort((a, b) => a.slot - b.slot);

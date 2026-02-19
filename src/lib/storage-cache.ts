@@ -170,11 +170,11 @@ class StorageCache {
     } else {
       // Invalidate all storage for this contract
       const prefix = `${address.toLowerCase()}_${chainId}_`;
-      for (const key of this.contractStorage.keys()) {
+      Array.from(this.contractStorage.keys()).forEach(key => {
         if (key.startsWith(prefix)) {
           this.contractStorage.delete(key);
         }
-      }
+      });
     }
   }
 
@@ -216,20 +216,20 @@ class StorageCache {
     let expiredMetadata = 0;
 
     // Cleanup expired storage entries
-    for (const [key, entry] of this.contractStorage.entries()) {
+    Array.from(this.contractStorage.entries()).forEach(([key, entry]) => {
       if (now > entry.expiresAt) {
         this.contractStorage.delete(key);
         expiredStorage++;
       }
-    }
+    });
 
     // Cleanup expired metadata entries
-    for (const [key, entry] of this.contractMetadata.entries()) {
+    Array.from(this.contractMetadata.entries()).forEach(([key, entry]) => {
       if (now > entry.expiresAt) {
         this.contractMetadata.delete(key);
         expiredMetadata++;
       }
-    }
+    });
 
     if (expiredStorage > 0 || expiredMetadata > 0) {
       console.log(
@@ -254,30 +254,24 @@ class StorageCache {
     const result: Array<{ address: string; chainId: number }> = [];
 
     // Extract from storage keys
-    for (const key of this.contractStorage.keys()) {
+    Array.from(this.contractStorage.keys()).forEach(key => {
       const [address, chainIdStr] = key.split('_');
       const uniqueKey = `${address}_${chainIdStr}`;
       if (!addresses.has(uniqueKey)) {
         addresses.add(uniqueKey);
-        result.push({
-          address,
-          chainId: parseInt(chainIdStr, 10)
-        });
+        result.push({ address, chainId: parseInt(chainIdStr, 10) });
       }
-    }
+    });
 
     // Extract from metadata keys
-    for (const key of this.contractMetadata.keys()) {
+    Array.from(this.contractMetadata.keys()).forEach(key => {
       const [address, chainIdStr] = key.split('_');
       const uniqueKey = `${address}_${chainIdStr}`;
       if (!addresses.has(uniqueKey)) {
         addresses.add(uniqueKey);
-        result.push({
-          address,
-          chainId: parseInt(chainIdStr, 10)
-        });
+        result.push({ address, chainId: parseInt(chainIdStr, 10) });
       }
-    }
+    });
 
     return result;
   }
@@ -295,7 +289,7 @@ class StorageCache {
     }
 
     const storagePrefix = `${address.toLowerCase()}_${chainId}_`;
-    for (const key of this.contractStorage.keys()) {
+    for (const key of Array.from(this.contractStorage.keys())) {
       if (key.startsWith(storagePrefix)) {
         const entry = this.contractStorage.get(key);
         if (entry && !this.isExpired(entry)) {
