@@ -51,33 +51,30 @@ export class SolanaMobulaAdapter extends BaseAdapter {
   }
 
   protected async testCall(): Promise<number> {
-    if (!this.apiKey) {
-      const jitter = Math.round((Math.random() - 0.5) * 60);
-      return MOCK.latency_p50 + jitter;
-    }
-
     const startTime = performance.now();
+    const headers: Record<string, string> = {};
+    if (this.apiKey) headers['Authorization'] = this.apiKey;
     const response = await fetch(this.endpoint, {
       method: 'GET',
-      headers: { Authorization: this.apiKey },
+      headers,
       signal: AbortSignal.timeout(5000)
     });
+    // 401/403 = requires key, treat as soft failure (will trigger mock fallback via error_rate)
+    if (response.status === 401 || response.status === 403) throw new Error(`HTTP ${response.status}`);
     if (response.status >= 500) throw new Error(`HTTP ${response.status}`);
     await response.text();
     return Math.round(performance.now() - startTime);
   }
 
   protected async captureResponse(): Promise<{ body: any; size: number }> {
-    if (!this.apiKey) {
-      const body = { mock: true, provider: this.id };
-      return { body, size: JSON.stringify(body).length };
-    }
+    const headers: Record<string, string> = {};
+    if (this.apiKey) headers['Authorization'] = this.apiKey;
     const response = await fetch(this.endpoint, {
       method: 'GET',
-      headers: { Authorization: this.apiKey },
+      headers,
       signal: AbortSignal.timeout(5000)
     });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) return { body: null, size: 0 };
     const data = await response.json();
     const jsonString = JSON.stringify(data);
     return { body: data, size: new Blob([jsonString]).size };
@@ -88,7 +85,6 @@ export class SolanaMobulaAdapter extends BaseAdapter {
   }
 
   async measureThroughput(): Promise<number> {
-    if (!this.apiKey) return MOCK.throughput_rps;
     const CONCURRENT = 10;
     const start = performance.now();
     await Promise.allSettled(Array.from({ length: CONCURRENT }, () => this.testCall()));
@@ -97,18 +93,6 @@ export class SolanaMobulaAdapter extends BaseAdapter {
   }
 
   async measureWithThroughput() {
-    if (!this.apiKey) {
-      return {
-        latency_p50: MOCK.latency_p50,
-        latency_p95: MOCK.latency_p95,
-        latency_p99: MOCK.latency_p99,
-        uptime_percent: MOCK.uptime_percent,
-        error_rate: 100 - MOCK.uptime_percent,
-        throughput_rps: MOCK.throughput_rps,
-        slot_height: MOCK.slot_height,
-        is_mock: true
-      };
-    }
     const [metrics, throughput_rps] = await Promise.all([
       this.measure(),
       this.measureThroughput()

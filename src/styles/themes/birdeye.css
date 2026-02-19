@@ -79,55 +79,55 @@
 }
 
 [data-theme='birdeye'].dark {
-  /* Dark mode - Near-black background */
-  --background: oklch(0.10 0 0);
+  /* Dark mode - True near-black background */
+  --background: oklch(0.07 0 0);
   --foreground: oklch(0.95 0 0);
-  --card: oklch(0.14 0 0);
+  --card: oklch(0.11 0 0);
   --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.14 0 0);
+  --popover: oklch(0.11 0 0);
   --popover-foreground: oklch(0.95 0 0);
 
-  /* Crypto green accent (brighter in dark mode) */
-  --primary: oklch(0.60 0.18 142);
-  --primary-foreground: oklch(0.10 0 0);
+  /* Crypto green accent (vivid in dark mode) */
+  --primary: oklch(0.65 0.20 142);
+  --primary-foreground: oklch(0.07 0 0);
 
   /* Dark gray secondary */
-  --secondary: oklch(0.20 0 0);
+  --secondary: oklch(0.18 0 0);
   --secondary-foreground: oklch(0.95 0 0);
 
   /* Muted dark grays */
-  --muted: oklch(0.20 0 0);
+  --muted: oklch(0.18 0 0);
   --muted-foreground: oklch(0.70 0 0);
 
-  /* Crypto green accent */
-  --accent: oklch(0.60 0.18 142);
-  --accent-foreground: oklch(0.10 0 0);
+  /* Crypto green accent (vivid) */
+  --accent: oklch(0.65 0.20 142);
+  --accent-foreground: oklch(0.07 0 0);
 
   /* Crypto red (brighter in dark mode) */
   --destructive: oklch(0.60 0.24 25);
-  --destructive-foreground: oklch(0.10 0 0);
+  --destructive-foreground: oklch(0.07 0 0);
 
   /* Off-white borders for dark mode */
   --border: oklch(0.95 0 0);
   --input: oklch(0.95 0 0);
-  --ring: oklch(0.60 0.18 142);
+  --ring: oklch(0.65 0.20 142);
 
   /* Chart colors - white, green, red, grays */
   --chart-1: oklch(0.95 0 0);
-  --chart-2: oklch(0.60 0.18 142);
+  --chart-2: oklch(0.65 0.20 142);
   --chart-3: oklch(0.60 0.24 25);
   --chart-4: oklch(0.60 0 0);
   --chart-5: oklch(0.30 0 0);
 
-  /* Dark sidebar */
-  --sidebar: oklch(0.10 0 0);
+  /* Dark sidebar (slightly lighter than bg) */
+  --sidebar: oklch(0.09 0 0);
   --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.60 0.18 142);
-  --sidebar-primary-foreground: oklch(0.10 0 0);
-  --sidebar-accent: oklch(0.60 0.18 142);
-  --sidebar-accent-foreground: oklch(0.10 0 0);
+  --sidebar-primary: oklch(0.65 0.20 142);
+  --sidebar-primary-foreground: oklch(0.07 0 0);
+  --sidebar-accent: oklch(0.65 0.20 142);
+  --sidebar-accent-foreground: oklch(0.07 0 0);
   --sidebar-border: oklch(0.95 0 0);
-  --sidebar-ring: oklch(0.60 0.18 142);
+  --sidebar-ring: oklch(0.65 0.20 142);
 
   /* Monospace fonts */
   --font-sans: 'JetBrains Mono', 'Fira Code', 'Consolas', 'SF Mono', 'Monaco', 'Cascadia Code', monospace;

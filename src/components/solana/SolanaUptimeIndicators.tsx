@@ -15,7 +15,7 @@ function UptimeDots({ pct }: { pct: number }) {
         <div
           key={i}
           className={`h-1.5 w-1.5 rounded-sm ${
-            i < filled ? 'bg-green-500' : 'bg-muted-foreground/20'
+            i < filled ? 'bg-accent' : 'bg-muted-foreground/20'
           }`}
         />
       ))}
@@ -31,20 +31,20 @@ export function SolanaUptimeIndicators({ providers }: Props) {
       {sorted.map((p) => {
         const pct = p.metrics.uptime_percent;
         const color =
-          pct >= 99.5 ? 'text-green-600 dark:text-green-400' :
-          pct >= 98 ? 'text-yellow-600 dark:text-yellow-400' :
-          'text-red-600 dark:text-red-400';
+          pct >= 99.5 ? 'text-accent' :
+          pct >= 98 ? 'text-yellow-400' :
+          'text-destructive';
         const dotColor =
-          pct >= 99.5 ? 'bg-green-500' :
-          pct >= 98 ? 'bg-yellow-500' :
-          'bg-red-500';
+          pct >= 99.5 ? 'bg-accent' :
+          pct >= 98 ? 'bg-yellow-400' :
+          'bg-destructive';
 
         return (
           <div key={p.id} className="space-y-0.5">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5 text-[11px] font-mono">
                 <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${dotColor}`} />
-                <span className={p.is_us ? 'text-amber-600 dark:text-amber-400 font-medium' : 'text-foreground'}>
+                <span className={p.is_us ? 'text-accent font-medium' : 'text-foreground'}>
                   {p.is_us ? `★ ${p.name}` : p.name}
                 </span>
               </span>

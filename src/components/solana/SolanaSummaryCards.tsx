@@ -30,7 +30,7 @@ function KpiCard({
     <div
       className={`rounded border p-3 space-y-1 ${
         accent
-          ? 'border-accent/60 bg-amber-50/40 dark:bg-amber-950/20'
+          ? 'border-accent/60 bg-accent/8'
           : 'border-border bg-muted/20'
       }`}
     >
@@ -39,7 +39,7 @@ function KpiCard({
       </p>
       <p
         className={`text-base font-mono font-bold tabular-nums ${
-          accent ? 'text-amber-700 dark:text-amber-300' : 'text-foreground'
+          accent ? 'text-accent' : 'text-foreground'
         }`}
       >
         {value}

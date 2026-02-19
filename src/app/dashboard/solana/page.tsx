@@ -89,8 +89,8 @@ export default function SolanaBenchmarksPage() {
             <h1 className="text-sm font-mono font-bold uppercase tracking-wider text-foreground">
               Solana Provider Benchmarks
             </h1>
-            <Badge className="gap-1 h-5 px-1.5 text-[9px] font-mono uppercase border border-green-400/60 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+            <Badge className="gap-1 h-5 px-1.5 text-[9px] font-mono uppercase border border-accent/60 bg-accent/10 text-accent">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
               Live
             </Badge>
           </div>
@@ -123,7 +123,7 @@ export default function SolanaBenchmarksPage() {
 
       {/* Error */}
       {error && (
-        <div className="rounded border border-red-300 bg-red-50 dark:bg-red-950/20 px-3 py-2 text-[11px] font-mono text-red-700 dark:text-red-400">
+        <div className="rounded border border-destructive/50 bg-destructive/10 px-3 py-2 text-[11px] font-mono text-destructive">
           {error}
         </div>
       )}
@@ -150,7 +150,7 @@ export default function SolanaBenchmarksPage() {
                   Comparison Table
                 </h2>
                 {data.meta.errors && data.meta.errors.length > 0 && (
-                  <span className="text-[9px] font-mono text-yellow-600 dark:text-yellow-400">
+                  <span className="text-[9px] font-mono text-yellow-400">
                     {data.meta.errors.length} error(s)
                   </span>
                 )}

@@ -28,7 +28,7 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
 
   private get solanaEndpoint() {
     if (!this.apiKey) return '';
-    return `https://api.covalenthq.com/v1/solana-mainnet/address/${TEST_ADDRESS}/balances_v2/?key=${this.apiKey}`;
+    return `https://api.covalenthq.com/v1/solana-mainnet/block_v2/latest/?key=${this.apiKey}`;
   }
 
   getMetadata() {
@@ -66,7 +66,6 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
     const startTime = performance.now();
     const response = await fetch(this.solanaEndpoint, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${this.apiKey}` },
       signal: AbortSignal.timeout(5000)
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -81,10 +80,9 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
     }
     const response = await fetch(this.solanaEndpoint, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${this.apiKey}` },
       signal: AbortSignal.timeout(5000)
     });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) return { body: null, size: 0 };
     const data = await response.json();
     const jsonString = JSON.stringify(data);
     return { body: data, size: new Blob([jsonString]).size };
@@ -96,11 +94,11 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
       const response = await fetch(this.solanaEndpoint, {
         signal: AbortSignal.timeout(3000)
       });
-      if (!response.ok) return 0;
+      if (!response.ok) return MOCK.slot_height;
       const data = await response.json();
-      return data?.data?.updated_at ? Date.now() : MOCK.slot_height;
+      return data?.data?.items?.[0]?.height ?? MOCK.slot_height;
     } catch {
-      return 0;
+      return MOCK.slot_height;
     }
   }
 

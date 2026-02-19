@@ -72,7 +72,8 @@ export class SolanaAlchemyAdapter extends BaseAdapter {
       }),
       signal: AbortSignal.timeout(5000)
     });
-    if (response.status >= 500) throw new Error(`HTTP ${response.status}`);
+    // 401 = bad/wrong-chain key → count as error so mock fallback triggers
+    if (response.status === 401 || response.status >= 500) throw new Error(`HTTP ${response.status}`);
     await response.text();
     return Math.round(performance.now() - startTime);
   }
@@ -88,6 +89,7 @@ export class SolanaAlchemyAdapter extends BaseAdapter {
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getSlot', params: [] }),
       signal: AbortSignal.timeout(5000)
     });
+    if (response.status === 401 || response.status === 429 || response.status === 403) return { body: null, size: 0 };
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     const jsonString = JSON.stringify(data);
@@ -138,6 +140,19 @@ export class SolanaAlchemyAdapter extends BaseAdapter {
       this.measureThroughput(),
       this.getBlockHeight()
     ]);
+    // 401 / wrong-chain key → all samples fail → fall back to mock
+    if (metrics.error_rate === 100) {
+      return {
+        latency_p50: MOCK.latency_p50,
+        latency_p95: MOCK.latency_p95,
+        latency_p99: MOCK.latency_p99,
+        uptime_percent: MOCK.uptime_percent,
+        error_rate: 100 - MOCK.uptime_percent,
+        throughput_rps: MOCK.throughput_rps,
+        slot_height: MOCK.slot_height,
+        is_mock: true
+      };
+    }
     return { ...metrics, throughput_rps, slot_height, is_mock: false };
   }
 }

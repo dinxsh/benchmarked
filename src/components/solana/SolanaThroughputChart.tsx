@@ -21,7 +21,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return (
     <div className="bg-background border border-border rounded p-2 text-[11px] font-mono shadow-md">
       <p className="font-medium text-foreground">{label}</p>
-      <p className="text-blue-500">{payload[0].value} req/s</p>
+      <p style={{ color: 'hsl(var(--accent))' }}>{payload[0].value} req/s</p>
     </div>
   );
 };
@@ -63,7 +63,7 @@ export function SolanaThroughputChart({ providers }: Props) {
           {data.map((entry, index) => (
             <Cell
               key={`cell-${index}`}
-              fill={entry.isUs ? 'hsl(38 80% 55%)' : 'hsl(217 70% 55%)'}
+              fill={entry.isUs ? 'hsl(var(--accent))' : 'hsl(var(--primary))'}
             />
           ))}
         </Bar>

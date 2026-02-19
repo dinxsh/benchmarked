@@ -23,15 +23,15 @@ interface Props {
 }
 
 function latencyColor(ms: number): string {
-  if (ms < 100) return 'text-green-600 dark:text-green-400';
-  if (ms < 200) return 'text-yellow-600 dark:text-yellow-400';
-  return 'text-red-600 dark:text-red-400';
+  if (ms < 100) return 'text-accent';
+  if (ms < 200) return 'text-yellow-400';
+  return 'text-destructive';
 }
 
 function uptimeColor(pct: number): string {
-  if (pct >= 99.5) return 'text-green-600 dark:text-green-400';
-  if (pct >= 98) return 'text-yellow-600 dark:text-yellow-400';
-  return 'text-red-600 dark:text-red-400';
+  if (pct >= 99.5) return 'text-accent';
+  if (pct >= 98) return 'text-yellow-400';
+  return 'text-destructive';
 }
 
 export function SolanaLeaderboardTable({ providers }: Props) {
@@ -56,9 +56,9 @@ export function SolanaLeaderboardTable({ providers }: Props) {
               key={p.id}
               className={`border-b border-border transition-colors ${
                 p.is_us
-                  ? 'bg-amber-50/60 dark:bg-amber-950/20 hover:bg-amber-100/60 dark:hover:bg-amber-950/30'
+                  ? 'bg-accent/10 hover:bg-accent/15'
                   : p.rank === 1
-                  ? 'bg-green-50/30 dark:bg-green-950/10 hover:bg-green-50/50 dark:hover:bg-green-950/20'
+                  ? 'bg-accent/5 hover:bg-accent/10'
                   : 'hover:bg-muted/30'
               }`}
               style={p.is_us ? { borderLeft: '2px solid hsl(var(--accent) / 0.8)' } : undefined}
@@ -69,11 +69,11 @@ export function SolanaLeaderboardTable({ providers }: Props) {
               <td className="py-2.5 px-3">
                 <span className="flex items-center gap-1.5">
                   {p.is_us && (
-                    <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 px-1 py-0.5 rounded">
+                    <span className="text-[9px] font-bold text-accent bg-accent/15 px-1 py-0.5 rounded">
                       ★ US
                     </span>
                   )}
-                  <span className={`font-medium ${p.is_us ? 'text-amber-700 dark:text-amber-300' : 'text-foreground'}`}>
+                  <span className={`font-medium ${p.is_us ? 'text-accent' : 'text-foreground'}`}>
                     {p.name}
                   </span>
                   {p.is_mock && (
@@ -93,7 +93,7 @@ export function SolanaLeaderboardTable({ providers }: Props) {
               <td className={`py-2.5 px-3 text-right tabular-nums ${uptimeColor(p.metrics.uptime_percent)}`}>
                 {p.metrics.uptime_percent.toFixed(1)}%
               </td>
-              <td className="py-2.5 px-3 text-right tabular-nums text-blue-600 dark:text-blue-400">
+              <td className="py-2.5 px-3 text-right tabular-nums text-primary">
                 {p.metrics.throughput_rps} rps
               </td>
               <td className="py-2.5 px-3 text-right tabular-nums">
@@ -101,10 +101,10 @@ export function SolanaLeaderboardTable({ providers }: Props) {
                   variant="outline"
                   className={`text-[10px] font-mono px-1.5 py-0 h-5 ${
                     p.score >= 90
-                      ? 'border-green-400 text-green-700 dark:text-green-400'
+                      ? 'border-accent text-accent'
                       : p.score >= 80
-                      ? 'border-yellow-400 text-yellow-700 dark:text-yellow-400'
-                      : 'border-red-400 text-red-700 dark:text-red-400'
+                      ? 'border-yellow-400 text-yellow-400'
+                      : 'border-destructive text-destructive'
                   }`}
                 >
                   {p.score.toFixed(1)}
