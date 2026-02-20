@@ -6,56 +6,94 @@ interface Props {
   providers: SolanaProvider[];
 }
 
-function UptimeDots({ pct, fillClass }: { pct: number; fillClass: string }) {
-  const total = 20;
-  const filled = Math.round((pct / 100) * total);
-  return (
-    <div className="flex gap-0.5 mt-1">
-      {Array.from({ length: total }).map((_, i) => (
-        <div
-          key={i}
-          className={`h-1.5 w-1.5 rounded-sm ${
-            i < filled ? fillClass : 'bg-muted-foreground/20'
-          }`}
-        />
-      ))}
-    </div>
-  );
+function UptimeTier({ pct }: { pct: number }) {
+  if (pct >= 99.9) return <span className="text-[9px] font-mono text-success/80 bg-success/10 px-1.5 py-0.5 rounded">99.9%+</span>;
+  if (pct >= 99.5) return <span className="text-[9px] font-mono text-accent/80 bg-accent/10 px-1.5 py-0.5 rounded">≥99.5%</span>;
+  if (pct >= 98)   return <span className="text-[9px] font-mono text-chart-3/80 bg-chart-3/10 px-1.5 py-0.5 rounded">≥98%</span>;
+  return <span className="text-[9px] font-mono text-destructive/80 bg-destructive/10 px-1.5 py-0.5 rounded">&lt;98%</span>;
 }
 
 export function SolanaUptimeIndicators({ providers }: Props) {
   const sorted = [...providers].sort((a, b) => b.metrics.uptime_percent - a.metrics.uptime_percent);
 
   return (
-    <div className="space-y-3">
-      {sorted.map((p) => {
+    <div className="space-y-4">
+      {sorted.map((p, i) => {
         const pct = p.metrics.uptime_percent;
-        const color =
-          pct >= 99.5 ? 'text-accent' :
-          pct >= 98 ? 'text-chart-3' :
-          'text-destructive';
-        const dotColor =
-          pct >= 99.5 ? 'bg-accent' :
-          pct >= 98 ? 'bg-chart-3' :
-          'bg-destructive';
+        const isExcellent = pct >= 99.9;
+        const isGood      = pct >= 99.5 && !isExcellent;
+        const isWarn      = pct >= 98    && !isGood && !isExcellent;
+
+        const barColor = isExcellent ? 'var(--color-success)'
+                       : isGood      ? 'var(--color-accent)'
+                       : isWarn      ? 'var(--color-chart-3)'
+                       :               'var(--color-destructive)';
+
+        const textClass = isExcellent ? 'text-success'
+                        : isGood      ? 'text-accent'
+                        : isWarn      ? 'text-chart-3'
+                        :               'text-destructive';
 
         return (
-          <div key={p.id} className="space-y-0.5">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-[11px] font-mono">
-                <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${dotColor}`} />
-                <span className={p.is_us ? 'text-accent font-sans font-medium' : 'text-foreground font-sans'}>
-                  {p.is_us ? `★ ${p.name}` : p.name}
+          <div key={p.id} className="group space-y-1.5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-[10px] font-mono text-muted-foreground/40 tabular-nums w-4 shrink-0 select-none">
+                  {i + 1}
                 </span>
-              </span>
-              <span className={`text-[11px] font-mono tabular-nums font-medium ${color}`}>
-                {pct.toFixed(2)}%
-              </span>
+                <span
+                  className={`text-[11px] font-medium truncate transition-colors ${
+                    p.is_us ? 'text-accent' : 'text-foreground'
+                  }`}
+                >
+                  {p.name}
+                </span>
+                {p.is_mock && (
+                  <span className="text-[9px] text-muted-foreground/35 shrink-0">(sim)</span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <UptimeTier pct={pct} />
+                <span className={`text-[11px] font-mono tabular-nums font-semibold ${textClass}`}>
+                  {pct.toFixed(2)}%
+                </span>
+              </div>
             </div>
-            <UptimeDots pct={pct} fillClass={dotColor} />
+
+            {/* Progress track */}
+            <div className="relative h-[5px] w-full bg-muted/40 rounded-full overflow-hidden">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
+                style={{ width: `${pct}%`, backgroundColor: barColor, opacity: 0.85 }}
+              />
+              {/* Subtle milestone ticks at 98%, 99%, 99.5% */}
+              {[98, 99, 99.5].map(tick => (
+                <div
+                  key={tick}
+                  className="absolute inset-y-0 w-px bg-background/30"
+                  style={{ left: `${tick}%` }}
+                />
+              ))}
+            </div>
+
+            {/* Error rate context */}
+            {p.metrics.error_rate > 0 && (
+              <p className="text-[9px] text-muted-foreground/40 font-mono">
+                {p.metrics.error_rate.toFixed(1)}% error rate
+              </p>
+            )}
           </div>
         );
       })}
+
+      {/* Scale legend */}
+      <div className="flex items-center justify-between pt-1 border-t border-border/30">
+        <span className="text-[9px] text-muted-foreground/40">98%</span>
+        <span className="text-[9px] text-muted-foreground/40">99%</span>
+        <span className="text-[9px] text-muted-foreground/40">99.5%</span>
+        <span className="text-[9px] text-muted-foreground/40">100%</span>
+      </div>
     </div>
   );
 }

@@ -31,6 +31,10 @@
   --destructive:            oklch(0.65 0.18 25);
   --destructive-foreground: oklch(0.95 0.01 270);
 
+  /* ─── Success — sage green (uptime good, fast latency) ──── */
+  --success:                oklch(0.62 0.14 155);
+  --success-foreground:     oklch(0.10 0.01 265);
+
   /* ─── Borders ───────────────────────────────────────────── */
   --border:                 oklch(0.23 0.035 265);
   --input:                  oklch(0.20 0.03 265);
@@ -89,6 +93,8 @@
     --color-accent-foreground: var(--accent-foreground);
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
