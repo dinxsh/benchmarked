@@ -28,12 +28,12 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   const p99    = p95 + p99gap;
   const spread = p99 - p50;
   return (
-    <div className="border border-border bg-popover rounded px-3 py-2 text-[11px] font-mono space-y-1">
-      <p className="font-bold text-foreground mb-1">{label}</p>
-      <p><span className="text-chart-1">P50: </span><span className="tabular-nums">{p50}ms</span></p>
-      <p><span className="text-chart-3">P95: </span><span className="tabular-nums">{p95}ms</span></p>
-      <p><span className="text-chart-4">P99: </span><span className="tabular-nums">{p99}ms</span></p>
-      <p className="border-t border-border/50 pt-1 text-muted-foreground">Spread P99−P50: <span className="text-foreground tabular-nums">{spread}ms</span></p>
+    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-xs font-sans shadow-lg space-y-1">
+      <p className="font-medium text-foreground mb-1">{label}</p>
+      <p><span className="text-chart-1">P50: </span><span className="font-mono tabular-nums">{p50}ms</span></p>
+      <p><span className="text-chart-3">P95: </span><span className="font-mono tabular-nums">{p95}ms</span></p>
+      <p><span className="text-chart-4">P99: </span><span className="font-mono tabular-nums">{p99}ms</span></p>
+      <p className="border-t border-border/40 pt-1 text-muted-foreground">Spread P99−P50: <span className="font-mono tabular-nums text-foreground">{spread}ms</span></p>
     </div>
   );
 }
@@ -57,7 +57,7 @@ export function SolanaLatencySpreadChart({ providers }: Props) {
       >
         <XAxis
           dataKey="name"
-          tick={{ fontSize: 9, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 9, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           tickLine={false}
           axisLine={false}
           angle={-35}
@@ -65,7 +65,7 @@ export function SolanaLatencySpreadChart({ providers }: Props) {
           interval={0}
         />
         <YAxis
-          tick={{ fontSize: 9, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 9, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={v => `${v}ms`}

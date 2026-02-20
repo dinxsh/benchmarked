@@ -1,5 +1,7 @@
 'use client';
 
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import type { SolanaProvider } from './SolanaLeaderboardTable';
 
 interface Stats {
@@ -20,34 +22,38 @@ function KpiCard({
   value,
   sub,
   accent,
+  valueColor,
 }: {
   label: string;
   value: string;
   sub?: string;
   accent?: boolean;
+  valueColor?: string;
 }) {
   return (
-    <div
-      className={`rounded-md border p-3 space-y-1 ${
-        accent
-          ? 'border-accent/60 bg-accent/8 border-l-2 border-l-accent'
-          : 'border-border bg-muted/20'
-      }`}
-    >
-      <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
-      <p
-        className={`text-[15px] leading-none font-mono font-bold tabular-nums ${
-          accent ? 'text-accent' : 'text-foreground'
-        }`}
-      >
-        {value}
-      </p>
-      {sub && (
-        <p className="text-[10px] leading-tight font-mono text-muted-foreground truncate">{sub}</p>
+    <Card
+      className={cn(
+        'overflow-hidden shadow-sm',
+        accent && 'border-accent/40 bg-accent/5 border-l-2 border-l-accent'
       )}
-    </div>
+    >
+      <CardContent className="px-4 py-4 space-y-1">
+        <p className="text-[10px] font-sans text-muted-foreground/70">
+          {label}
+        </p>
+        <p
+          className={cn(
+            'text-lg leading-none font-mono font-bold tabular-nums',
+            valueColor ?? (accent ? 'text-accent' : 'text-foreground')
+          )}
+        >
+          {value}
+        </p>
+        {sub && (
+          <p className="text-[10px] leading-tight font-sans text-muted-foreground/60 truncate">{sub}</p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -60,8 +66,31 @@ function ordinal(n: number): string {
 export function SolanaSummaryCards({ stats, providers }: Props) {
   const usProvider = providers.find(p => p.is_us);
 
+  // Computed from providers
+  const lowestErr = providers.length > 0
+    ? [...providers].reduce((best, p) => p.metrics.error_rate < best.metrics.error_rate ? p : best, providers[0])
+    : null;
+
+  const paid = providers.filter(p => p.pricing.cost_per_million > 0);
+  const bestValue = paid.length > 0
+    ? paid.reduce((best, p) =>
+        (p.score / p.pricing.cost_per_million) > (best.score / best.pricing.cost_per_million) ? p : best,
+        paid[0]
+      )
+    : null;
+
+  const freeCount = providers.filter(p => p.pricing.cost_per_million === 0).length;
+  const rpcCount = providers.filter(p => p.provider_type === 'json-rpc').length;
+  const restCount = providers.filter(p => p.provider_type === 'rest-api').length;
+
+  function errValueColor(rate: number): string {
+    if (rate < 1) return 'text-chart-5';
+    if (rate < 5) return 'text-chart-3';
+    return 'text-destructive';
+  }
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
       <KpiCard
         label="Fastest Latency"
         value={stats.fastest ? `${stats.fastest.latency_p50}ms` : '—'}
@@ -79,7 +108,7 @@ export function SolanaSummaryCards({ stats, providers }: Props) {
       />
       <KpiCard
         label="Overall Winner"
-        value={stats.winner ? stats.winner.score.toFixed(1) : '—'}
+        value={stats.winner ? `${stats.winner.score.toFixed(1)} pts` : '—'}
         sub={stats.winner?.name}
       />
       <KpiCard
@@ -87,6 +116,22 @@ export function SolanaSummaryCards({ stats, providers }: Props) {
         value={stats.us_rank !== null ? ordinal(stats.us_rank) : '—'}
         sub={usProvider ? `Score ${usProvider.score.toFixed(1)}` : undefined}
         accent
+      />
+      <KpiCard
+        label="Lowest Error Rate"
+        value={lowestErr ? `${lowestErr.metrics.error_rate.toFixed(2)}%` : '—'}
+        sub={lowestErr?.name}
+        valueColor={lowestErr ? errValueColor(lowestErr.metrics.error_rate) : undefined}
+      />
+      <KpiCard
+        label="Best Value"
+        value={bestValue ? `${Math.round(bestValue.score / bestValue.pricing.cost_per_million)} pts/$` : '—'}
+        sub={bestValue ? `${bestValue.name} · $${bestValue.pricing.cost_per_million}/M` : undefined}
+      />
+      <KpiCard
+        label="Free Providers"
+        value={`${freeCount} of ${providers.length}`}
+        sub={`${restCount} REST · ${rpcCount} RPC`}
       />
     </div>
   );

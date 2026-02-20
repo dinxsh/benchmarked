@@ -19,9 +19,9 @@ interface Props {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-[11px] font-mono shadow-lg space-y-0.5">
-      <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-1">{label}</p>
-      <p style={{ color: 'var(--color-accent)' }}>{payload[0].value} req/s</p>
+    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-xs font-sans shadow-lg space-y-0.5">
+      <p className="text-[9px] text-muted-foreground/70 mb-1">{label}</p>
+      <p style={{ color: 'var(--color-accent)' }}><span className="font-mono tabular-nums">{payload[0].value}</span> req/s</p>
     </div>
   );
 };
@@ -45,7 +45,7 @@ export function SolanaThroughputChart({ providers }: Props) {
         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" horizontal={false} />
         <XAxis
           type="number"
-          tick={{ fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 10, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           axisLine={false}
           tickLine={false}
           unit=" rps"
@@ -53,7 +53,7 @@ export function SolanaThroughputChart({ providers }: Props) {
         <YAxis
           type="category"
           dataKey="name"
-          tick={{ fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 10, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           axisLine={false}
           tickLine={false}
           width={72}

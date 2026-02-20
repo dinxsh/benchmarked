@@ -44,7 +44,7 @@ export function SolanaUptimeIndicators({ providers }: Props) {
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5 text-[11px] font-mono">
                 <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${dotColor}`} />
-                <span className={p.is_us ? 'text-accent font-medium' : 'text-foreground'}>
+                <span className={p.is_us ? 'text-accent font-sans font-medium' : 'text-foreground font-sans'}>
                   {p.is_us ? `★ ${p.name}` : p.name}
                 </span>
               </span>

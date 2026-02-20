@@ -27,11 +27,11 @@ const CustomTooltip = ({ active, payload }: any) => {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
-    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-[10px] font-mono shadow-lg space-y-0.5">
-      <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-1">{d.name}</p>
-      <p className="text-muted-foreground">P50: <span className="text-accent">{d.x}ms</span></p>
-      <p className="text-muted-foreground">Throughput: <span className="text-primary">{d.y} rps</span></p>
-      <p className="text-muted-foreground capitalize">{d.type.replace('-', ' ')}</p>
+    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-xs font-sans shadow-lg space-y-0.5">
+      <p className="font-medium text-foreground mb-1">{d.name}</p>
+      <p className="text-muted-foreground">P50: <span className="font-mono tabular-nums text-accent">{d.x}ms</span></p>
+      <p className="text-muted-foreground">Throughput: <span className="font-mono tabular-nums text-primary">{d.y} rps</span></p>
+      <p className="text-muted-foreground/70 text-[10px] capitalize">{d.type.replace('-', ' ')}</p>
     </div>
   );
 };
@@ -61,7 +61,7 @@ export function SolanaScatterChart({ providers }: Props) {
           x={cx + 7}
           y={cy + 3}
           fontSize={8}
-          fontFamily="var(--font-mono)"
+          fontFamily="var(--font-sans)"
           fill="var(--color-muted-foreground)"
         >
           {payload.name}
@@ -79,7 +79,7 @@ export function SolanaScatterChart({ providers }: Props) {
           dataKey="x"
           name="Latency"
           unit="ms"
-          tick={{ fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 10, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           axisLine={false}
           tickLine={false}
         >
@@ -87,7 +87,7 @@ export function SolanaScatterChart({ providers }: Props) {
             value="P50 Latency (ms) →"
             position="insideBottom"
             offset={-12}
-            style={{ fontSize: 9, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+            style={{ fontSize: 9, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           />
         </XAxis>
         <YAxis
@@ -95,7 +95,7 @@ export function SolanaScatterChart({ providers }: Props) {
           dataKey="y"
           name="Throughput"
           unit=" rps"
-          tick={{ fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 10, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           axisLine={false}
           tickLine={false}
           width={55}
@@ -105,7 +105,7 @@ export function SolanaScatterChart({ providers }: Props) {
             angle={-90}
             position="insideLeft"
             offset={18}
-            style={{ fontSize: 9, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+            style={{ fontSize: 9, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           />
         </YAxis>
         <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'var(--color-border)' }} />

@@ -28,15 +28,15 @@ const FEATURES = [
   { key: 'custom_indexing',label: 'Custom Indexing', render: (p: SolanaProvider) => bool(p.capabilities.custom_indexing) },
   { key: 'traces',         label: 'Traces',          render: (p: SolanaProvider) => bool(p.capabilities.traces) },
   { key: 'historical_depth', label: 'History Depth', render: (p: SolanaProvider) => (
-    <span className="text-muted-foreground">{p.capabilities.historical_depth}</span>
+    <span className="font-sans text-muted-foreground/80">{p.capabilities.historical_depth}</span>
   )},
   { key: 'cost', label: 'Cost / M Req', render: (p: SolanaProvider) => (
-    <span className={p.pricing.cost_per_million === 0 ? 'text-accent' : 'text-foreground'}>
+    <span className={`font-mono tabular-nums ${p.pricing.cost_per_million === 0 ? 'text-accent' : 'text-foreground'}`}>
       {p.pricing.cost_per_million === 0 ? 'Free' : `$${p.pricing.cost_per_million}`}
     </span>
   )},
   { key: 'rate_limit', label: 'Rate Limit', render: (p: SolanaProvider) => (
-    <span className="text-muted-foreground">{p.pricing.rate_limit}</span>
+    <span className="font-sans text-muted-foreground/80">{p.pricing.rate_limit}</span>
   )},
 ] as const;
 
@@ -57,23 +57,23 @@ const TYPE_SUB: Record<string, { label: string; color: string }> = {
 export function SolanaCapabilitiesMatrix({ providers }: Props) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-[11px] font-mono border-collapse">
+      <table className="w-full text-[11px] border-collapse">
         <thead>
-          <tr className="border-b border-border bg-muted/30">
-            <th className="py-2 px-3 text-left text-[10px] uppercase tracking-wider text-muted-foreground font-medium sticky left-0 bg-muted/30 min-w-[130px]">
+          <tr className="border-b border-border/40 bg-muted/20">
+            <th className="py-2 px-3 text-left text-[10px] text-muted-foreground/60 font-sans font-medium sticky left-0 bg-muted/20 min-w-[130px]">
               Feature
             </th>
             {providers.map(p => {
               const sub = TYPE_SUB[p.provider_type];
               return (
-                <th key={p.id} className="py-2 px-2 text-center text-[10px] uppercase tracking-wider text-muted-foreground font-medium min-w-[88px]">
+                <th key={p.id} className="py-2 px-2 text-center text-[10px] text-muted-foreground/60 font-sans font-medium min-w-[88px]">
                   <span className={p.is_us ? 'text-accent' : 'text-muted-foreground'}>
                     {p.name}
                   </span>
-                  <span className={`block text-[8px] normal-case tracking-normal font-normal ${sub.color}`}>
+                  <span className={`block text-[8px] font-normal ${sub.color}`}>
                     {sub.label}
                   </span>
-                  {p.is_mock && <span className="block text-[8px] text-muted-foreground/40 normal-case">sim</span>}
+                  {p.is_mock && <span className="block text-[8px] text-muted-foreground/40">sim</span>}
                 </th>
               );
             })}
@@ -81,8 +81,8 @@ export function SolanaCapabilitiesMatrix({ providers }: Props) {
         </thead>
         <tbody>
           {FEATURES.map(({ key, label, render }) => (
-            <tr key={key} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
-              <td className="py-2 px-3 text-muted-foreground sticky left-0 bg-background text-[10px] uppercase tracking-wider">
+            <tr key={key} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
+              <td className="py-2 px-3 text-muted-foreground/70 font-sans sticky left-0 bg-background text-[10px]">
                 {label}
               </td>
               {providers.map(p => (
@@ -93,8 +93,8 @@ export function SolanaCapabilitiesMatrix({ providers }: Props) {
             </tr>
           ))}
           {/* Capability Score totals row */}
-          <tr className="border-t-2 border-border bg-muted/20">
-            <td className="py-2 px-3 text-[10px] uppercase tracking-wider text-muted-foreground sticky left-0 bg-muted/20 font-medium">
+          <tr className="border-t-2 border-border/40 bg-muted/20">
+            <td className="py-2 px-3 text-[10px] text-muted-foreground/70 font-sans sticky left-0 bg-muted/20 font-medium">
               Cap. Score
             </td>
             {providers.map(p => {
@@ -103,13 +103,13 @@ export function SolanaCapabilitiesMatrix({ providers }: Props) {
               return (
                 <td key={p.id} className="py-2 px-2 text-center">
                   <div className="flex flex-col items-center gap-1">
-                    <div className="w-12 h-1.5 bg-muted/40 rounded-full overflow-hidden">
+                    <div className="w-12 h-1 bg-border/30 rounded-full overflow-hidden">
                       <div
                         className={pct >= 80 ? 'bg-accent h-full' : pct >= 50 ? 'bg-chart-3 h-full' : 'bg-destructive h-full'}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <span className={`text-[9px] tabular-nums ${pct >= 80 ? 'text-accent' : pct >= 50 ? 'text-chart-3' : 'text-destructive'}`}>
+                    <span className={`text-[9px] font-mono tabular-nums ${pct >= 80 ? 'text-accent' : pct >= 50 ? 'text-chart-3' : 'text-destructive'}`}>
                       {pct}%
                     </span>
                   </div>

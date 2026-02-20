@@ -37,12 +37,12 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   const throughput = payload.find(e => e.dataKey === 'throughput')?.value ?? 0;
   const total      = +(latency + uptime + throughput).toFixed(1);
   return (
-    <div className="border border-border bg-popover rounded px-3 py-2 text-[11px] font-mono space-y-1">
-      <p className="font-bold text-foreground mb-1">{label}</p>
-      <p><span className="text-chart-1">Latency (35%):    </span><span className="tabular-nums">{latency.toFixed(1)}</span></p>
-      <p><span className="text-chart-5">Uptime (35%):     </span><span className="tabular-nums">{uptime.toFixed(1)}</span></p>
-      <p><span className="text-chart-2">Throughput (30%): </span><span className="tabular-nums">{throughput.toFixed(1)}</span></p>
-      <p className="border-t border-border/50 pt-1 font-bold text-foreground">Total: {total}</p>
+    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-xs font-sans shadow-lg space-y-1">
+      <p className="font-medium text-foreground mb-1">{label}</p>
+      <p><span className="text-chart-1">Latency (35%): </span><span className="font-mono tabular-nums">{latency.toFixed(1)}</span></p>
+      <p><span className="text-chart-5">Uptime (35%): </span><span className="font-mono tabular-nums">{uptime.toFixed(1)}</span></p>
+      <p><span className="text-chart-2">Throughput (30%): </span><span className="font-mono tabular-nums">{throughput.toFixed(1)}</span></p>
+      <p className="border-t border-border/40 pt-1 font-medium text-foreground">Total: <span className="font-mono tabular-nums">{total}</span></p>
     </div>
   );
 }
@@ -63,7 +63,7 @@ export function SolanaScoreBreakdownChart({ providers }: Props) {
         <XAxis
           type="number"
           domain={[0, 100]}
-          tick={{ fontSize: 9, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 9, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           tickLine={false}
           axisLine={false}
         />
@@ -71,7 +71,7 @@ export function SolanaScoreBreakdownChart({ providers }: Props) {
           type="category"
           dataKey="name"
           width={72}
-          tick={{ fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 10, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           tickLine={false}
           axisLine={false}
         />

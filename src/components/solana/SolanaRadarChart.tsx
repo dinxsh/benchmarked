@@ -70,11 +70,11 @@ export function SolanaRadarChart({ providers, showLegend = true, height = 340 }:
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
     return (
-      <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-[10px] font-mono shadow-lg space-y-0.5">
-        <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-1">{label}</p>
+      <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-xs font-sans shadow-lg space-y-0.5">
+        <p className="text-[9px] text-muted-foreground/70 mb-1">{label}</p>
         {payload.map((entry: any) => (
           <p key={entry.dataKey} style={{ color: entry.color }}>
-            {entry.dataKey}: {entry.value}
+            {entry.dataKey}: <span className="font-mono tabular-nums">{entry.value}</span>
           </p>
         ))}
       </div>
@@ -87,7 +87,7 @@ export function SolanaRadarChart({ providers, showLegend = true, height = 340 }:
         <PolarGrid stroke="var(--color-border)" strokeOpacity={0.5} />
         <PolarAngleAxis
           dataKey="axis"
-          tick={{ fontSize: 9, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 9, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
         />
         <Tooltip content={<CustomTooltip />} />
         {providers.map((p, i) => (
@@ -103,7 +103,7 @@ export function SolanaRadarChart({ providers, showLegend = true, height = 340 }:
         ))}
         {showLegend && (
           <Legend
-            wrapperStyle={{ fontSize: '9px', fontFamily: 'var(--font-mono)' }}
+            wrapperStyle={{ fontSize: '9px', fontFamily: 'var(--font-sans)' }}
             iconType="circle"
             iconSize={6}
           />

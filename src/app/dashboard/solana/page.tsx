@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Loader2, RefreshCw, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import {
   SolanaLeaderboardTable,
   type SolanaProvider,
@@ -20,6 +20,9 @@ import { SolanaProviderSheet } from '@/components/solana/SolanaProviderSheet';
 import { SolanaScoreBreakdownChart } from '@/components/solana/SolanaScoreBreakdownChart';
 import { SolanaLatencySpreadChart } from '@/components/solana/SolanaLatencySpreadChart';
 import { SolanaCostEfficiencyChart } from '@/components/solana/SolanaCostEfficiencyChart';
+import { SolanaErrorRateChart } from '@/components/solana/SolanaErrorRateChart';
+import { SolanaSlotSyncChart } from '@/components/solana/SolanaSlotSyncChart';
+import { SolanaRateLimitChart } from '@/components/solana/SolanaRateLimitChart';
 
 interface BenchmarkData {
   providers: SolanaProvider[];
@@ -43,6 +46,56 @@ function timeAgo(iso: string): string {
   if (diff < 60) return `${diff}s ago`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   return `${Math.floor(diff / 3600)}h ago`;
+}
+
+function DashSection({
+  id,
+  title,
+  children,
+}: {
+  id: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={id} className="space-y-3">
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-sans font-medium text-muted-foreground/50 uppercase tracking-wide">
+          {title}
+        </span>
+        <div className="flex-1 h-px bg-border/30" />
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function ChartCard({
+  title,
+  description,
+  children,
+  contentClass,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+  contentClass?: string;
+}) {
+  return (
+    <Card className="overflow-hidden shadow-sm h-full">
+      <CardHeader className="px-4 py-3 border-b border-border/40 bg-muted/10 space-y-0.5">
+        <CardTitle className="text-sm font-sans font-medium text-foreground">{title}</CardTitle>
+        {description && (
+          <CardDescription className="text-xs font-sans text-muted-foreground/70">
+            {description}
+          </CardDescription>
+        )}
+      </CardHeader>
+      <CardContent className={contentClass ?? 'px-4 pb-4 pt-3'}>
+        {children}
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function SolanaBenchmarksPage() {
@@ -90,38 +143,37 @@ export default function SolanaBenchmarksPage() {
     setSheetOpen(true);
   }
 
-  // Derived counts for header
   const liveCount = data?.providers.filter(p => !p.is_mock).length ?? 0;
   const totalCount = data?.providers.length ?? 0;
 
   return (
-    <div className="flex flex-col gap-4 p-4 min-h-screen">
+    <div className="flex flex-col gap-6 p-5 min-h-screen max-w-[1600px] mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border pb-3">
+      <div className="flex items-center justify-between border-b border-border/40 pb-4">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-sm font-mono font-bold uppercase tracking-wider text-foreground">
+            <h1 className="text-sm font-sans font-semibold text-foreground">
               Solana Provider Benchmarks
             </h1>
-            <Badge className="gap-1 h-5 px-1.5 text-[9px] font-mono uppercase border border-accent/60 bg-accent/10 text-accent">
+            <Badge className="gap-1 h-5 px-1.5 text-[9px] font-sans uppercase border border-accent/60 bg-accent/10 text-accent">
               <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
               Live
             </Badge>
             {data && (
-              <span className="text-[10px] font-mono text-muted-foreground">
+              <span className="text-xs font-sans text-muted-foreground/60">
                 {liveCount}/{totalCount} live
               </span>
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground font-mono">
+          <p className="text-xs font-sans text-muted-foreground/70">
             {totalCount > 0
-              ? `${totalCount} providers — latency · uptime · throughput · capabilities`
+              ? `${totalCount} providers · latency · uptime · throughput · capabilities`
               : 'LaserTeam · Alchemy · Helius · Ankr · QuickNode · GoldRush · Birdeye · Mobula'}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {lastUpdated && (
-            <span className="text-[10px] font-mono text-muted-foreground">
+            <span className="text-xs font-sans text-muted-foreground/60">
               {timeAgo(lastUpdated)}
             </span>
           )}
@@ -130,7 +182,7 @@ export default function SolanaBenchmarksPage() {
             variant="outline"
             onClick={() => fetchData(true)}
             disabled={loading}
-            className="h-7 text-[11px] font-mono gap-1.5"
+            className="h-7 text-xs font-sans gap-1.5"
           >
             {loading ? (
               <Loader2 className="h-3 w-3 animate-spin" />
@@ -144,264 +196,195 @@ export default function SolanaBenchmarksPage() {
 
       {/* Error */}
       {error && (
-        <div className="rounded border border-destructive/50 bg-destructive/10 px-3 py-2 text-[11px] font-mono text-destructive">
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs font-sans text-destructive">
           {error}
         </div>
       )}
 
       {/* Loading skeleton */}
       {loading && !data && (
-        <div className="flex items-center justify-center py-16 text-muted-foreground gap-2 text-[12px] font-mono">
+        <div className="flex items-center justify-center py-16 text-muted-foreground gap-2 text-xs font-sans">
           <Loader2 className="h-4 w-4 animate-spin" />
           Running benchmarks across 8 Solana providers…
         </div>
       )}
 
       {data && (
-        <Tabs defaultValue="overview" className="gap-3">
-          <TabsList className="h-8 text-[11px] font-mono">
-            <TabsTrigger value="overview" className="text-[11px] font-mono px-3">Overview</TabsTrigger>
-            <TabsTrigger value="performance" className="text-[11px] font-mono px-3">Performance</TabsTrigger>
-            <TabsTrigger value="capabilities" className="text-[11px] font-mono px-3">Capabilities</TabsTrigger>
-            <TabsTrigger value="analysis" className="text-[11px] font-mono px-3">Analysis</TabsTrigger>
-          </TabsList>
+        <div className="space-y-6">
+          {/* KPI Cards */}
+          <SolanaSummaryCards stats={data.stats} providers={data.providers} />
 
-          {/* ─── Overview ─────────────────────────────────────────── */}
-          <TabsContent value="overview" className="space-y-4 mt-0">
-            <SolanaSummaryCards stats={data.stats} providers={data.providers} />
+          {/* Leaderboard */}
+          <DashSection id="leaderboard" title="Leaderboard">
+            <Card className="overflow-hidden shadow-sm">
+              <CardHeader className="px-4 py-3 border-b border-border/40 bg-muted/10 space-y-0.5">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-sans font-medium text-foreground">Rankings</CardTitle>
+                  {data.meta.errors && data.meta.errors.length > 0 && (
+                    <span className="text-[10px] font-sans text-chart-3/80">
+                      {data.meta.errors.length} error(s)
+                    </span>
+                  )}
+                </div>
+                <CardDescription className="text-xs font-sans text-muted-foreground/70">
+                  Click any row for full provider details · sortable by any column
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <SolanaLeaderboardTable
+                  providers={data.providers}
+                  onSelect={handleSelectProvider}
+                />
+              </CardContent>
+            </Card>
+          </DashSection>
 
-            {/* Leaderboard Table */}
-            <div className="rounded border border-border overflow-hidden">
-              <div className="border-b border-border bg-muted/20 px-3 py-2 flex items-center justify-between">
-                <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                  Leaderboard — click row for details
-                </h2>
-                {data.meta.errors && data.meta.errors.length > 0 && (
-                  <span className="text-[9px] font-mono text-chart-3">
-                    {data.meta.errors.length} error(s)
-                  </span>
-                )}
+          {/* Performance */}
+          <DashSection id="performance" title="Performance">
+            <div className="grid grid-cols-12 gap-4">
+              {/* Latency chart — wider */}
+              <div className="col-span-12 lg:col-span-7">
+                <ChartCard
+                  title="Latency Distribution"
+                  description="P50 · P95 · P99 across all providers"
+                >
+                  <SolanaLatencyChart providers={data.providers} />
+                </ChartCard>
               </div>
-              <SolanaLeaderboardTable
-                providers={data.providers}
-                onSelect={handleSelectProvider}
-              />
-            </div>
 
-            {/* Bottom row: Uptime | Throughput | Radar */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              <div className="lg:col-span-4 rounded border border-border overflow-hidden">
-                <div className="border-b border-border bg-muted/20 px-3 py-2">
-                  <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Activity className="h-3 w-3" /> Uptime
-                  </h2>
-                </div>
-                <div className="p-3">
-                  <SolanaUptimeIndicators providers={data.providers} />
-                </div>
+              {/* Uptime indicators — narrower */}
+              <div className="col-span-12 lg:col-span-5">
+                <Card className="overflow-hidden shadow-sm h-full">
+                  <CardHeader className="px-4 py-3 border-b border-border/40 bg-muted/10 space-y-0.5">
+                    <CardTitle className="text-sm font-sans font-medium text-foreground flex items-center gap-1.5">
+                      <Activity className="h-3.5 w-3.5 text-accent" />
+                      Uptime
+                    </CardTitle>
+                    <CardDescription className="text-xs font-sans text-muted-foreground/70">
+                      Sorted best to worst · 20 dots = 100%
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <SolanaUptimeIndicators providers={data.providers} />
+                  </CardContent>
+                </Card>
               </div>
 
-              <div className="lg:col-span-4 rounded border border-border overflow-hidden">
-                <div className="border-b border-border bg-muted/20 px-3 py-2">
-                  <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                    Throughput (req/s)
-                  </h2>
-                </div>
-                <div className="p-3">
+              {/* Scatter — half width */}
+              <div className="col-span-12 lg:col-span-6">
+                <ChartCard
+                  title="Latency vs Throughput"
+                  description="JSON-RPC · REST API · Data API — size reflects provider volume"
+                >
+                  <SolanaScatterChart providers={data.providers} />
+                </ChartCard>
+              </div>
+
+              {/* Throughput — half width */}
+              <div className="col-span-12 lg:col-span-6">
+                <ChartCard
+                  title="Throughput Ranking"
+                  description="Requests per second — sorted highest first"
+                >
                   <SolanaThroughputChart providers={data.providers} />
-                </div>
-              </div>
-
-              <div className="lg:col-span-4 rounded border border-border overflow-hidden">
-                <div className="border-b border-border bg-muted/20 px-3 py-2">
-                  <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                    Multi-Axis Radar
-                  </h2>
-                </div>
-                <div className="p-2">
-                  <SolanaRadarChart providers={data.providers} showLegend={false} height={260} />
-                </div>
+                </ChartCard>
               </div>
             </div>
-          </TabsContent>
+          </DashSection>
 
-          {/* ─── Performance ──────────────────────────────────────── */}
-          <TabsContent value="performance" className="space-y-4 mt-0">
-            <div className="rounded border border-border overflow-hidden">
-              <div className="border-b border-border bg-muted/20 px-3 py-2">
-                <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                  Latency Distribution — P50 / P95 / P99
-                </h2>
+          {/* Reliability */}
+          <DashSection id="reliability" title="Reliability">
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-12 lg:col-span-4">
+                <ChartCard
+                  title="Error Rate"
+                  description="Best to worst · dashed line = average"
+                >
+                  <SolanaErrorRateChart providers={data.providers} />
+                </ChartCard>
               </div>
-              <div className="p-3">
-                <SolanaLatencyChart providers={data.providers} />
+
+              <div className="col-span-12 lg:col-span-4">
+                <ChartCard
+                  title="Rate Limits"
+                  description="Max requests per second per provider"
+                >
+                  <SolanaRateLimitChart providers={data.providers} />
+                </ChartCard>
+              </div>
+
+              <div className="col-span-12 lg:col-span-4">
+                <ChartCard
+                  title="Slot Freshness"
+                  description="Slots behind the leader — shorter bar is better"
+                >
+                  <SolanaSlotSyncChart providers={data.providers} />
+                </ChartCard>
               </div>
             </div>
+          </DashSection>
 
-            <div className="rounded border border-border overflow-hidden">
-              <div className="border-b border-border bg-muted/20 px-3 py-2">
-                <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                  Latency vs Throughput
-                  <span className="ml-2 text-muted-foreground/50 normal-case font-normal">
-                    · <span style={{ color: 'hsl(var(--accent))' }}>■</span> JSON-RPC
-                    <span className="ml-1" style={{ color: 'var(--chart-3)' }}>■</span> REST API
-                    <span className="ml-1" style={{ color: 'hsl(var(--destructive))' }}>■</span> Data API
-                  </span>
-                </h2>
+          {/* Analysis */}
+          <DashSection id="analysis" title="Analysis">
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-12 lg:col-span-6">
+                <ChartCard
+                  title="Score Breakdown"
+                  description="Latency 35% · Uptime 35% · Throughput 30%"
+                >
+                  <SolanaScoreBreakdownChart providers={data.providers} />
+                </ChartCard>
               </div>
-              <div className="p-3">
-                <SolanaScatterChart providers={data.providers} />
-              </div>
-            </div>
 
-            <div className="rounded border border-border overflow-hidden">
-              <div className="border-b border-border bg-muted/20 px-3 py-2">
-                <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                  Multi-Axis Radar — Speed · Uptime · Throughput · Reliability · Coverage
-                </h2>
-              </div>
-              <div className="p-3">
-                <SolanaRadarChart providers={data.providers} showLegend height={380} />
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* ─── Analysis ─────────────────────────────────────────── */}
-          <TabsContent value="analysis" className="space-y-4 mt-0">
-            {/* Score Breakdown */}
-            <div className="rounded border border-border overflow-hidden">
-              <div className="border-b border-border bg-muted/20 px-3 py-2">
-                <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                  Score Breakdown per Provider
-                  <span className="ml-2 text-muted-foreground/50 normal-case font-normal">
-                    · <span className="text-chart-1">■</span> Latency 35%
-                    <span className="ml-1 text-chart-5">■</span> Uptime 35%
-                    <span className="ml-1 text-chart-2">■</span> Throughput 30%
-                  </span>
-                </h2>
-              </div>
-              <div className="p-3">
-                <SolanaScoreBreakdownChart providers={data.providers} />
-              </div>
-            </div>
-
-            {/* Latency Spread + Cost Efficiency */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="rounded border border-border overflow-hidden">
-                <div className="border-b border-border bg-muted/20 px-3 py-2">
-                  <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                    Latency Spread — P50 / P95 / P99
-                    <span className="ml-2 text-muted-foreground/50 normal-case font-normal">
-                      · <span className="text-chart-4">tall cap = high variance</span>
-                    </span>
-                  </h2>
-                </div>
-                <div className="p-3">
+              <div className="col-span-12 lg:col-span-6">
+                <ChartCard
+                  title="Latency Spread"
+                  description="P50 → P95 → P99 stacked — tall cap = high variance"
+                >
                   <SolanaLatencySpreadChart providers={data.providers} />
-                </div>
+                </ChartCard>
               </div>
 
-              <div className="rounded border border-border overflow-hidden">
-                <div className="border-b border-border bg-muted/20 px-3 py-2">
-                  <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                    Cost vs Score
-                    <span className="ml-2 text-muted-foreground/50 normal-case font-normal">
-                      · bubble = throughput · <span className="text-chart-5">■</span> free tier
-                    </span>
-                  </h2>
-                </div>
-                <div className="p-3">
+              <div className="col-span-12">
+                <ChartCard
+                  title="Cost vs Score"
+                  description="Bubble size = throughput · green = free tier · upper-left is best value"
+                >
                   <SolanaCostEfficiencyChart providers={data.providers} />
-                </div>
+                </ChartCard>
               </div>
-            </div>
 
-            {/* Error Rate bars */}
-            <div className="rounded border border-border overflow-hidden">
-              <div className="border-b border-border bg-muted/20 px-3 py-2">
-                <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                  Error Rate — best to worst
-                </h2>
-              </div>
-              <div className="p-4 space-y-2">
-                {[...data.providers]
-                  .sort((a, b) => a.metrics.error_rate - b.metrics.error_rate)
-                  .map(p => {
-                    const max = Math.max(...data.providers.map(x => x.metrics.error_rate));
-                    const pct = max === 0 ? 0 : (p.metrics.error_rate / max) * 100;
-                    const color = p.metrics.error_rate < 1 ? 'bg-accent/70' : p.metrics.error_rate < 5 ? 'bg-chart-3/70' : 'bg-destructive/70';
-                    const textColor = p.metrics.error_rate < 1 ? 'text-accent' : p.metrics.error_rate < 5 ? 'text-chart-3' : 'text-destructive';
-                    return (
-                      <div key={p.id} className="flex items-center gap-3">
-                        <span className={`text-[10px] font-mono w-24 truncate ${p.is_us ? 'text-accent' : 'text-foreground'}`}>
-                          {p.name}
-                        </span>
-                        <div className="flex-1 bg-muted/30 h-4 rounded-sm overflow-hidden">
-                          <div
-                            className={`h-full transition-all ${color}`}
-                            style={{ width: `${Math.max(4, pct)}%` }}
-                          />
-                        </div>
-                        <span className={`text-[10px] font-mono tabular-nums w-12 text-right ${textColor}`}>
-                          {p.metrics.error_rate.toFixed(1)}%
-                        </span>
-                      </div>
-                    );
-                  })}
+              <div className="col-span-12">
+                <ChartCard
+                  title="Multi-Axis Radar"
+                  description="Speed · Uptime · Throughput · Reliability · Coverage — all providers overlaid"
+                >
+                  <SolanaRadarChart providers={data.providers} showLegend height={360} />
+                </ChartCard>
               </div>
             </div>
-          </TabsContent>
+          </DashSection>
 
-          {/* ─── Capabilities ─────────────────────────────────────── */}
-          <TabsContent value="capabilities" className="space-y-4 mt-0">
-            <div className="rounded border border-border overflow-hidden">
-              <div className="border-b border-border bg-muted/20 px-3 py-2">
-                <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                  Feature &amp; Capability Comparison
-                </h2>
-              </div>
-              <SolanaCapabilitiesMatrix providers={data.providers} />
-            </div>
-
-            {/* Pricing chart */}
-            <div className="rounded border border-border overflow-hidden">
-              <div className="border-b border-border bg-muted/20 px-3 py-2">
-                <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                  Cost per Million Requests (USD)
-                </h2>
-              </div>
-              <div className="p-4 space-y-2">
-                {[...data.providers]
-                  .sort((a, b) => a.pricing.cost_per_million - b.pricing.cost_per_million)
-                  .map(p => {
-                    const max = Math.max(...data.providers.map(x => x.pricing.cost_per_million));
-                    const pct = max === 0 ? 0 : (p.pricing.cost_per_million / max) * 100;
-                    return (
-                      <div key={p.id} className="flex items-center gap-3">
-                        <span className={`text-[10px] font-mono w-24 truncate ${p.is_us ? 'text-accent' : 'text-foreground'}`}>
-                          {p.name}
-                        </span>
-                        <div className="flex-1 bg-muted/30 h-4 rounded-sm overflow-hidden">
-                          <div
-                            className={`h-full transition-all ${p.pricing.cost_per_million === 0 ? 'bg-accent/60' : 'bg-primary/50'}`}
-                            style={{ width: p.pricing.cost_per_million === 0 ? '8px' : `${Math.max(4, pct)}%` }}
-                          />
-                        </div>
-                        <span className={`text-[10px] font-mono tabular-nums w-16 text-right ${p.pricing.cost_per_million === 0 ? 'text-accent' : 'text-foreground'}`}>
-                          {p.pricing.cost_per_million === 0 ? 'Free' : `$${p.pricing.cost_per_million}`}
-                        </span>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+          {/* Capabilities */}
+          <DashSection id="capabilities" title="Capabilities">
+            <Card className="overflow-hidden shadow-sm">
+              <CardHeader className="px-4 py-3 border-b border-border/40 bg-muted/10 space-y-0.5">
+                <CardTitle className="text-sm font-sans font-medium text-foreground">Feature Comparison</CardTitle>
+                <CardDescription className="text-xs font-sans text-muted-foreground/70">
+                  All providers side-by-side · scroll horizontally for all columns
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <SolanaCapabilitiesMatrix providers={data.providers} />
+              </CardContent>
+            </Card>
+          </DashSection>
+        </div>
       )}
 
       {/* Footer */}
       {data && (
-        <p className="text-[10px] font-mono text-muted-foreground/50 text-center pb-2">
+        <p className="text-[10px] font-sans text-muted-foreground/40 text-center pb-2">
           (sim) = simulated data · Score: latency 35% + uptime 35% + throughput 30% · maxLatency=1000ms · maxRPS=500
           <br />
           JSON-RPC = Solana getSlot benchmark · REST API = structured query · Data API = market/price endpoint

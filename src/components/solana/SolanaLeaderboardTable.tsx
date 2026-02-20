@@ -120,7 +120,6 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
     return sortDir === 'asc' ? av - bv : bv - av;
   });
 
-  // Leader = lowest P50 latency among all providers (not just filtered)
   const leader = providers.reduce(
     (best, p) => p.metrics.latency_p50 < best.metrics.latency_p50 ? p : best,
     providers[0]
@@ -136,7 +135,7 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
   function Th({ col, label, align = 'right' }: { col: SortKey; label: string; align?: 'left' | 'right' }) {
     return (
       <th
-        className={`py-2 px-2 text-${align} text-[9px] uppercase tracking-wider text-muted-foreground font-medium cursor-pointer select-none hover:text-foreground transition-colors`}
+        className={`py-2 px-2 text-${align} text-[9px] uppercase tracking-wide text-muted-foreground/60 font-sans font-medium cursor-pointer select-none hover:text-foreground transition-colors`}
         onClick={() => handleSort(col)}
       >
         {label}<SortIcon col={col} />
@@ -154,13 +153,13 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
   return (
     <div>
       {/* Type Filter Bar */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-muted/10">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border/40 bg-muted/10">
         <div className="flex items-center gap-1">
           {filterButtons.map(btn => (
             <button
               key={btn.key}
               onClick={() => setTypeFilter(btn.key)}
-              className={`text-[9px] font-mono uppercase px-2 py-1 rounded transition-colors ${
+              className={`text-[9px] font-sans uppercase px-2 py-1 rounded transition-colors ${
                 typeFilter === btn.key
                   ? 'bg-accent/20 text-accent'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
@@ -170,27 +169,27 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
             </button>
           ))}
         </div>
-        <span className="text-[9px] font-mono text-muted-foreground/60">
+        <span className="text-[9px] font-sans text-muted-foreground/50">
           {filtered.length} provider{filtered.length !== 1 ? 's' : ''}
         </span>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-[11px] font-mono">
+        <table className="w-full text-[11px]">
           <thead>
-            <tr className="border-b border-border bg-muted/30">
+            <tr className="border-b border-border/40 bg-muted/20">
               <Th col="rank" label="Rank" align="left" />
-              <th className="py-2 px-2 text-left text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Type</th>
-              <th className="py-2 px-2 text-left text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Provider</th>
+              <th className="py-2 px-2 text-left text-[9px] uppercase tracking-wide text-muted-foreground/60 font-sans font-medium">Type</th>
+              <th className="py-2 px-2 text-left text-[9px] uppercase tracking-wide text-muted-foreground/60 font-sans font-medium">Provider</th>
               <Th col="latency_p50" label="P50" />
-              <th className="py-2 px-2 text-right text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Δ vs #1</th>
+              <th className="py-2 px-2 text-right text-[9px] uppercase tracking-wide text-muted-foreground/60 font-sans font-medium">Δ vs #1</th>
               <Th col="latency_p95" label="P95" />
               <Th col="latency_p99" label="P99" />
               <Th col="uptime_percent" label="Uptime" />
               <Th col="error_rate" label="Err%" />
               <Th col="throughput_rps" label="RPS" />
-              <th className="py-2 px-2 text-right text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Slot</th>
-              <th className="py-2 px-2 text-right text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Chains</th>
+              <th className="py-2 px-2 text-right text-[9px] uppercase tracking-wide text-muted-foreground/60 font-sans font-medium">Slot</th>
+              <th className="py-2 px-2 text-right text-[9px] uppercase tracking-wide text-muted-foreground/60 font-sans font-medium">Chains</th>
               <Th col="score" label="Score" />
             </tr>
           </thead>
@@ -201,7 +200,7 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
               return (
                 <tr
                   key={p.id}
-                  className={`border-b border-border transition-colors ${
+                  className={`border-b border-border/30 transition-colors ${
                     onSelect ? 'cursor-pointer' : ''
                   } ${
                     p.is_us
@@ -210,11 +209,11 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
                       ? 'bg-accent/5 hover:bg-accent/10'
                       : 'hover:bg-muted/30'
                   }`}
-                  style={p.is_us ? { borderLeft: '2px solid hsl(var(--accent) / 0.8)' } : undefined}
+                  style={p.is_us ? { borderLeft: '2px solid var(--color-accent)', borderLeftColor: 'color-mix(in oklch, var(--color-accent) 80%, transparent)' } : undefined}
                   onClick={() => onSelect?.(p)}
                 >
                   {/* Rank */}
-                  <td className="py-2 px-2 tabular-nums">
+                  <td className="py-2 px-2 font-mono tabular-nums">
                     <span className={
                       p.rank === 1 ? 'text-chart-3 font-bold' :
                       p.rank <= 3  ? 'text-chart-5' :
@@ -225,7 +224,7 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
                   </td>
                   {/* Type */}
                   <td className="py-2 px-2">
-                    <span className={`text-[8px] font-bold uppercase px-1 py-0.5 rounded border ${TYPE_BADGE[p.provider_type]}`}>
+                    <span className={`text-[8px] font-sans font-bold uppercase px-1 py-0.5 rounded border ${TYPE_BADGE[p.provider_type]}`}>
                       {TYPE_LABEL[p.provider_type]}
                     </span>
                   </td>
@@ -233,62 +232,62 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
                   <td className="py-2 px-2">
                     <span className="flex items-center gap-1.5">
                       {p.is_us && (
-                        <span className="text-[8px] font-bold text-accent bg-accent/15 px-1 py-0.5 rounded">★ US</span>
+                        <span className="text-[8px] font-sans font-bold text-accent bg-accent/15 px-1 py-0.5 rounded">★ US</span>
                       )}
-                      <span className={`font-medium ${p.is_us ? 'text-accent' : 'text-foreground'}`}>
+                      <span className={`font-sans font-medium ${p.is_us ? 'text-accent' : 'text-foreground'}`}>
                         {p.name}
                       </span>
                       {p.is_mock && (
-                        <span className="text-[8px] text-muted-foreground/50">(sim)</span>
+                        <span className="text-[8px] font-sans text-muted-foreground/40">(sim)</span>
                       )}
                     </span>
                   </td>
                   {/* P50 */}
-                  <td className={`py-2 px-2 text-right tabular-nums ${latencyColor(p.metrics.latency_p50)}`}>
+                  <td className={`py-2 px-2 text-right font-mono tabular-nums ${latencyColor(p.metrics.latency_p50)}`}>
                     {p.metrics.latency_p50}ms
                   </td>
                   {/* Δ vs #1 */}
-                  <td className="py-2 px-2 text-right tabular-nums">
+                  <td className="py-2 px-2 text-right font-mono tabular-nums">
                     {isLeader
                       ? <span className="text-accent">—</span>
-                      : <span className="text-muted-foreground/70">+{delta}ms</span>
+                      : <span className="text-muted-foreground/60">+{delta}ms</span>
                     }
                   </td>
                   {/* P95 */}
-                  <td className={`py-2 px-2 text-right tabular-nums ${latencyColor(p.metrics.latency_p95)}`}>
+                  <td className={`py-2 px-2 text-right font-mono tabular-nums ${latencyColor(p.metrics.latency_p95)}`}>
                     {p.metrics.latency_p95}ms
                   </td>
                   {/* P99 */}
-                  <td className={`py-2 px-2 text-right tabular-nums ${latencyColor(p.metrics.latency_p99)}`}>
+                  <td className={`py-2 px-2 text-right font-mono tabular-nums ${latencyColor(p.metrics.latency_p99)}`}>
                     {p.metrics.latency_p99}ms
                   </td>
                   {/* Uptime */}
-                  <td className={`py-2 px-2 text-right tabular-nums ${uptimeColor(p.metrics.uptime_percent)}`}>
+                  <td className={`py-2 px-2 text-right font-mono tabular-nums ${uptimeColor(p.metrics.uptime_percent)}`}>
                     {p.metrics.uptime_percent.toFixed(1)}%
                   </td>
                   {/* Err% */}
-                  <td className={`py-2 px-2 text-right tabular-nums ${errColor(p.metrics.error_rate)}`}>
+                  <td className={`py-2 px-2 text-right font-mono tabular-nums ${errColor(p.metrics.error_rate)}`}>
                     {p.metrics.error_rate.toFixed(1)}%
                   </td>
                   {/* RPS */}
-                  <td className="py-2 px-2 text-right tabular-nums text-primary">
+                  <td className="py-2 px-2 text-right font-mono tabular-nums text-primary">
                     {p.metrics.throughput_rps}
                   </td>
                   {/* Slot */}
-                  <td className="py-2 px-2 text-right tabular-nums text-muted-foreground">
+                  <td className="py-2 px-2 text-right font-mono tabular-nums text-muted-foreground/60">
                     {formatSlot(p.metrics.slot_height)}
                   </td>
                   {/* Chains count */}
-                  <td className="py-2 px-2 text-right tabular-nums text-muted-foreground">
+                  <td className="py-2 px-2 text-right font-mono tabular-nums text-muted-foreground/60">
                     {p.supported_chains.length}
                   </td>
                   {/* Score mini-bar */}
                   <td className="py-2 px-2 text-right">
                     <div className="flex items-center gap-1.5 justify-end">
-                      <div className="w-12 h-1.5 bg-muted/40 rounded-full overflow-hidden">
+                      <div className="w-14 h-1 bg-border/30 rounded-full overflow-hidden">
                         <div className={scoreBarColor(p.score)} style={{ width: `${p.score}%`, height: '100%' }} />
                       </div>
-                      <span className={`${scoreTextColor(p.score)} text-[10px] tabular-nums`}>
+                      <span className={`${scoreTextColor(p.score)} font-mono tabular-nums text-[10px]`}>
                         {p.score.toFixed(1)}
                       </span>
                     </div>

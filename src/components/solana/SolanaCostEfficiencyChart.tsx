@@ -34,11 +34,11 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Toolti
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
-    <div className="border border-border bg-popover rounded px-3 py-2 text-[11px] font-mono space-y-1">
-      <p className="font-bold text-foreground">{d.name}</p>
-      <p><span className="text-muted-foreground">Cost: </span><span className={d.free ? 'text-chart-5' : 'text-foreground'}>{d.free ? 'Free' : `$${d.cost}/M`}</span></p>
-      <p><span className="text-muted-foreground">Score: </span><span className="text-chart-1 tabular-nums">{d.y.toFixed(1)}</span></p>
-      <p><span className="text-muted-foreground">Throughput: </span><span className="tabular-nums">{d.z} rps</span></p>
+    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-xs font-sans shadow-lg space-y-1">
+      <p className="font-medium text-foreground mb-0.5">{d.name}</p>
+      <p><span className="text-muted-foreground">Cost: </span><span className={d.free ? 'text-chart-5' : 'text-foreground font-mono tabular-nums'}>{d.free ? 'Free' : `$${d.cost}/M`}</span></p>
+      <p><span className="text-muted-foreground">Score: </span><span className="text-chart-1 font-mono tabular-nums">{d.y.toFixed(1)}</span></p>
+      <p><span className="text-muted-foreground">Throughput: </span><span className="font-mono tabular-nums">{d.z} rps</span></p>
     </div>
   );
 }
@@ -68,7 +68,7 @@ function CustomDot({ cx = 0, cy = 0, r = 8, payload }: DotProps) {
         y={cy - r - 3}
         textAnchor="middle"
         fontSize={8}
-        fontFamily="var(--font-mono)"
+        fontFamily="var(--font-sans)"
         fill="var(--color-muted-foreground)"
       >
         {payload?.name}
@@ -101,18 +101,18 @@ export function SolanaCostEfficiencyChart({ providers }: Props) {
           dataKey="x"
           domain={[0, maxCost > 0 ? maxCost * 1.1 : 1]}
           name="Cost/M"
-          tick={{ fontSize: 9, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 9, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={v => v <= 0.15 ? 'Free' : `$${v}`}
-          label={{ value: 'Cost / M req (USD)', position: 'insideBottom', offset: -4, fontSize: 9, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          label={{ value: 'Cost / M req (USD)', position: 'insideBottom', offset: -4, fontSize: 9, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
         />
         <YAxis
           type="number"
           dataKey="y"
           domain={[50, 100]}
           name="Score"
-          tick={{ fontSize: 9, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 9, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           tickLine={false}
           axisLine={false}
           width={36}
@@ -124,7 +124,7 @@ export function SolanaCostEfficiencyChart({ providers }: Props) {
           stroke="var(--color-muted-foreground)"
           strokeDasharray="4 4"
           strokeOpacity={0.5}
-          label={{ value: 'avg', position: 'insideTopRight', fontSize: 8, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          label={{ value: 'avg', position: 'insideTopRight', fontSize: 8, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
         />
         <Scatter data={paid} shape={<CustomDot />}>
           {paid.map((_, i) => <Cell key={i} />)}
