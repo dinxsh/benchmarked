@@ -23,7 +23,7 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
   }
 
   private get apiKey() {
-    return process.env.GOLDRUSH_API_KEY || '';
+    return process.env.VITE_GOLDRUSH_API_KEY || process.env.GOLDRUSH_API_KEY || '';
   }
 
   private get solanaEndpoint() {

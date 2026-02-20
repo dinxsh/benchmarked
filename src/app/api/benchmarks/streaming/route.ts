@@ -26,6 +26,11 @@ const streamingAdapters = [
   new AnkrStreamingAdapter()
 ];
 
+const GOLDRUSH_STREAM_ENDPOINT =
+  process.env.VITE_GOLDRUSH_STREAM_URL ||
+  process.env.GOLDRUSH_STREAM_URL ||
+  'wss://gr-staging-v2.streaming.covalenthq.com/graphql';
+
 const providerMetadata: StreamingProviderInfo[] = [
   {
     id: 'goldrush-streaming',
@@ -34,7 +39,7 @@ const providerMetadata: StreamingProviderInfo[] = [
     logo: '⚡',
     color: '#E6A23C',
     hasStreaming: true,
-    endpoint: 'wss://api.goldrush.dev/v1/stream',
+    endpoint: GOLDRUSH_STREAM_ENDPOINT,
     protocol: 'WebSocket',
     description: 'Ultra-fast blockchain streaming by GoldRush - sub-50ms latency',
     adapter: streamingAdapters[0]
