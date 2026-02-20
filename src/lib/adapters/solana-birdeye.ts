@@ -3,15 +3,6 @@ import { BaseAdapter } from './base';
 const SOL_ADDRESS = 'So11111111111111111111111111111111111111112';
 const BIRDEYE_ENDPOINT = `https://public-api.birdeye.so/defi/price?address=${SOL_ADDRESS}`;
 
-const MOCK = {
-  latency_p50: 67,
-  latency_p95: 134,
-  latency_p99: 198,
-  uptime_percent: 98.8,
-  throughput_rps: 120,
-  slot_height: 280000000
-};
-
 export class SolanaBirdeyeAdapter extends BaseAdapter {
   id = 'solana-birdeye';
   name = 'Birdeye';
@@ -74,14 +65,13 @@ export class SolanaBirdeyeAdapter extends BaseAdapter {
       headers,
       signal: AbortSignal.timeout(5000)
     });
-    if (!response.ok) return { body: null, size: 0 };
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
-    const jsonString = JSON.stringify(data);
-    return { body: data, size: new Blob([jsonString]).size };
+    return { body: data, size: new Blob([JSON.stringify(data)]).size };
   }
 
   async getBlockHeight(): Promise<number> {
-    return MOCK.slot_height;
+    return 0;
   }
 
   async measureThroughput(): Promise<number> {
@@ -97,13 +87,7 @@ export class SolanaBirdeyeAdapter extends BaseAdapter {
       this.measure(),
       this.measureThroughput()
     ]);
-    if (metrics.error_rate === 100) {
-      return {
-        latency_p50: MOCK.latency_p50, latency_p95: MOCK.latency_p95, latency_p99: MOCK.latency_p99,
-        uptime_percent: MOCK.uptime_percent, error_rate: 100 - MOCK.uptime_percent,
-        throughput_rps: MOCK.throughput_rps, slot_height: MOCK.slot_height, is_mock: true
-      };
-    }
-    return { ...metrics, throughput_rps, slot_height: MOCK.slot_height, is_mock: false };
+    if (metrics.error_rate === 100) throw new Error('Birdeye: all requests failed');
+    return { ...metrics, throughput_rps, slot_height: 0, is_mock: false };
   }
 }

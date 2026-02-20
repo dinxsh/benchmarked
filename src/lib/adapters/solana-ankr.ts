@@ -2,15 +2,6 @@ import { BaseAdapter } from './base';
 
 const PUBLIC_ENDPOINT = 'https://rpc.ankr.com/solana';
 
-const MOCK = {
-  latency_p50: 155,
-  latency_p95: 305,
-  latency_p99: 440,
-  uptime_percent: 98.5,
-  throughput_rps: 75,
-  slot_height: 280000000
-};
-
 export class SolanaAnkrAdapter extends BaseAdapter {
   id = 'solana-ankr';
   name = 'Ankr';
@@ -18,10 +9,7 @@ export class SolanaAnkrAdapter extends BaseAdapter {
   constructor() {
     super();
     const key = process.env.ANKR_API_KEY || '';
-    // Premium URL if key available, otherwise public endpoint (always live)
-    this.endpoint = key
-      ? `https://rpc.ankr.com/solana/${key}`
-      : PUBLIC_ENDPOINT;
+    this.endpoint = key ? `https://rpc.ankr.com/solana/${key}` : PUBLIC_ENDPOINT;
     this.sampleSize = 3;
   }
 
@@ -71,10 +59,9 @@ export class SolanaAnkrAdapter extends BaseAdapter {
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getSlot', params: [] }),
       signal: AbortSignal.timeout(5000)
     });
-    if (!response.ok) return { body: null, size: 0 };
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
-    const jsonString = JSON.stringify(data);
-    return { body: data, size: new Blob([jsonString]).size };
+    return { body: data, size: new Blob([JSON.stringify(data)]).size };
   }
 
   async getBlockHeight(): Promise<number> {
@@ -85,11 +72,11 @@ export class SolanaAnkrAdapter extends BaseAdapter {
         body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getSlot', params: [] }),
         signal: AbortSignal.timeout(3000)
       });
-      if (!response.ok) return MOCK.slot_height;
+      if (!response.ok) return 0;
       const data = await response.json();
-      return typeof data.result === 'number' ? data.result : MOCK.slot_height;
+      return typeof data.result === 'number' ? data.result : 0;
     } catch {
-      return MOCK.slot_height;
+      return 0;
     }
   }
 
@@ -107,18 +94,7 @@ export class SolanaAnkrAdapter extends BaseAdapter {
       this.measureThroughput(),
       this.getBlockHeight()
     ]);
-    if (metrics.error_rate === 100) {
-      return {
-        latency_p50: MOCK.latency_p50,
-        latency_p95: MOCK.latency_p95,
-        latency_p99: MOCK.latency_p99,
-        uptime_percent: MOCK.uptime_percent,
-        error_rate: 100 - MOCK.uptime_percent,
-        throughput_rps: MOCK.throughput_rps,
-        slot_height: MOCK.slot_height,
-        is_mock: true
-      };
-    }
+    if (metrics.error_rate === 100) throw new Error('Ankr: all requests failed');
     return { ...metrics, throughput_rps, slot_height, is_mock: false };
   }
 }

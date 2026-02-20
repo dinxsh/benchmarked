@@ -334,8 +334,8 @@ export default function Home() {
   const [data, setData] = useState<BenchmarkData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [nextRefreshAt, setNextRefreshAt] = useState(Date.now() + 60_000);
-  const [secsLeft, setSecsLeft] = useState(60);
+  const [nextRefreshAt, setNextRefreshAt] = useState(Date.now() + 30_000);
+  const [secsLeft, setSecsLeft] = useState(30);
   const [selectedProvider, setSelectedProvider] = useState<SolanaProvider | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -343,12 +343,13 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const url = forceRun ? '/api/benchmarks/solana?run=true' : '/api/benchmarks/solana';
-      const res = await fetch(url);
+      const ts = Date.now();
+      const url = `/api/benchmarks/solana?t=${ts}${forceRun ? '&run=true' : ''}`;
+      const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setData(json);
-      setNextRefreshAt(Date.now() + 60_000);
+      setNextRefreshAt(Date.now() + 30_000);
     } catch (e: any) {
       setError(e.message || 'Failed to fetch benchmarks');
     } finally {
@@ -358,7 +359,7 @@ export default function Home() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => {
-    const id = setInterval(() => fetchData(), 60_000);
+    const id = setInterval(() => fetchData(), 30_000);
     return () => clearInterval(id);
   }, [fetchData]);
   useEffect(() => {
@@ -453,7 +454,7 @@ export default function Home() {
           </h1>
           {totalCount > 0 && (
             <span className="text-sm text-muted-foreground/60">
-              {totalCount} providers · benchmarked every 60s
+              {totalCount} providers · live · refreshes every 30s
               {liveCount < totalCount && ` · ${liveCount} live`}
             </span>
           )}

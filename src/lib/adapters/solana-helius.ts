@@ -1,14 +1,5 @@
 import { BaseAdapter } from './base';
 
-const MOCK = {
-  latency_p50: 85,
-  latency_p95: 165,
-  latency_p99: 240,
-  uptime_percent: 99.8,
-  throughput_rps: 180,
-  slot_height: 280000000
-};
-
 export class SolanaHeliusAdapter extends BaseAdapter {
   id = 'solana-helius';
   name = 'Helius';
@@ -16,9 +7,7 @@ export class SolanaHeliusAdapter extends BaseAdapter {
   constructor() {
     super();
     const key = process.env.HELIUS_API_KEY || '';
-    this.endpoint = key
-      ? `https://mainnet.helius-rpc.com/?api-key=${key}`
-      : '';
+    this.endpoint = key ? `https://mainnet.helius-rpc.com/?api-key=${key}` : '';
     this.sampleSize = 3;
   }
 
@@ -49,10 +38,7 @@ export class SolanaHeliusAdapter extends BaseAdapter {
   }
 
   protected async testCall(): Promise<number> {
-    if (!this.endpoint) {
-      const jitter = Math.round((Math.random() - 0.5) * 30);
-      return MOCK.latency_p50 + jitter;
-    }
+    if (!this.endpoint) throw new Error('Helius: no API key configured');
     const startTime = performance.now();
     const response = await fetch(this.endpoint, {
       method: 'POST',
@@ -66,23 +52,20 @@ export class SolanaHeliusAdapter extends BaseAdapter {
   }
 
   protected async captureResponse(): Promise<{ body: any; size: number }> {
-    if (!this.endpoint) {
-      return { body: { mock: true, provider: this.id }, size: 40 };
-    }
+    if (!this.endpoint) throw new Error('Helius: no API key configured');
     const response = await fetch(this.endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getSlot', params: [] }),
       signal: AbortSignal.timeout(5000)
     });
-    if (!response.ok) return { body: null, size: 0 };
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
-    const jsonString = JSON.stringify(data);
-    return { body: data, size: new Blob([jsonString]).size };
+    return { body: data, size: new Blob([JSON.stringify(data)]).size };
   }
 
   async getBlockHeight(): Promise<number> {
-    if (!this.endpoint) return MOCK.slot_height;
+    if (!this.endpoint) return 0;
     try {
       const response = await fetch(this.endpoint, {
         method: 'POST',
@@ -90,16 +73,16 @@ export class SolanaHeliusAdapter extends BaseAdapter {
         body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getSlot', params: [] }),
         signal: AbortSignal.timeout(3000)
       });
-      if (!response.ok) return MOCK.slot_height;
+      if (!response.ok) return 0;
       const data = await response.json();
-      return typeof data.result === 'number' ? data.result : MOCK.slot_height;
+      return typeof data.result === 'number' ? data.result : 0;
     } catch {
-      return MOCK.slot_height;
+      return 0;
     }
   }
 
   async measureThroughput(): Promise<number> {
-    if (!this.endpoint) return MOCK.throughput_rps;
+    if (!this.endpoint) throw new Error('Helius: no API key configured');
     const CONCURRENT = 10;
     const start = performance.now();
     await Promise.allSettled(Array.from({ length: CONCURRENT }, () => this.testCall()));
@@ -108,35 +91,13 @@ export class SolanaHeliusAdapter extends BaseAdapter {
   }
 
   async measureWithThroughput() {
-    if (!this.endpoint) {
-      return {
-        latency_p50: MOCK.latency_p50,
-        latency_p95: MOCK.latency_p95,
-        latency_p99: MOCK.latency_p99,
-        uptime_percent: MOCK.uptime_percent,
-        error_rate: 100 - MOCK.uptime_percent,
-        throughput_rps: MOCK.throughput_rps,
-        slot_height: MOCK.slot_height,
-        is_mock: true
-      };
-    }
+    if (!this.endpoint) throw new Error('Helius: no API key configured');
     const [metrics, throughput_rps, slot_height] = await Promise.all([
       this.measure(),
       this.measureThroughput(),
       this.getBlockHeight()
     ]);
-    if (metrics.error_rate === 100) {
-      return {
-        latency_p50: MOCK.latency_p50,
-        latency_p95: MOCK.latency_p95,
-        latency_p99: MOCK.latency_p99,
-        uptime_percent: MOCK.uptime_percent,
-        error_rate: 100 - MOCK.uptime_percent,
-        throughput_rps: MOCK.throughput_rps,
-        slot_height: MOCK.slot_height,
-        is_mock: true
-      };
-    }
+    if (metrics.error_rate === 100) throw new Error('Helius: all requests failed');
     return { ...metrics, throughput_rps, slot_height, is_mock: false };
   }
 }

@@ -8,12 +8,13 @@ import { SolanaHeliusAdapter } from '@/lib/adapters/solana-helius';
 import { SolanaAnkrAdapter } from '@/lib/adapters/solana-ankr';
 import { SolanaQuickNodeAdapter } from '@/lib/adapters/solana-quicknode';
 
-function jsonWithCache(data: unknown, maxAge: number = 300) {
+export const dynamic = 'force-dynamic';
+
+function jsonNoCache(data: unknown) {
   return NextResponse.json(data, {
     headers: {
-      'Cache-Control': `public, s-maxage=${maxAge}, stale-while-revalidate=${maxAge * 2}`,
-      'CDN-Cache-Control': `public, s-maxage=${maxAge}`,
-      'Vercel-CDN-Cache-Control': `public, s-maxage=${maxAge}`,
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Pragma': 'no-cache',
     },
   });
 }
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
     }
     const metrics = await (adapter as any).measureWithThroughput();
     const metadata = adapter.getMetadata();
-    return jsonWithCache({
+    return jsonNoCache({
       provider: {
         ...metadata,
         is_us: (adapter as any).isUs ?? false,
@@ -68,7 +69,7 @@ export async function GET(request: Request) {
         score: computeScore(metrics.latency_p50, metrics.uptime_percent, metrics.throughput_rps)
       },
       last_updated: new Date().toISOString()
-    }, 120);
+    });
   }
 
   // Run all providers in parallel
@@ -114,7 +115,7 @@ export async function GET(request: Request) {
   const winner = providers[0];
   const usProvider = providers.find(p => p.is_us);
 
-  return jsonWithCache({
+  return jsonNoCache({
     providers,
     stats: {
       fastest: fastest ? { name: fastest.name, latency_p50: fastest.metrics.latency_p50 } : null,
@@ -129,5 +130,5 @@ export async function GET(request: Request) {
       forced_run: run,
     },
     last_updated: new Date().toISOString(),
-  }, 300);
+  });
 }

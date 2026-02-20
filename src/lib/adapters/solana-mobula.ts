@@ -2,15 +2,6 @@ import { BaseAdapter } from './base';
 
 const MOBULA_ENDPOINT = 'https://api.mobula.io/api/1/market/data?asset=solana&blockchain=solana';
 
-const MOCK = {
-  latency_p50: 201,
-  latency_p95: 389,
-  latency_p99: 541,
-  uptime_percent: 97.4,
-  throughput_rps: 54,
-  slot_height: 280000000
-};
-
 export class SolanaMobulaAdapter extends BaseAdapter {
   id = 'solana-mobula';
   name = 'Mobula';
@@ -60,7 +51,6 @@ export class SolanaMobulaAdapter extends BaseAdapter {
       headers,
       signal: AbortSignal.timeout(5000)
     });
-    // 401/403 = requires key, treat as soft failure (will trigger mock fallback via error_rate)
     if (response.status === 401 || response.status === 403) throw new Error(`HTTP ${response.status}`);
     if (response.status >= 500) throw new Error(`HTTP ${response.status}`);
     await response.text();
@@ -75,14 +65,13 @@ export class SolanaMobulaAdapter extends BaseAdapter {
       headers,
       signal: AbortSignal.timeout(5000)
     });
-    if (!response.ok) return { body: null, size: 0 };
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
-    const jsonString = JSON.stringify(data);
-    return { body: data, size: new Blob([jsonString]).size };
+    return { body: data, size: new Blob([JSON.stringify(data)]).size };
   }
 
   async getBlockHeight(): Promise<number> {
-    return MOCK.slot_height;
+    return 0;
   }
 
   async measureThroughput(): Promise<number> {
@@ -98,13 +87,7 @@ export class SolanaMobulaAdapter extends BaseAdapter {
       this.measure(),
       this.measureThroughput()
     ]);
-    if (metrics.error_rate === 100) {
-      return {
-        latency_p50: MOCK.latency_p50, latency_p95: MOCK.latency_p95, latency_p99: MOCK.latency_p99,
-        uptime_percent: MOCK.uptime_percent, error_rate: 100 - MOCK.uptime_percent,
-        throughput_rps: MOCK.throughput_rps, slot_height: MOCK.slot_height, is_mock: true
-      };
-    }
-    return { ...metrics, throughput_rps, slot_height: MOCK.slot_height, is_mock: false };
+    if (metrics.error_rate === 100) throw new Error('Mobula: all requests failed');
+    return { ...metrics, throughput_rps, slot_height: 0, is_mock: false };
   }
 }
