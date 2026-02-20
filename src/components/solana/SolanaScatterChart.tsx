@@ -18,17 +18,17 @@ interface Props {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  'json-rpc': 'hsl(var(--accent))',
-  'rest-api': 'var(--chart-3)',
-  'data-api': 'hsl(var(--destructive))',
+  'json-rpc': 'var(--color-accent)',
+  'rest-api': 'var(--color-chart-3)',
+  'data-api': 'var(--color-destructive)',
 };
 
 const CustomTooltip = ({ active, payload }: any) => {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
-    <div className="bg-background border border-border p-2 text-[10px] font-mono shadow space-y-0.5">
-      <p className="font-medium text-foreground">{d.name}</p>
+    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-[10px] font-mono shadow-lg space-y-0.5">
+      <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-1">{d.name}</p>
       <p className="text-muted-foreground">P50: <span className="text-accent">{d.x}ms</span></p>
       <p className="text-muted-foreground">Throughput: <span className="text-primary">{d.y} rps</span></p>
       <p className="text-muted-foreground capitalize">{d.type.replace('-', ' ')}</p>
@@ -61,8 +61,8 @@ export function SolanaScatterChart({ providers }: Props) {
           x={cx + 7}
           y={cy + 3}
           fontSize={8}
-          fontFamily="monospace"
-          fill="hsl(var(--muted-foreground))"
+          fontFamily="var(--font-mono)"
+          fill="var(--color-muted-foreground)"
         >
           {payload.name}
         </text>
@@ -73,13 +73,13 @@ export function SolanaScatterChart({ providers }: Props) {
   return (
     <ResponsiveContainer width="100%" height={260}>
       <ScatterChart margin={{ top: 12, right: 40, left: -10, bottom: 20 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.4} />
         <XAxis
           type="number"
           dataKey="x"
           name="Latency"
           unit="ms"
-          tick={{ fontSize: 10, fontFamily: 'monospace', fill: 'hsl(var(--muted-foreground))' }}
+          tick={{ fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
           axisLine={false}
           tickLine={false}
         >
@@ -87,7 +87,7 @@ export function SolanaScatterChart({ providers }: Props) {
             value="P50 Latency (ms) →"
             position="insideBottom"
             offset={-12}
-            style={{ fontSize: 9, fontFamily: 'monospace', fill: 'hsl(var(--muted-foreground))' }}
+            style={{ fontSize: 9, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
           />
         </XAxis>
         <YAxis
@@ -95,7 +95,7 @@ export function SolanaScatterChart({ providers }: Props) {
           dataKey="y"
           name="Throughput"
           unit=" rps"
-          tick={{ fontSize: 10, fontFamily: 'monospace', fill: 'hsl(var(--muted-foreground))' }}
+          tick={{ fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
           axisLine={false}
           tickLine={false}
           width={55}
@@ -105,19 +105,19 @@ export function SolanaScatterChart({ providers }: Props) {
             angle={-90}
             position="insideLeft"
             offset={18}
-            style={{ fontSize: 9, fontFamily: 'monospace', fill: 'hsl(var(--muted-foreground))' }}
+            style={{ fontSize: 9, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
           />
         </YAxis>
-        <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'hsl(var(--border))' }} />
+        <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'var(--color-border)' }} />
         <ReferenceLine
           x={avgLatency}
-          stroke="hsl(var(--muted-foreground))"
+          stroke="var(--color-muted-foreground)"
           strokeDasharray="4 4"
           strokeOpacity={0.4}
         />
         <ReferenceLine
           y={avgThroughput}
-          stroke="hsl(var(--muted-foreground))"
+          stroke="var(--color-muted-foreground)"
           strokeDasharray="4 4"
           strokeOpacity={0.4}
         />

@@ -19,9 +19,9 @@ interface Props {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-background border border-border rounded p-2 text-[11px] font-mono shadow-md">
-      <p className="font-medium text-foreground">{label}</p>
-      <p style={{ color: 'hsl(var(--accent))' }}>{payload[0].value} req/s</p>
+    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-[11px] font-mono shadow-lg space-y-0.5">
+      <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-1">{label}</p>
+      <p style={{ color: 'var(--color-accent)' }}>{payload[0].value} req/s</p>
     </div>
   );
 };
@@ -42,10 +42,10 @@ export function SolanaThroughputChart({ providers }: Props) {
         margin={{ top: 4, right: 32, left: 0, bottom: 0 }}
         barCategoryGap="30%"
       >
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" horizontal={false} />
         <XAxis
           type="number"
-          tick={{ fontSize: 10, fontFamily: 'monospace', fill: 'hsl(var(--muted-foreground))' }}
+          tick={{ fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
           axisLine={false}
           tickLine={false}
           unit=" rps"
@@ -53,17 +53,17 @@ export function SolanaThroughputChart({ providers }: Props) {
         <YAxis
           type="category"
           dataKey="name"
-          tick={{ fontSize: 10, fontFamily: 'monospace', fill: 'hsl(var(--muted-foreground))' }}
+          tick={{ fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
           axisLine={false}
           tickLine={false}
           width={72}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted)/0.3)' }} />
+        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--color-muted)', fillOpacity: 0.3 }} />
         <Bar dataKey="rps" name="Throughput" radius={[0, 2, 2, 0]}>
           {data.map((entry, index) => (
             <Cell
               key={`cell-${index}`}
-              fill={entry.isUs ? 'hsl(var(--accent))' : 'hsl(var(--primary))'}
+              fill={entry.isUs ? 'var(--color-accent)' : 'var(--color-primary)'}
             />
           ))}
         </Bar>

@@ -11,8 +11,8 @@
   --popover:                oklch(0.17 0.025 265);  /* dropdown    #1A1D2E */
   --popover-foreground:     oklch(0.95 0.01 270);
 
-  /* ─── Primary / Accent — electric violet ───────────────── */
-  --primary:                oklch(0.66 0.28 285);   /* violet */
+  /* ─── Primary / Accent — muted indigo ─────────────────── */
+  --primary:                oklch(0.66 0.18 285);   /* muted violet */
   --primary-foreground:     oklch(0.10 0.01 265);
 
   /* ─── Secondary ─────────────────────────────────────────── */
@@ -24,34 +24,34 @@
   --muted-foreground:       oklch(0.52 0.04 265);   /* cool mid-tone */
 
   /* ─── Accent ────────────────────────────────────────────── */
-  --accent:                 oklch(0.66 0.28 285);   /* violet */
+  --accent:                 oklch(0.66 0.18 285);   /* muted violet */
   --accent-foreground:      oklch(0.10 0.01 265);
 
-  /* ─── Destructive — clear red ───────────────────────────── */
-  --destructive:            oklch(0.65 0.22 25);
+  /* ─── Destructive — rose-red ────────────────────────────── */
+  --destructive:            oklch(0.65 0.18 25);
   --destructive-foreground: oklch(0.95 0.01 270);
 
   /* ─── Borders ───────────────────────────────────────────── */
   --border:                 oklch(0.23 0.035 265);
   --input:                  oklch(0.20 0.03 265);
-  --ring:                   oklch(0.66 0.28 285);
+  --ring:                   oklch(0.66 0.18 285);
 
-  /* ─── Charts — 5-color diverse palette ─────────────────── */
-  --chart-1: oklch(0.66 0.28 285);   /* violet  — primary metric */
-  --chart-2: oklch(0.70 0.20 200);   /* cyan    — secondary metric */
-  --chart-3: oklch(0.78 0.17 65);    /* amber   — warning/mid tier */
-  --chart-4: oklch(0.68 0.24 340);   /* pink    — fourth metric */
-  --chart-5: oklch(0.68 0.20 155);   /* emerald — fifth metric */
+  /* ─── Charts — 5-color muted palette ───────────────────── */
+  --chart-1: oklch(0.66 0.18 285);   /* muted violet  — primary metric */
+  --chart-2: oklch(0.70 0.16 200);   /* slate-cyan    — secondary metric */
+  --chart-3: oklch(0.75 0.14 65);    /* warm amber    — warning/mid tier */
+  --chart-4: oklch(0.68 0.18 340);   /* dusty rose    — fourth metric */
+  --chart-5: oklch(0.66 0.15 155);   /* sage green    — fifth metric */
 
   /* ─── Sidebar — darker than main bg ────────────────────── */
   --sidebar:                    oklch(0.07 0.015 265);
   --sidebar-foreground:         oklch(0.95 0.01 270);
-  --sidebar-primary:            oklch(0.66 0.28 285);
+  --sidebar-primary:            oklch(0.66 0.18 285);
   --sidebar-primary-foreground: oklch(0.10 0.01 265);
   --sidebar-accent:             oklch(0.14 0.02 265);
   --sidebar-accent-foreground:  oklch(0.85 0.01 270);
   --sidebar-border:             oklch(0.18 0.025 265);
-  --sidebar-ring:               oklch(0.66 0.28 285);
+  --sidebar-ring:               oklch(0.66 0.18 285);
 
   /* ─── Typography — Inter primary, Fira Code for data ───── */
   --font-sans:  var(--font-inter), 'Inter', -apple-system, sans-serif;
@@ -123,14 +123,14 @@
   }
 }
 
-/* ─── Price-tick flash animations (violet instead of green) ── */
+/* ─── Price-tick flash animations (muted violet instead of neon) ── */
 @keyframes mn-flash-violet {
   0%, 100% { background-color: transparent; }
-  40%       { background-color: oklch(0.66 0.28 285 / 0.14); }
+  40%       { background-color: oklch(0.66 0.18 285 / 0.14); }
 }
 @keyframes mn-flash-red {
   0%, 100% { background-color: transparent; }
-  40%       { background-color: oklch(0.65 0.22 25 / 0.14); }
+  40%       { background-color: oklch(0.65 0.18 25 / 0.14); }
 }
 
 [data-theme='midnight'] .flash-green { animation: mn-flash-violet 600ms ease-out; }

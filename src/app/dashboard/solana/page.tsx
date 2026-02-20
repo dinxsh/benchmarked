@@ -17,6 +17,9 @@ import { SolanaRadarChart } from '@/components/solana/SolanaRadarChart';
 import { SolanaScatterChart } from '@/components/solana/SolanaScatterChart';
 import { SolanaCapabilitiesMatrix } from '@/components/solana/SolanaCapabilitiesMatrix';
 import { SolanaProviderSheet } from '@/components/solana/SolanaProviderSheet';
+import { SolanaScoreBreakdownChart } from '@/components/solana/SolanaScoreBreakdownChart';
+import { SolanaLatencySpreadChart } from '@/components/solana/SolanaLatencySpreadChart';
+import { SolanaCostEfficiencyChart } from '@/components/solana/SolanaCostEfficiencyChart';
 
 interface BenchmarkData {
   providers: SolanaProvider[];
@@ -160,6 +163,7 @@ export default function SolanaBenchmarksPage() {
             <TabsTrigger value="overview" className="text-[11px] font-mono px-3">Overview</TabsTrigger>
             <TabsTrigger value="performance" className="text-[11px] font-mono px-3">Performance</TabsTrigger>
             <TabsTrigger value="capabilities" className="text-[11px] font-mono px-3">Capabilities</TabsTrigger>
+            <TabsTrigger value="analysis" className="text-[11px] font-mono px-3">Analysis</TabsTrigger>
           </TabsList>
 
           {/* ─── Overview ─────────────────────────────────────────── */}
@@ -262,6 +266,92 @@ export default function SolanaBenchmarksPage() {
             </div>
           </TabsContent>
 
+          {/* ─── Analysis ─────────────────────────────────────────── */}
+          <TabsContent value="analysis" className="space-y-4 mt-0">
+            {/* Score Breakdown */}
+            <div className="rounded border border-border overflow-hidden">
+              <div className="border-b border-border bg-muted/20 px-3 py-2">
+                <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                  Score Breakdown per Provider
+                  <span className="ml-2 text-muted-foreground/50 normal-case font-normal">
+                    · <span className="text-chart-1">■</span> Latency 35%
+                    <span className="ml-1 text-chart-5">■</span> Uptime 35%
+                    <span className="ml-1 text-chart-2">■</span> Throughput 30%
+                  </span>
+                </h2>
+              </div>
+              <div className="p-3">
+                <SolanaScoreBreakdownChart providers={data.providers} />
+              </div>
+            </div>
+
+            {/* Latency Spread + Cost Efficiency */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="rounded border border-border overflow-hidden">
+                <div className="border-b border-border bg-muted/20 px-3 py-2">
+                  <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                    Latency Spread — P50 / P95 / P99
+                    <span className="ml-2 text-muted-foreground/50 normal-case font-normal">
+                      · <span className="text-chart-4">tall cap = high variance</span>
+                    </span>
+                  </h2>
+                </div>
+                <div className="p-3">
+                  <SolanaLatencySpreadChart providers={data.providers} />
+                </div>
+              </div>
+
+              <div className="rounded border border-border overflow-hidden">
+                <div className="border-b border-border bg-muted/20 px-3 py-2">
+                  <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                    Cost vs Score
+                    <span className="ml-2 text-muted-foreground/50 normal-case font-normal">
+                      · bubble = throughput · <span className="text-chart-5">■</span> free tier
+                    </span>
+                  </h2>
+                </div>
+                <div className="p-3">
+                  <SolanaCostEfficiencyChart providers={data.providers} />
+                </div>
+              </div>
+            </div>
+
+            {/* Error Rate bars */}
+            <div className="rounded border border-border overflow-hidden">
+              <div className="border-b border-border bg-muted/20 px-3 py-2">
+                <h2 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                  Error Rate — best to worst
+                </h2>
+              </div>
+              <div className="p-4 space-y-2">
+                {[...data.providers]
+                  .sort((a, b) => a.metrics.error_rate - b.metrics.error_rate)
+                  .map(p => {
+                    const max = Math.max(...data.providers.map(x => x.metrics.error_rate));
+                    const pct = max === 0 ? 0 : (p.metrics.error_rate / max) * 100;
+                    const color = p.metrics.error_rate < 1 ? 'bg-accent/70' : p.metrics.error_rate < 5 ? 'bg-chart-3/70' : 'bg-destructive/70';
+                    const textColor = p.metrics.error_rate < 1 ? 'text-accent' : p.metrics.error_rate < 5 ? 'text-chart-3' : 'text-destructive';
+                    return (
+                      <div key={p.id} className="flex items-center gap-3">
+                        <span className={`text-[10px] font-mono w-24 truncate ${p.is_us ? 'text-accent' : 'text-foreground'}`}>
+                          {p.name}
+                        </span>
+                        <div className="flex-1 bg-muted/30 h-4 rounded-sm overflow-hidden">
+                          <div
+                            className={`h-full transition-all ${color}`}
+                            style={{ width: `${Math.max(4, pct)}%` }}
+                          />
+                        </div>
+                        <span className={`text-[10px] font-mono tabular-nums w-12 text-right ${textColor}`}>
+                          {p.metrics.error_rate.toFixed(1)}%
+                        </span>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          </TabsContent>
+
           {/* ─── Capabilities ─────────────────────────────────────── */}
           <TabsContent value="capabilities" className="space-y-4 mt-0">
             <div className="rounded border border-border overflow-hidden">
@@ -323,6 +413,7 @@ export default function SolanaBenchmarksPage() {
         provider={selectedProvider}
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
+        providers={data?.providers}
       />
     </div>
   );

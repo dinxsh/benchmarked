@@ -19,14 +19,14 @@ interface Props {
 
 // Fixed color palette cycling for providers
 const COLORS = [
-  'var(--chart-1)',   /* violet  */
-  'var(--chart-2)',   /* cyan    */
-  'var(--chart-3)',   /* amber   */
-  'var(--chart-4)',   /* pink    */
-  'var(--chart-5)',   /* emerald */
-  'var(--accent)',    /* violet  (6th provider fallback) */
-  'var(--chart-2)',   /* cyan    (7th provider fallback) */
-  'var(--chart-4)',   /* pink    (8th provider fallback) */
+  'var(--color-chart-1)',   /* violet  */
+  'var(--color-chart-2)',   /* cyan    */
+  'var(--color-chart-3)',   /* amber   */
+  'var(--color-chart-4)',   /* pink    */
+  'var(--color-chart-5)',   /* emerald */
+  'var(--color-accent)',    /* violet  (6th provider fallback) */
+  'var(--color-chart-2)',   /* cyan    (7th provider fallback) */
+  'var(--color-chart-4)',   /* pink    (8th provider fallback) */
 ];
 
 function capabilityScore(p: SolanaProvider): number {
@@ -70,8 +70,8 @@ export function SolanaRadarChart({ providers, showLegend = true, height = 340 }:
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
     return (
-      <div className="bg-background border border-border p-2 text-[10px] font-mono space-y-0.5 shadow">
-        <p className="text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
+      <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-[10px] font-mono shadow-lg space-y-0.5">
+        <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-1">{label}</p>
         {payload.map((entry: any) => (
           <p key={entry.dataKey} style={{ color: entry.color }}>
             {entry.dataKey}: {entry.value}
@@ -84,10 +84,10 @@ export function SolanaRadarChart({ providers, showLegend = true, height = 340 }:
   return (
     <ResponsiveContainer width="100%" height={height}>
       <RadarChart data={data} margin={{ top: 8, right: 24, bottom: 8, left: 24 }}>
-        <PolarGrid stroke="hsl(var(--border))" strokeOpacity={0.5} />
+        <PolarGrid stroke="var(--color-border)" strokeOpacity={0.5} />
         <PolarAngleAxis
           dataKey="axis"
-          tick={{ fontSize: 9, fontFamily: 'monospace', fill: 'hsl(var(--muted-foreground))' }}
+          tick={{ fontSize: 9, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
         />
         <Tooltip content={<CustomTooltip />} />
         {providers.map((p, i) => (
@@ -103,7 +103,7 @@ export function SolanaRadarChart({ providers, showLegend = true, height = 340 }:
         ))}
         {showLegend && (
           <Legend
-            wrapperStyle={{ fontSize: '9px', fontFamily: 'monospace' }}
+            wrapperStyle={{ fontSize: '9px', fontFamily: 'var(--font-mono)' }}
             iconType="circle"
             iconSize={6}
           />

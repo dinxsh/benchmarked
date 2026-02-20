@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import {
   Sheet,
@@ -14,6 +15,7 @@ interface Props {
   provider: SolanaProvider | null;
   open: boolean;
   onClose: () => void;
+  providers?: SolanaProvider[];
 }
 
 function MetricChip({ label, value, color }: { label: string; value: string; color?: string }) {
@@ -58,8 +60,42 @@ const TYPE_COLORS: Record<string, string> = {
   'data-api': 'bg-destructive/15 text-destructive border-destructive/30',
 };
 
-export function SolanaProviderSheet({ provider: p, open, onClose }: Props) {
+function computeScoreComponents(p: SolanaProvider) {
+  const latency    = +(Math.max(0, 100 - (p.metrics.latency_p50 / 1000) * 100) * 0.35).toFixed(1);
+  const uptime     = +(p.metrics.uptime_percent * 0.35).toFixed(1);
+  const throughput = +(Math.min(100, (p.metrics.throughput_rps / 500) * 100) * 0.30).toFixed(1);
+  return { latency, uptime, throughput };
+}
+
+export function SolanaProviderSheet({ provider: p, open, onClose, providers }: Props) {
+  const [showAllChains, setShowAllChains] = useState(false);
+
   if (!p) return null;
+
+  const components = computeScoreComponents(p);
+  const totalComponent = components.latency + components.uptime + components.throughput;
+
+  // Latency spread bar
+  const p50  = p.metrics.latency_p50;
+  const p99  = p.metrics.latency_p99;
+  const spread = p99 - p50;
+  const p95gapPct  = p99 > 0 ? ((p.metrics.latency_p95 - p50) / p99) * 100 : 0;
+  const p99gapPct  = p99 > 0 ? ((p99 - p.metrics.latency_p95) / p99) * 100 : 0;
+  const p50Pct     = p99 > 0 ? (p50 / p99) * 100 : 100;
+
+  // Chains
+  const CHAIN_LIMIT = 8;
+  const visibleChains = showAllChains ? p.supported_chains : p.supported_chains.slice(0, CHAIN_LIMIT);
+
+  // Value rating
+  const valueRating = p.pricing.cost_per_million > 0
+    ? (p.score / p.pricing.cost_per_million).toFixed(0)
+    : null;
+
+  // Rank context
+  const fasterCount = providers
+    ? providers.filter(x => x.metrics.latency_p50 > p.metrics.latency_p50).length
+    : null;
 
   return (
     <Sheet open={open} onOpenChange={v => { if (!v) onClose(); }}>
@@ -67,7 +103,7 @@ export function SolanaProviderSheet({ provider: p, open, onClose }: Props) {
         {/* Header */}
         <SheetHeader className="px-5 pt-5 pb-3 border-b border-border">
           <div className="flex items-start justify-between gap-2">
-            <div className="space-y-1">
+            <div className="space-y-1 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <SheetTitle className={`text-sm font-mono font-bold ${p.is_us ? 'text-accent' : 'text-foreground'}`}>
                   {p.is_us && <span className="mr-1">★</span>}{p.name}
@@ -90,6 +126,20 @@ export function SolanaProviderSheet({ provider: p, open, onClose }: Props) {
                 {p.website_url.replace(/^https?:\/\//, '')}
                 <ExternalLink className="h-2.5 w-2.5" />
               </a>
+
+              {/* Score breakdown bar */}
+              <div className="mt-2 space-y-1">
+                <div className="flex h-2 w-full rounded-full overflow-hidden">
+                  <div style={{ width: `${(components.latency / totalComponent) * 100}%` }} className="bg-chart-1" />
+                  <div style={{ width: `${(components.uptime / totalComponent) * 100}%` }} className="bg-chart-5" />
+                  <div style={{ width: `${(components.throughput / totalComponent) * 100}%` }} className="bg-chart-2" />
+                </div>
+                <div className="flex items-center gap-3 text-[8px] text-muted-foreground">
+                  <span><span className="inline-block w-2 h-1.5 bg-chart-1 rounded-sm mr-1" />Lat {components.latency.toFixed(1)}</span>
+                  <span><span className="inline-block w-2 h-1.5 bg-chart-5 rounded-sm mr-1" />Up {components.uptime.toFixed(1)}</span>
+                  <span><span className="inline-block w-2 h-1.5 bg-chart-2 rounded-sm mr-1" />RPS {components.throughput.toFixed(1)}</span>
+                </div>
+              </div>
             </div>
             <Badge
               variant="outline"
@@ -101,13 +151,27 @@ export function SolanaProviderSheet({ provider: p, open, onClose }: Props) {
         </SheetHeader>
 
         <div className="px-5 py-4 space-y-5">
-          {/* Latency */}
+          {/* Latency spread */}
           <section className="space-y-2">
             <h3 className="text-[9px] uppercase tracking-wider text-muted-foreground">Latency</h3>
+            {/* Segmented spread bar */}
+            <div className="space-y-1">
+              <div className="flex h-3 w-full rounded overflow-hidden">
+                <div style={{ width: `${p50Pct}%` }}     className="bg-chart-1" />
+                <div style={{ width: `${p95gapPct}%` }}  className="bg-chart-3" />
+                <div style={{ width: `${p99gapPct}%` }}  className="bg-chart-4" />
+              </div>
+              <div className="flex items-center gap-3 text-[8px] text-muted-foreground">
+                <span className="text-chart-1">■ P50</span>
+                <span className="text-chart-3">■ P50→P95</span>
+                <span className="text-chart-4">■ P95→P99</span>
+              </div>
+            </div>
             <div className="flex gap-2 flex-wrap">
-              <MetricChip label="P50" value={`${p.metrics.latency_p50}ms`} color={latencyColor(p.metrics.latency_p50)} />
-              <MetricChip label="P95" value={`${p.metrics.latency_p95}ms`} color={latencyColor(p.metrics.latency_p95)} />
-              <MetricChip label="P99" value={`${p.metrics.latency_p99}ms`} color={latencyColor(p.metrics.latency_p99)} />
+              <MetricChip label="P50"    value={`${p50}ms`}                      color={latencyColor(p50)} />
+              <MetricChip label="P95"    value={`${p.metrics.latency_p95}ms`}    color={latencyColor(p.metrics.latency_p95)} />
+              <MetricChip label="P99"    value={`${p99}ms`}                      color={latencyColor(p99)} />
+              <MetricChip label="Spread" value={`${spread}ms`}                   color="text-muted-foreground" />
             </div>
           </section>
 
@@ -134,18 +198,23 @@ export function SolanaProviderSheet({ provider: p, open, onClose }: Props) {
                 />
               )}
             </div>
+            {providers && providers.length > 1 && (
+              <p className="text-[10px] font-mono text-muted-foreground mt-1">
+                #{p.rank} of {providers.length} · Faster than {fasterCount} provider{fasterCount !== 1 ? 's' : ''}
+              </p>
+            )}
           </section>
 
           {/* Capabilities */}
           <section className="space-y-2">
             <h3 className="text-[9px] uppercase tracking-wider text-muted-foreground">Capabilities</h3>
             <div className="grid grid-cols-2 gap-1.5">
-              <CapBool label="Transactions" value={p.capabilities.transactions} />
-              <CapBool label="Event Logs" value={p.capabilities.logs} />
+              <CapBool label="Transactions"   value={p.capabilities.transactions} />
+              <CapBool label="Event Logs"     value={p.capabilities.logs} />
               <CapBool label="Token Balances" value={p.capabilities.token_balances} />
-              <CapBool label="NFT Metadata" value={p.capabilities.nft_metadata} />
+              <CapBool label="NFT Metadata"   value={p.capabilities.nft_metadata} />
               <CapBool label="Custom Indexing" value={p.capabilities.custom_indexing} />
-              <CapBool label="Traces" value={p.capabilities.traces} />
+              <CapBool label="Traces"         value={p.capabilities.traces} />
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">
               History depth: <span className="text-foreground">{p.capabilities.historical_depth}</span>
@@ -167,23 +236,35 @@ export function SolanaProviderSheet({ provider: p, open, onClose }: Props) {
                 <span className="text-foreground">{p.pricing.rate_limit}</span>
               </div>
             </div>
+            {valueRating && (
+              <p className="text-[10px] font-mono text-muted-foreground">
+                Value: <span className="text-chart-5">{valueRating} pts per $1/M req</span>
+              </p>
+            )}
           </section>
 
           {/* Chains */}
           <section className="space-y-2">
-            <h3 className="text-[9px] uppercase tracking-wider text-muted-foreground">Supported Chains</h3>
+            <h3 className="text-[9px] uppercase tracking-wider text-muted-foreground">
+              Supported Chains ({p.supported_chains.length})
+            </h3>
             <div className="flex flex-wrap gap-1">
-              {p.supported_chains.slice(0, 8).map(c => (
+              {visibleChains.map(c => (
                 <span key={c} className="text-[9px] font-mono px-1.5 py-0.5 border border-border rounded text-muted-foreground">
                   {c}
                 </span>
               ))}
-              {p.supported_chains.length > 8 && (
-                <span className="text-[9px] font-mono text-muted-foreground/50">
-                  +{p.supported_chains.length - 8} more
-                </span>
-              )}
             </div>
+            {p.supported_chains.length > CHAIN_LIMIT && (
+              <button
+                onClick={() => setShowAllChains(v => !v)}
+                className="text-[9px] font-mono text-accent hover:text-accent/80 transition-colors"
+              >
+                {showAllChains
+                  ? '▲ Show less'
+                  : `▼ +${p.supported_chains.length - CHAIN_LIMIT} more`}
+              </button>
+            )}
           </section>
 
           {/* Data quality note */}

@@ -28,9 +28,9 @@ function KpiCard({
 }) {
   return (
     <div
-      className={`rounded border p-3 space-y-1 ${
+      className={`rounded-md border p-3 space-y-1 ${
         accent
-          ? 'border-accent/60 bg-accent/8'
+          ? 'border-accent/60 bg-accent/8 border-l-2 border-l-accent'
           : 'border-border bg-muted/20'
       }`}
     >
@@ -38,14 +38,14 @@ function KpiCard({
         {label}
       </p>
       <p
-        className={`text-base font-mono font-bold tabular-nums ${
+        className={`text-[15px] leading-none font-mono font-bold tabular-nums ${
           accent ? 'text-accent' : 'text-foreground'
         }`}
       >
         {value}
       </p>
       {sub && (
-        <p className="text-[10px] font-mono text-muted-foreground truncate">{sub}</p>
+        <p className="text-[10px] leading-tight font-mono text-muted-foreground truncate">{sub}</p>
       )}
     </div>
   );

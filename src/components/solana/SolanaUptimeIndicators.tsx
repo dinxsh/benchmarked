@@ -6,7 +6,7 @@ interface Props {
   providers: SolanaProvider[];
 }
 
-function UptimeDots({ pct }: { pct: number }) {
+function UptimeDots({ pct, fillClass }: { pct: number; fillClass: string }) {
   const total = 20;
   const filled = Math.round((pct / 100) * total);
   return (
@@ -15,7 +15,7 @@ function UptimeDots({ pct }: { pct: number }) {
         <div
           key={i}
           className={`h-1.5 w-1.5 rounded-sm ${
-            i < filled ? 'bg-accent' : 'bg-muted-foreground/20'
+            i < filled ? fillClass : 'bg-muted-foreground/20'
           }`}
         />
       ))}
@@ -52,7 +52,7 @@ export function SolanaUptimeIndicators({ providers }: Props) {
                 {pct.toFixed(2)}%
               </span>
             </div>
-            <UptimeDots pct={pct} />
+            <UptimeDots pct={pct} fillClass={dotColor} />
           </div>
         );
       })}
