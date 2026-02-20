@@ -17,16 +17,13 @@ interface Props {
   height?: number;
 }
 
-// Fixed color palette cycling for providers
+// Muted, professional palette — no neon
 const COLORS = [
-  'var(--color-chart-1)',   /* violet  */
-  'var(--color-chart-2)',   /* cyan    */
-  'var(--color-chart-3)',   /* amber   */
-  'var(--color-chart-4)',   /* pink    */
-  'var(--color-chart-5)',   /* emerald */
-  'var(--color-accent)',    /* violet  (6th provider fallback) */
-  'var(--color-chart-2)',   /* cyan    (7th provider fallback) */
-  'var(--color-chart-4)',   /* pink    (8th provider fallback) */
+  '#60a5fa',  // blue
+  '#34d399',  // emerald (muted)
+  '#f59e0b',  // amber
+  '#a78bfa',  // violet
+  '#fb7185',  // rose
 ];
 
 function capabilityScore(p: SolanaProvider): number {
@@ -41,23 +38,23 @@ function capabilityScore(p: SolanaProvider): number {
   return Math.round((score / 6) * 100);
 }
 
-function normalize(value: number, max: number): number {
-  return Math.round(Math.min(100, Math.max(0, (value / max) * 100)));
-}
-
 const AXES = ['Speed', 'Uptime', 'Throughput', 'Reliability', 'Coverage'];
 
 export function SolanaRadarChart({ providers, showLegend = true, height = 340 }: Props) {
+  // Limit to top 5 by score to keep the chart readable
+  const top5 = [...providers]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+
   const data = AXES.map(axis => {
     const entry: Record<string, any> = { axis };
-    providers.forEach(p => {
+    top5.forEach(p => {
       if (axis === 'Speed') {
-        // Invert latency: 0ms = 100, 1000ms = 0
-        entry[p.name] = Math.max(0, 100 - Math.round(p.metrics.latency_p50 / 10));
+        entry[p.name] = Math.max(0, 100 - Math.round(p.metrics.latency_p50 / 20));
       } else if (axis === 'Uptime') {
         entry[p.name] = Math.round(p.metrics.uptime_percent);
       } else if (axis === 'Throughput') {
-        entry[p.name] = normalize(p.metrics.throughput_rps, 500);
+        entry[p.name] = Math.min(100, Math.round((p.metrics.throughput_rps / 200) * 100));
       } else if (axis === 'Reliability') {
         entry[p.name] = Math.round(100 - p.metrics.error_rate);
       } else if (axis === 'Coverage') {
@@ -84,20 +81,20 @@ export function SolanaRadarChart({ providers, showLegend = true, height = 340 }:
   return (
     <ResponsiveContainer width="100%" height={height}>
       <RadarChart data={data} margin={{ top: 8, right: 24, bottom: 8, left: 24 }}>
-        <PolarGrid stroke="var(--color-border)" strokeOpacity={0.5} />
+        <PolarGrid stroke="var(--color-border)" strokeOpacity={0.35} />
         <PolarAngleAxis
           dataKey="axis"
-          tick={{ fontSize: 12, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 11, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
         />
         <Tooltip content={<CustomTooltip />} />
-        {providers.map((p, i) => (
+        {top5.map((p, i) => (
           <Radar
             key={p.id}
             name={p.name}
             dataKey={p.name}
             stroke={COLORS[i % COLORS.length]}
             fill={COLORS[i % COLORS.length]}
-            fillOpacity={0.08}
+            fillOpacity={0.06}
             strokeWidth={1.5}
           />
         ))}

@@ -99,7 +99,7 @@ export function SolanaScoreComparison({ providers }: Props) {
                 #{p.rank}
               </span>
               <span
-                className={`text-xs font-semibold truncate ${p.is_us ? 'text-accent' : 'text-foreground/90'}`}
+                className="text-xs font-semibold truncate text-foreground/90"
                 title={p.name}
               >
                 {p.name}

@@ -211,6 +211,69 @@ export default function SolanaBenchmarksPage() {
 
       {data && (
         <div className="space-y-6">
+          {/* Winner spotlight */}
+          {data.stats.winner && (
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-3 rounded-lg border border-border/40 bg-card/50 px-5 py-4">
+              <div>
+                <p className="text-[10px] font-sans text-muted-foreground/55 uppercase tracking-wider mb-0.5">
+                  Overall Winner
+                </p>
+                <p className="text-xl font-bold text-foreground leading-tight">
+                  {data.stats.winner.name}
+                </p>
+                <p className="text-xs font-mono mt-0.5" style={{ color: '#60a5fa' }}>
+                  {data.stats.winner.score.toFixed(1)}&thinsp;/&thinsp;100
+                </p>
+              </div>
+
+              <div className="h-8 w-px bg-border/40 hidden sm:block" />
+
+              {data.stats.fastest && (
+                <div>
+                  <p className="text-[10px] font-sans text-muted-foreground/55 uppercase tracking-wider mb-0.5">
+                    Fastest P50
+                  </p>
+                  <p className="text-sm font-mono font-bold text-foreground">
+                    {data.stats.fastest.latency_p50}ms
+                  </p>
+                  <p className="text-[10px] font-sans text-muted-foreground/60">
+                    {data.stats.fastest.name}
+                  </p>
+                </div>
+              )}
+
+              <div className="h-8 w-px bg-border/40 hidden sm:block" />
+
+              {data.stats.highest_throughput && (
+                <div>
+                  <p className="text-[10px] font-sans text-muted-foreground/55 uppercase tracking-wider mb-0.5">
+                    Highest Throughput
+                  </p>
+                  <p className="text-sm font-mono font-bold text-foreground">
+                    {data.stats.highest_throughput.throughput_rps}&thinsp;rps
+                  </p>
+                  <p className="text-[10px] font-sans text-muted-foreground/60">
+                    {data.stats.highest_throughput.name}
+                  </p>
+                </div>
+              )}
+
+              <div className="h-8 w-px bg-border/40 hidden sm:block" />
+
+              <div>
+                <p className="text-[10px] font-sans text-muted-foreground/55 uppercase tracking-wider mb-0.5">
+                  Providers
+                </p>
+                <p className="text-sm font-mono font-bold text-foreground">
+                  {data.providers.length}
+                </p>
+                <p className="text-[10px] font-sans text-muted-foreground/60">
+                  {liveCount} live · {data.providers.length - liveCount} sim
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* KPI Cards */}
           <SolanaSummaryCards stats={data.stats} providers={data.providers} />
 
@@ -257,11 +320,11 @@ export default function SolanaBenchmarksPage() {
                 <Card className="overflow-hidden shadow-sm h-full">
                   <CardHeader className="px-4 py-3 border-b border-border/40 bg-muted/10 space-y-0.5">
                     <CardTitle className="text-sm font-sans font-medium text-foreground flex items-center gap-1.5">
-                      <Activity className="h-3.5 w-3.5 text-accent" />
+                      <Activity className="h-3.5 w-3.5" style={{ color: '#60a5fa' }} />
                       Uptime
                     </CardTitle>
                     <CardDescription className="text-xs font-sans text-muted-foreground/70">
-                      Sorted best to worst · 20 dots = 100%
+                      Sorted best to worst · amber = below 99.9%
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-4">
@@ -330,7 +393,7 @@ export default function SolanaBenchmarksPage() {
               <div className="col-span-12 lg:col-span-6">
                 <ChartCard
                   title="Score Breakdown"
-                  description="Latency 35% · Uptime 35% · Throughput 30%"
+                  description="Latency 40% · Uptime 35% · Throughput 25%"
                 >
                   <SolanaScoreBreakdownChart providers={data.providers} />
                 </ChartCard>
@@ -357,7 +420,7 @@ export default function SolanaBenchmarksPage() {
               <div className="col-span-12">
                 <ChartCard
                   title="Multi-Axis Radar"
-                  description="Speed · Uptime · Throughput · Reliability · Coverage — all providers overlaid"
+                  description="Speed · Uptime · Throughput · Reliability · Coverage — top 5 providers by score"
                 >
                   <SolanaRadarChart providers={data.providers} showLegend height={360} />
                 </ChartCard>
@@ -385,7 +448,7 @@ export default function SolanaBenchmarksPage() {
       {/* Footer */}
       {data && (
         <p className="text-[10px] font-sans text-muted-foreground/40 text-center pb-2">
-          (sim) = simulated data · Score: latency 35% + uptime 35% + throughput 30% · maxLatency=1000ms · maxRPS=500
+          (sim) = simulated data · Score: latency 40% + uptime 35% + throughput 25% · maxLatency=2000ms · maxRPS=200
           <br />
           JSON-RPC = Solana getSlot benchmark · REST API = structured query · Data API = market/price endpoint
         </p>

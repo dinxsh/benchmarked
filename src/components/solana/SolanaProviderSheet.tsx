@@ -105,8 +105,8 @@ export function SolanaProviderSheet({ provider: p, open, onClose, providers }: P
           <div className="flex items-start justify-between gap-2">
             <div className="space-y-1 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <SheetTitle className={`text-sm font-sans font-semibold ${p.is_us ? 'text-accent' : 'text-foreground'}`}>
-                  {p.is_us && <span className="mr-1">★</span>}{p.name}
+                <SheetTitle className="text-sm font-sans font-semibold text-foreground">
+                  {p.name}
                 </SheetTitle>
                 <Badge variant="outline" className={`text-[10px] font-sans px-1.5 h-5 border ${TYPE_COLORS[p.provider_type]}`}>
                   {TYPE_LABELS[p.provider_type]}

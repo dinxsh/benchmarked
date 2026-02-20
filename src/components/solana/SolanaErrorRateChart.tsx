@@ -49,7 +49,6 @@ export function SolanaErrorRateChart({ providers }: Props) {
   const data = sorted.map(p => ({
     name: p.name,
     rate: p.metrics.error_rate,
-    isUs: p.is_us,
   }));
 
   const maxRate = Math.max(...data.map(d => d.rate), 1);

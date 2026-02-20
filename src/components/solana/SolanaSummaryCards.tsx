@@ -21,30 +21,30 @@ function KpiCard({
   label,
   value,
   sub,
-  accent,
+  highlight,
   valueColor,
 }: {
   label: string;
   value: string;
   sub?: string;
-  accent?: boolean;
+  highlight?: boolean;
   valueColor?: string;
 }) {
   return (
     <Card
       className={cn(
         'overflow-hidden shadow-sm',
-        accent && 'border-accent/40 bg-accent/5 border-l-2 border-l-accent'
+        highlight && 'border-[#60a5fa]/30 bg-[#60a5fa]/5 border-l-2 border-l-[#60a5fa]'
       )}
     >
       <CardContent className="px-4 py-4 space-y-1">
-        <p className="text-[10px] font-sans text-muted-foreground/70">
+        <p className="text-[10px] font-sans text-muted-foreground/70 uppercase tracking-wide">
           {label}
         </p>
         <p
           className={cn(
             'text-lg leading-none font-mono font-bold tabular-nums',
-            valueColor ?? (accent ? 'text-accent' : 'text-foreground')
+            valueColor ?? (highlight ? 'text-[#60a5fa]' : 'text-foreground')
           )}
         >
           {value}
@@ -57,16 +57,13 @@ function KpiCard({
   );
 }
 
-function ordinal(n: number): string {
-  const s = ['th', 'st', 'nd', 'rd'];
-  const v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+function errValueColor(rate: number): string {
+  if (rate < 1) return 'text-[#52c479]';
+  if (rate < 5) return 'text-amber-500';
+  return 'text-[#e05252]';
 }
 
 export function SolanaSummaryCards({ stats, providers }: Props) {
-  const usProvider = providers.find(p => p.is_us);
-
-  // Computed from providers
   const lowestErr = providers.length > 0
     ? [...providers].reduce((best, p) => p.metrics.error_rate < best.metrics.error_rate ? p : best, providers[0])
     : null;
@@ -79,22 +76,21 @@ export function SolanaSummaryCards({ stats, providers }: Props) {
       )
     : null;
 
-  const freeCount = providers.filter(p => p.pricing.cost_per_million === 0).length;
-  const rpcCount = providers.filter(p => p.provider_type === 'json-rpc').length;
-  const restCount = providers.filter(p => p.provider_type === 'rest-api').length;
+  // Median P50 latency across all providers
+  const sortedByLatency = [...providers].sort((a, b) => a.metrics.latency_p50 - b.metrics.latency_p50);
+  const medianP50 = sortedByLatency[Math.floor(sortedByLatency.length / 2)]?.metrics.latency_p50 ?? 0;
 
-  function errValueColor(rate: number): string {
-    if (rate < 1) return 'text-chart-5';
-    if (rate < 5) return 'text-chart-3';
-    return 'text-destructive';
-  }
+  const freeCount = providers.filter(p => p.pricing.cost_per_million === 0).length;
+  const rpcCount  = providers.filter(p => p.provider_type === 'json-rpc').length;
+  const restCount = providers.filter(p => p.provider_type === 'rest-api').length;
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
       <KpiCard
-        label="Fastest Latency"
+        label="Fastest P50"
         value={stats.fastest ? `${stats.fastest.latency_p50}ms` : '—'}
         sub={stats.fastest?.name}
+        highlight
       />
       <KpiCard
         label="Best Uptime"
@@ -112,10 +108,9 @@ export function SolanaSummaryCards({ stats, providers }: Props) {
         sub={stats.winner?.name}
       />
       <KpiCard
-        label="Our Rank"
-        value={stats.us_rank !== null ? ordinal(stats.us_rank) : '—'}
-        sub={usProvider ? `Score ${usProvider.score.toFixed(1)}` : undefined}
-        accent
+        label="Median P50"
+        value={medianP50 ? `${medianP50}ms` : '—'}
+        sub={`across ${providers.length} providers`}
       />
       <KpiCard
         label="Lowest Error Rate"

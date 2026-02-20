@@ -42,9 +42,7 @@ export function SolanaUptimeIndicators({ providers }: Props) {
                   {i + 1}
                 </span>
                 <span
-                  className={`text-sm font-semibold truncate transition-colors ${
-                    p.is_us ? 'text-accent' : 'text-foreground'
-                  }`}
+                  className="text-sm font-semibold truncate text-foreground"
                 >
                   {p.name}
                 </span>

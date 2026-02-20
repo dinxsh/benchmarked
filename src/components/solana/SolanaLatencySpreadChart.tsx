@@ -30,9 +30,9 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   return (
     <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-xs font-sans shadow-lg space-y-1">
       <p className="font-medium text-foreground mb-1">{label}</p>
-      <p><span className="text-chart-1">P50: </span><span className="font-mono tabular-nums">{p50}ms</span></p>
-      <p><span className="text-chart-3">P95: </span><span className="font-mono tabular-nums">{p95}ms</span></p>
-      <p><span className="text-chart-4">P99: </span><span className="font-mono tabular-nums">{p99}ms</span></p>
+      <p><span style={{ color: '#60a5fa' }}>P50: </span><span className="font-mono tabular-nums">{p50}ms</span></p>
+      <p><span style={{ color: '#d97706' }}>P95: </span><span className="font-mono tabular-nums">{p95}ms</span></p>
+      <p><span style={{ color: '#e05252' }}>P99: </span><span className="font-mono tabular-nums">{p99}ms</span></p>
       <p className="border-t border-border/40 pt-1 text-muted-foreground">Spread P99−P50: <span className="font-mono tabular-nums text-foreground">{spread}ms</span></p>
     </div>
   );
@@ -72,9 +72,9 @@ export function SolanaLatencySpreadChart({ providers }: Props) {
           width={42}
         />
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--color-muted)', opacity: 0.3 }} />
-        <Bar dataKey="p50"     stackId="l" fill="var(--color-chart-1)" name="P50"       radius={[0, 0, 2, 2]} />
-        <Bar dataKey="p95diff" stackId="l" fill="var(--color-chart-3)" name="P50→P95" />
-        <Bar dataKey="p99diff" stackId="l" fill="var(--color-chart-4)" name="P95→P99"  radius={[2, 2, 0, 0]} />
+        <Bar dataKey="p50"     stackId="l" fill="#60a5fa"              name="P50"       radius={[0, 0, 2, 2]} />
+        <Bar dataKey="p95diff" stackId="l" fill="rgba(217,119,6,0.70)" name="P50→P95" />
+        <Bar dataKey="p99diff" stackId="l" fill="rgba(224,82,82,0.60)"  name="P95→P99"  radius={[2, 2, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

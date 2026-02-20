@@ -50,7 +50,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         Rate limit:{' '}
         <span className="font-mono tabular-nums text-foreground">{d.displayLabel}</span>
       </p>
-      {d.isUs && <p className="text-accent text-[10px]">★ Our provider</p>}
     </div>
   );
 };
@@ -58,7 +57,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export function SolanaRateLimitChart({ providers }: Props) {
   const parsed = providers.map(p => {
     const rl = parseRateLimit(p.pricing.rate_limit);
-    return { ...rl, name: p.name, isUs: p.is_us, displayLabel: rl.label };
+    return { ...rl, name: p.name, displayLabel: rl.label };
   });
 
   const maxFinite = Math.max(...parsed.filter(d => !d.isUnlimited).map(d => d.value), 100);
@@ -70,7 +69,6 @@ export function SolanaRateLimitChart({ providers }: Props) {
       rateLimit: d.isUnlimited ? cappedMax : d.value,
       displayLabel: d.displayLabel,
       isUnlimited: d.isUnlimited,
-      isUs: d.isUs,
       _parsed: d,
     }))
     .sort((a, b) => b.rateLimit - a.rateLimit);

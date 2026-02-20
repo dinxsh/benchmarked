@@ -65,7 +65,6 @@ export function SolanaSlotSyncChart({ providers }: Props) {
       name: p.name,
       delta: maxSlot - p.metrics.slot_height,
       slotHeight: p.metrics.slot_height,
-      isUs: p.is_us,
     }));
 
   const maxDelta = Math.max(...data.map(d => d.delta), 1);
