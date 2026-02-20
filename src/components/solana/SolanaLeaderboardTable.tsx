@@ -49,13 +49,13 @@ function latencyColor(ms: number): string {
 }
 
 function uptimeColor(pct: number): string {
-  if (pct >= 99.5) return 'text-accent';
+  if (pct >= 99.5) return 'text-chart-2';
   if (pct >= 98)   return 'text-chart-3';
   return 'text-destructive';
 }
 
 function errColor(pct: number): string {
-  if (pct < 1) return 'text-accent';
+  if (pct < 1) return 'text-chart-2';
   if (pct < 5) return 'text-chart-3';
   return 'text-destructive';
 }
@@ -65,7 +65,7 @@ function formatSlot(slot: number): string {
   return `${(slot / 1_000_000).toFixed(1)}M`;
 }
 
-// Visual rank treatment: gold → silver → bronze → rest
+// Visual rank treatment
 function RankBadge({ rank }: { rank: number }) {
   if (rank === 1) {
     return (
@@ -91,7 +91,7 @@ function RankBadge({ rank }: { rank: number }) {
     );
   }
   return (
-    <span className="text-[10px] font-mono tabular-nums text-muted-foreground/50">#{rank}</span>
+    <span className="text-[10px] font-mono tabular-nums text-muted-foreground/45">#{rank}</span>
   );
 }
 
@@ -113,7 +113,7 @@ function ScoreBar({ score }: { score: number }) {
   const textCls = isGood ? 'text-accent' : isMid ? 'text-chart-3' : 'text-destructive';
   return (
     <div className="flex items-center gap-2 justify-end">
-      <div className="w-12 h-[5px] bg-border/30 rounded-full overflow-hidden">
+      <div className="w-12 h-[4px] bg-border/30 rounded-full overflow-hidden">
         <div className="h-full rounded-full" style={{ width: `${score}%`, backgroundColor: color }} />
       </div>
       <span className={`${textCls} font-mono tabular-nums text-[10px] font-medium w-8 text-right`}>
@@ -122,6 +122,19 @@ function ScoreBar({ score }: { score: number }) {
     </div>
   );
 }
+
+// Decision badge labels and styles
+interface DecisionBadge {
+  text: string;
+  className: string;
+}
+
+const BADGE_STYLES: Record<string, string> = {
+  'Best Overall': 'bg-accent/12 text-accent border-accent/25',
+  'Fastest':      'bg-accent/8 text-accent/75 border-accent/15',
+  'Throughput':   'bg-chart-2/10 text-chart-2/80 border-chart-2/20',
+  'Free':         'bg-chart-3/10 text-chart-3/80 border-chart-3/20',
+};
 
 export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('rank');
@@ -155,6 +168,7 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
     return sortDir === 'asc' ? av - bv : bv - av;
   });
 
+  // Leader for delta computation
   const leader = providers.reduce(
     (best, p) => p.metrics.latency_p50 < best.metrics.latency_p50 ? p : best,
     providers[0]
@@ -163,8 +177,34 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
   // Max P50 for mini-bar scaling
   const maxP50 = Math.max(...providers.map(p => p.metrics.latency_p50), 1);
 
+  // ── Decision badges ───────────────────────────────────────────────────────
+  const rankOne    = providers.find(p => p.rank === 1);
+  const byP50      = [...providers].sort((a, b) => a.metrics.latency_p50 - b.metrics.latency_p50);
+  const byRps      = [...providers].sort((a, b) => b.metrics.throughput_rps - a.metrics.throughput_rps);
+  const frees      = providers.filter(p => p.pricing.cost_per_million === 0);
+  const bestFreeId = frees.length > 0
+    ? frees.reduce((a, b) => a.score > b.score ? a : b).id
+    : null;
+
+  const decisionBadges: Record<string, DecisionBadge[]> = {};
+  if (rankOne) {
+    decisionBadges[rankOne.id] = [{ text: 'Best Overall', className: BADGE_STYLES['Best Overall'] }];
+  }
+  if (byP50[0] && byP50[0].id !== rankOne?.id) {
+    const id = byP50[0].id;
+    decisionBadges[id] = [...(decisionBadges[id] ?? []), { text: 'Fastest', className: BADGE_STYLES['Fastest'] }];
+  }
+  if (byRps[0] && byRps[0].id !== rankOne?.id) {
+    const id = byRps[0].id;
+    decisionBadges[id] = [...(decisionBadges[id] ?? []), { text: 'Throughput', className: BADGE_STYLES['Throughput'] }];
+  }
+  if (bestFreeId) {
+    const id = bestFreeId;
+    decisionBadges[id] = [...(decisionBadges[id] ?? []), { text: 'Free', className: BADGE_STYLES['Free'] }];
+  }
+
   function SortIcon({ col }: { col: SortKey }) {
-    if (sortKey !== col) return <ChevronsUpDown className="h-2.5 w-2.5 opacity-25 inline ml-0.5" />;
+    if (sortKey !== col) return <ChevronsUpDown className="h-2.5 w-2.5 opacity-20 inline ml-0.5" />;
     return sortDir === 'asc'
       ? <ChevronUp className="h-2.5 w-2.5 text-accent inline ml-0.5" />
       : <ChevronDown className="h-2.5 w-2.5 text-accent inline ml-0.5" />;
@@ -174,7 +214,7 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
     return (
       <th
         title={title}
-        className={`py-2.5 px-3 text-${align} text-[9px] uppercase tracking-widest text-muted-foreground/50 font-medium cursor-pointer select-none hover:text-muted-foreground transition-colors duration-150 whitespace-nowrap`}
+        className={`py-2.5 px-3 text-${align} text-[9px] uppercase tracking-widest text-muted-foreground/45 font-medium cursor-pointer select-none hover:text-muted-foreground transition-colors duration-150 whitespace-nowrap`}
         onClick={() => handleSort(col)}
       >
         {label}<SortIcon col={col} />
@@ -191,8 +231,8 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
 
   return (
     <div>
-      {/* Type Filter Bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/40">
+      {/* Filter bar */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/35">
         <div className="flex items-center gap-1">
           {filterButtons.map(btn => (
             <button
@@ -208,57 +248,58 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
               <span className={`text-[9px] font-mono tabular-nums px-1 py-0.5 rounded ${
                 typeFilter === btn.key
                   ? 'bg-accent/20 text-accent'
-                  : 'bg-muted/50 text-muted-foreground/60'
+                  : 'bg-muted/50 text-muted-foreground/55'
               }`}>
                 {btn.count}
               </span>
             </button>
           ))}
         </div>
-        <span className="text-[9px] text-muted-foreground/40 font-mono">
+        <span className="text-[9px] text-muted-foreground/35 font-mono">
           {filtered.length} of {providers.length}
         </span>
       </div>
 
       {/* Sticky-header scrollable table */}
-      <div className="overflow-auto max-h-[520px]">
+      <div className="overflow-auto max-h-[540px]">
         <table className="w-full text-[11px]">
-          <thead className="sticky top-0 z-10 bg-card border-b border-border/50 shadow-sm">
+          <thead className="sticky top-0 z-10 bg-card border-b border-border/45 shadow-sm">
             <tr>
               <Th col="rank"           label="Rank"   align="left"  title="Overall rank by composite score" />
-              <th className="py-2.5 px-3 text-left text-[9px] uppercase tracking-widest text-muted-foreground/50 font-medium whitespace-nowrap">Type</th>
-              <th className="py-2.5 px-3 text-left text-[9px] uppercase tracking-widest text-muted-foreground/50 font-medium whitespace-nowrap">Provider</th>
+              <th className="py-2.5 px-3 text-left text-[9px] uppercase tracking-widest text-muted-foreground/45 font-medium whitespace-nowrap">Type</th>
+              <th className="py-2.5 px-3 text-left text-[9px] uppercase tracking-widest text-muted-foreground/45 font-medium whitespace-nowrap">Provider</th>
               <Th col="latency_p50"    label="P50"    title="Median latency (50th percentile)" />
-              <th className="py-2.5 px-3 text-right text-[9px] uppercase tracking-widest text-muted-foreground/50 font-medium whitespace-nowrap">Δ vs #1</th>
-              <Th col="latency_p95"    label="P95"    title="95th percentile latency (fast path worst-case)" />
-              <Th col="latency_p99"    label="P99"    title="99th percentile latency (tail latency)" />
+              <th className="py-2.5 px-3 text-right text-[9px] uppercase tracking-widest text-muted-foreground/45 font-medium whitespace-nowrap">Δ vs #1</th>
+              <Th col="latency_p95"    label="P95"    title="95th percentile latency" />
+              <Th col="latency_p99"    label="P99"    title="99th percentile latency (tail)" />
               <Th col="uptime_percent" label="Uptime" title="Measured availability %" />
               <Th col="error_rate"     label="Err%"   title="Error rate across measurement window" />
               <Th col="throughput_rps" label="RPS"    title="Max requests per second" />
-              <th className="py-2.5 px-3 text-right text-[9px] uppercase tracking-widest text-muted-foreground/50 font-medium whitespace-nowrap">Slot</th>
+              <th className="py-2.5 px-3 text-right text-[9px] uppercase tracking-widest text-muted-foreground/45 font-medium whitespace-nowrap">Slot</th>
               <Th col="score"          label="Score"  title="Composite: latency 35% + uptime 35% + throughput 30%" />
             </tr>
           </thead>
           <tbody>
-            {sorted.map((p, rowIdx) => {
-              const delta = p.metrics.latency_p50 - (leader?.metrics.latency_p50 ?? 0);
-              const isLeader = p.id === leader?.id;
+            {sorted.map((p) => {
+              const delta      = p.metrics.latency_p50 - (leader?.metrics.latency_p50 ?? 0);
+              const isLeader   = p.id === leader?.id;
               const isTopThree = p.rank <= 3;
-              const isUs = p.is_us;
+              const isUs       = p.is_us;
+              const badges     = decisionBadges[p.id] ?? [];
 
               return (
                 <tr
                   key={p.id}
-                  className={`border-b border-border/20 transition-all duration-150 ${
+                  className={`border-b border-border/15 transition-all duration-150 ${
                     onSelect ? 'cursor-pointer' : ''
                   } ${
                     isUs
-                      ? 'bg-accent/[0.06] hover:bg-accent/[0.10]'
+                      ? 'bg-accent/[0.04] hover:bg-accent/[0.08]'
                       : isTopThree
-                      ? 'hover:bg-muted/25'
-                      : 'hover:bg-muted/15'
+                      ? 'hover:bg-muted/20'
+                      : 'hover:bg-muted/10'
                   }`}
-                  style={isUs ? { borderLeft: '2px solid color-mix(in oklch, var(--color-accent) 50%, transparent)' } : undefined}
+                  style={isUs ? { borderLeft: '2px solid color-mix(in oklch, var(--color-accent) 45%, transparent)' } : undefined}
                   onClick={() => onSelect?.(p)}
                 >
                   {/* Rank */}
@@ -273,9 +314,9 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
                     </span>
                   </td>
 
-                  {/* Provider name */}
+                  {/* Provider name + decision badges */}
                   <td className="py-2.5 px-3">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       {isUs && (
                         <span className="text-[8px] font-bold text-accent bg-accent/15 px-1 py-0.5 rounded">★ US</span>
                       )}
@@ -283,15 +324,23 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
                         {p.name}
                       </span>
                       {p.is_mock && (
-                        <span className="text-[8px] text-muted-foreground/35">(sim)</span>
+                        <span className="text-[8px] text-muted-foreground/30">(sim)</span>
                       )}
+                      {badges.map(badge => (
+                        <span
+                          key={badge.text}
+                          className={`text-[8px] font-bold px-1.5 py-0.5 rounded border ${badge.className}`}
+                        >
+                          {badge.text}
+                        </span>
+                      ))}
                     </div>
                   </td>
 
-                  {/* P50 with mini inline bar */}
+                  {/* P50 with mini bar */}
                   <td className="py-2.5 px-3 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <div className="w-10 h-[3px] bg-border/25 rounded-full overflow-hidden">
+                      <div className="w-10 h-[3px] bg-border/20 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full"
                           style={{
@@ -313,8 +362,8 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
                   {/* Delta vs leader */}
                   <td className="py-2.5 px-3 text-right font-mono tabular-nums">
                     {isLeader
-                      ? <span className="text-accent/60 text-[10px]">—</span>
-                      : <span className="text-muted-foreground/50 text-[10px]">+{delta}ms</span>
+                      ? <span className="text-accent/55 text-[10px]">—</span>
+                      : <span className="text-muted-foreground/45 text-[10px]">+{delta}ms</span>
                     }
                   </td>
 
@@ -339,12 +388,12 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
                   </td>
 
                   {/* RPS */}
-                  <td className="py-2.5 px-3 text-right font-mono tabular-nums text-foreground/80">
+                  <td className="py-2.5 px-3 text-right font-mono tabular-nums text-foreground/75">
                     {p.metrics.throughput_rps}
                   </td>
 
                   {/* Slot */}
-                  <td className="py-2.5 px-3 text-right font-mono tabular-nums text-muted-foreground/50">
+                  <td className="py-2.5 px-3 text-right font-mono tabular-nums text-muted-foreground/40">
                     {formatSlot(p.metrics.slot_height)}
                   </td>
 

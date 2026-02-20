@@ -10,6 +10,7 @@ import {
   ReferenceLine,
   ResponsiveContainer,
   Legend,
+  LabelList,
 } from 'recharts';
 import type { SolanaProvider } from './SolanaLeaderboardTable';
 
@@ -19,51 +20,51 @@ interface Props {
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
-  const p50Val = payload.find((p: any) => p.dataKey === 'p50')?.value ?? 0;
-  const p95Delta = payload.find((p: any) => p.dataKey === 'p95_delta')?.value ?? 0;
-  const p99Delta = payload.find((p: any) => p.dataKey === 'p99_delta')?.value ?? 0;
-  const p95Val = p50Val + p95Delta;
-  const p99Val = p95Val + p99Delta;
+  const p50Val     = payload.find((p: any) => p.dataKey === 'p50')?.value ?? 0;
+  const p95Delta   = payload.find((p: any) => p.dataKey === 'p95_delta')?.value ?? 0;
+  const p99Delta   = payload.find((p: any) => p.dataKey === 'p99_delta')?.value ?? 0;
+  const p95Val     = p50Val + p95Delta;
+  const p99Val     = p95Val + p99Delta;
 
   return (
-    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-lg px-3.5 py-3 text-xs shadow-lg min-w-[140px]">
+    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-lg px-3.5 py-3 text-xs shadow-lg min-w-[148px]">
       <p className="text-[10px] font-semibold text-foreground mb-2.5 pb-2 border-b border-border/40">{label}</p>
       <div className="space-y-1.5">
-        <div className="flex items-center justify-between gap-5">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="h-2 w-2 rounded-sm shrink-0" style={{ backgroundColor: 'var(--color-accent)' }} />
-            P50
-          </span>
-          <span className="font-mono tabular-nums font-medium" style={{ color: 'var(--color-accent)' }}>{p50Val}ms</span>
-        </div>
-        <div className="flex items-center justify-between gap-5">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="h-2 w-2 rounded-sm shrink-0" style={{ backgroundColor: 'var(--color-chart-3)' }} />
-            P95
-          </span>
-          <span className="font-mono tabular-nums font-medium" style={{ color: 'var(--color-chart-3)' }}>{p95Val}ms</span>
-        </div>
-        <div className="flex items-center justify-between gap-5">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="h-2 w-2 rounded-sm shrink-0" style={{ backgroundColor: 'var(--color-destructive)' }} />
-            P99
-          </span>
-          <span className="font-mono tabular-nums font-medium" style={{ color: 'var(--color-destructive)' }}>{p99Val}ms</span>
-        </div>
+        {[
+          { label: 'P50', value: p50Val,  color: 'var(--color-accent)' },
+          { label: 'P95', value: p95Val,  color: 'var(--color-chart-3)' },
+          { label: 'P99', value: p99Val,  color: 'var(--color-destructive)' },
+        ].map(row => (
+          <div key={row.label} className="flex items-center justify-between gap-5">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <span className="h-2 w-2 rounded-sm shrink-0" style={{ backgroundColor: row.color }} />
+              {row.label}
+            </span>
+            <span className="font-mono tabular-nums font-medium" style={{ color: row.color }}>
+              {row.value}ms
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
 };
 
 const LegendRenderer = ({ payload }: any) => {
-  const labels: Record<string, string> = { p50: 'P50 median', p95_delta: '+P95 range', p99_delta: '+P99 tail' };
+  const labels: Record<string, string> = {
+    p50: 'P50 median',
+    p95_delta: '+P95 range',
+    p99_delta: '+P99 tail',
+  };
   if (!payload) return null;
   return (
     <div className="flex items-center gap-5 justify-center pt-3">
       {payload.map((entry: any) => (
         <div key={entry.dataKey} className="flex items-center gap-1.5">
           <span className="h-2 w-3 rounded-sm inline-block" style={{ backgroundColor: entry.color }} />
-          <span className="text-[10px] font-sans text-muted-foreground">{labels[entry.dataKey] ?? entry.value}</span>
+          <span className="text-[10px] font-sans text-muted-foreground/60">
+            {labels[entry.dataKey] ?? entry.value}
+          </span>
         </div>
       ))}
     </div>
@@ -71,31 +72,34 @@ const LegendRenderer = ({ payload }: any) => {
 };
 
 export function SolanaLatencyChart({ providers }: Props) {
-  const sorted = [...providers].sort((a, b) => a.metrics.latency_p50 - b.metrics.latency_p50);
+  const sorted  = [...providers].sort((a, b) => a.metrics.latency_p50 - b.metrics.latency_p50);
+  const bestP50 = sorted[0]?.metrics.latency_p50 ?? 0;
 
-  const data = sorted.map(p => ({
-    name: p.name,
-    p50: p.metrics.latency_p50,
-    p95_delta: Math.max(0, p.metrics.latency_p95 - p.metrics.latency_p50),
-    p99_delta: Math.max(0, p.metrics.latency_p99 - p.metrics.latency_p95),
-    isUs: p.is_us,
+  const data = sorted.map((p, i) => ({
+    name:          p.name,
+    p50:           p.metrics.latency_p50,
+    p95_delta:     Math.max(0, p.metrics.latency_p95 - p.metrics.latency_p50),
+    p99_delta:     Math.max(0, p.metrics.latency_p99 - p.metrics.latency_p95),
+    isUs:          p.is_us,
+    deltaVsBest:   i === 0 ? 0 : p.metrics.latency_p50 - bestP50,
+    rankLabel:     i === 0 ? '#1' : null,
   }));
 
-  const chartHeight = Math.max(220, sorted.length * 36 + 40);
+  const chartHeight = Math.max(240, sorted.length * 40 + 40);
 
   return (
     <ResponsiveContainer width="100%" height={chartHeight}>
       <ComposedChart
         data={data}
         layout="vertical"
-        margin={{ top: 4, right: 56, left: 4, bottom: 0 }}
-        barCategoryGap="32%"
+        margin={{ top: 4, right: 72, left: 4, bottom: 0 }}
+        barCategoryGap="30%"
       >
         <CartesianGrid
           strokeDasharray="2 6"
           stroke="var(--color-border)"
           horizontal={false}
-          strokeOpacity={0.5}
+          strokeOpacity={0.4}
         />
         <XAxis
           type="number"
@@ -111,55 +115,91 @@ export function SolanaLatencyChart({ providers }: Props) {
           tick={{ fontSize: 10, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           axisLine={false}
           tickLine={false}
-          width={82}
+          width={86}
         />
         <Tooltip
           content={<CustomTooltip />}
-          cursor={{ fill: 'var(--color-muted)', fillOpacity: 0.18 }}
+          cursor={{ fill: 'var(--color-muted)', fillOpacity: 0.15 }}
         />
 
-        {/* Reference: "fast" threshold */}
+        {/* Reference lines */}
         <ReferenceLine
           x={100}
           stroke="var(--color-accent)"
-          strokeOpacity={0.25}
+          strokeOpacity={0.20}
           strokeDasharray="4 4"
-          label={{ value: '100ms', fill: 'var(--color-accent)', fontSize: 9, opacity: 0.5, position: 'insideTopRight' }}
+          label={{ value: '100ms', fill: 'var(--color-accent)', fontSize: 9, opacity: 0.45, position: 'insideTopRight' }}
         />
-        {/* Reference: "acceptable" threshold */}
         <ReferenceLine
           x={300}
           stroke="var(--color-chart-3)"
-          strokeOpacity={0.25}
+          strokeOpacity={0.20}
           strokeDasharray="4 4"
-          label={{ value: '300ms', fill: 'var(--color-chart-3)', fontSize: 9, opacity: 0.5, position: 'insideTopRight' }}
+          label={{ value: '300ms', fill: 'var(--color-chart-3)', fontSize: 9, opacity: 0.45, position: 'insideTopRight' }}
         />
 
+        {/* P50 solid bar */}
         <Bar
           dataKey="p50"
           name="P50"
           fill="var(--color-accent)"
           stackId="latency"
           radius={[3, 0, 0, 3]}
-          maxBarSize={18}
+          maxBarSize={16}
         />
+
+        {/* P95 extension */}
         <Bar
           dataKey="p95_delta"
           name="P95 range"
           fill="var(--color-chart-3)"
           stackId="latency"
-          fillOpacity={0.80}
-          maxBarSize={18}
+          fillOpacity={0.75}
+          maxBarSize={16}
         />
+
+        {/* P99 tail — delta annotation inline */}
         <Bar
           dataKey="p99_delta"
           name="P99 tail"
           fill="var(--color-destructive)"
           stackId="latency"
-          fillOpacity={0.70}
+          fillOpacity={0.65}
           radius={[0, 3, 3, 0]}
-          maxBarSize={18}
-        />
+          maxBarSize={16}
+        >
+          <LabelList
+            dataKey="deltaVsBest"
+            position="right"
+            content={(props: any) => {
+              const { x, y, width, height, value } = props;
+              const cx = (x as number) + (width as number) + 6;
+              const cy = (y as number) + (height as number) / 2;
+              if (value === 0) {
+                return (
+                  <text
+                    x={cx} y={cy}
+                    fill="var(--color-accent)" fontSize={9}
+                    fontFamily="var(--font-mono)"
+                    dominantBaseline="central" opacity={0.65}
+                  >
+                    #1
+                  </text>
+                );
+              }
+              return (
+                <text
+                  x={cx} y={cy}
+                  fill="var(--color-muted-foreground)" fontSize={9}
+                  fontFamily="var(--font-mono)"
+                  dominantBaseline="central" opacity={0.50}
+                >
+                  +{value}ms
+                </text>
+              );
+            }}
+          />
+        </Bar>
 
         <Legend content={<LegendRenderer />} />
       </ComposedChart>

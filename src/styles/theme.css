@@ -1,6 +1,7 @@
 /* Theme imports */
 @import './themes/hyperliquid.css';
 @import './themes/midnight.css';
+@import './themes/infra.css';
 
 body {
   @apply overscroll-none;
