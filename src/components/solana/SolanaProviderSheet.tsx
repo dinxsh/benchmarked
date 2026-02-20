@@ -36,13 +36,13 @@ function CapBool({ label, value }: { label: string; value: boolean }) {
 
 function latencyColor(ms: number) {
   if (ms < 100) return 'text-accent';
-  if (ms < 300) return 'text-yellow-400';
+  if (ms < 300) return 'text-chart-3';
   return 'text-destructive';
 }
 
 function scoreColor(s: number) {
   if (s >= 85) return 'border-accent text-accent';
-  if (s >= 70) return 'border-yellow-400 text-yellow-400';
+  if (s >= 70) return 'border-chart-3 text-chart-3';
   return 'border-destructive text-destructive';
 }
 
@@ -54,7 +54,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 const TYPE_COLORS: Record<string, string> = {
   'json-rpc': 'bg-accent/15 text-accent border-accent/30',
-  'rest-api': 'bg-yellow-400/15 text-yellow-400 border-yellow-400/30',
+  'rest-api': 'bg-chart-3/15 text-chart-3 border-chart-3/30',
   'data-api': 'bg-destructive/15 text-destructive border-destructive/30',
 };
 
@@ -118,12 +118,12 @@ export function SolanaProviderSheet({ provider: p, open, onClose }: Props) {
               <MetricChip
                 label="Uptime"
                 value={`${p.metrics.uptime_percent.toFixed(1)}%`}
-                color={p.metrics.uptime_percent >= 99.5 ? 'text-accent' : p.metrics.uptime_percent >= 98 ? 'text-yellow-400' : 'text-destructive'}
+                color={p.metrics.uptime_percent >= 99.5 ? 'text-accent' : p.metrics.uptime_percent >= 98 ? 'text-chart-3' : 'text-destructive'}
               />
               <MetricChip
                 label="Err Rate"
                 value={`${p.metrics.error_rate.toFixed(1)}%`}
-                color={p.metrics.error_rate < 1 ? 'text-accent' : p.metrics.error_rate < 5 ? 'text-yellow-400' : 'text-destructive'}
+                color={p.metrics.error_rate < 1 ? 'text-accent' : p.metrics.error_rate < 5 ? 'text-chart-3' : 'text-destructive'}
               />
               <MetricChip label="Throughput" value={`${p.metrics.throughput_rps} rps`} color="text-primary" />
               {p.metrics.slot_height > 0 && (
@@ -188,7 +188,7 @@ export function SolanaProviderSheet({ provider: p, open, onClose }: Props) {
 
           {/* Data quality note */}
           <section className="border-t border-border/50 pt-3">
-            <p className={`text-[10px] font-mono ${p.is_mock ? 'text-yellow-400/70' : 'text-accent/70'}`}>
+            <p className={`text-[10px] font-mono ${p.is_mock ? 'text-chart-3/70' : 'text-accent/70'}`}>
               {p.is_mock
                 ? '⚠ Simulated data — add API key for live measurements'
                 : '✓ Live data — measurements from real API calls'}

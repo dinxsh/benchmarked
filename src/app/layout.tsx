@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0d0d0d'
+  themeColor: '#0c0d18'
 };
 
 export default function RootLayout({
@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang='en' suppressHydrationWarning data-theme='hyperliquid' className='dark'>
+    <html lang='en' suppressHydrationWarning data-theme='midnight' className='dark'>
       <body
         className={cn(
           'bg-background font-sans antialiased',
@@ -40,7 +40,7 @@ export default function RootLayout({
             enableColorScheme
           >
             <QueryProvider>
-              <Providers activeThemeValue='hyperliquid'>
+              <Providers activeThemeValue='midnight'>
                 <Toaster />
                 {children}
               </Providers>

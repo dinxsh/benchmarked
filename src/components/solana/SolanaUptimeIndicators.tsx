@@ -32,11 +32,11 @@ export function SolanaUptimeIndicators({ providers }: Props) {
         const pct = p.metrics.uptime_percent;
         const color =
           pct >= 99.5 ? 'text-accent' :
-          pct >= 98 ? 'text-yellow-400' :
+          pct >= 98 ? 'text-chart-3' :
           'text-destructive';
         const dotColor =
           pct >= 99.5 ? 'bg-accent' :
-          pct >= 98 ? 'bg-yellow-400' :
+          pct >= 98 ? 'bg-chart-3' :
           'bg-destructive';
 
         return (

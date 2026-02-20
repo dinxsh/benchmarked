@@ -10,7 +10,7 @@ const FEATURES = [
   { key: 'provider_type', label: 'Type', render: (p: SolanaProvider) => (
     <span className={`text-[9px] uppercase font-bold px-1 py-0.5 rounded ${
       p.provider_type === 'json-rpc' ? 'bg-accent/15 text-accent' :
-      p.provider_type === 'rest-api' ? 'bg-yellow-400/15 text-yellow-400' :
+      p.provider_type === 'rest-api' ? 'bg-chart-3/15 text-chart-3' :
       'bg-destructive/15 text-destructive'
     }`}>
       {p.provider_type === 'json-rpc' ? 'RPC' : p.provider_type === 'rest-api' ? 'REST' : 'Data'}

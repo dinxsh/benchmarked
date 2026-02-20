@@ -1,5 +1,6 @@
-/* Hyperliquid — single enforced theme */
+/* Theme imports */
 @import './themes/hyperliquid.css';
+@import './themes/midnight.css';
 
 body {
   @apply overscroll-none;

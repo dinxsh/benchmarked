@@ -19,7 +19,7 @@ interface Props {
 
 const TYPE_COLORS: Record<string, string> = {
   'json-rpc': 'hsl(var(--accent))',
-  'rest-api': 'hsl(38 70% 55%)',
+  'rest-api': 'var(--chart-3)',
   'data-api': 'hsl(var(--destructive))',
 };
 

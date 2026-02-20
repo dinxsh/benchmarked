@@ -68,7 +68,7 @@ export function SolanaLatencyChart({ providers }: Props) {
           iconSize={8}
         />
         <Bar dataKey="P50" name="P50" fill="hsl(var(--accent))" radius={[2, 2, 0, 0]} />
-        <Bar dataKey="P95" name="P95" fill="hsl(38 70% 55%)" radius={[2, 2, 0, 0]} />
+        <Bar dataKey="P95" name="P95" fill="var(--chart-3)" radius={[2, 2, 0, 0]} />
         <Bar dataKey="P99" name="P99" fill="hsl(var(--destructive))" radius={[2, 2, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>

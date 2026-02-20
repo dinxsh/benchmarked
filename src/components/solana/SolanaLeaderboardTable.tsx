@@ -44,19 +44,19 @@ interface Props {
 
 function latencyColor(ms: number): string {
   if (ms < 100) return 'text-accent';
-  if (ms < 300) return 'text-yellow-400';
+  if (ms < 300) return 'text-chart-3';
   return 'text-destructive';
 }
 
 function uptimeColor(pct: number): string {
   if (pct >= 99.5) return 'text-accent';
-  if (pct >= 98) return 'text-yellow-400';
+  if (pct >= 98) return 'text-chart-3';
   return 'text-destructive';
 }
 
 function errColor(pct: number): string {
   if (pct < 1) return 'text-accent';
-  if (pct < 5) return 'text-yellow-400';
+  if (pct < 5) return 'text-chart-3';
   return 'text-destructive';
 }
 
@@ -67,7 +67,7 @@ function formatSlot(slot: number): string {
 
 const TYPE_BADGE: Record<string, string> = {
   'json-rpc': 'bg-accent/10 text-accent border-accent/20',
-  'rest-api': 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
+  'rest-api': 'bg-chart-3/10 text-chart-3 border-chart-3/20',
   'data-api': 'bg-destructive/10 text-destructive border-destructive/20',
 };
 const TYPE_LABEL: Record<string, string> = {
@@ -207,7 +207,7 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
                     p.score >= 85
                       ? 'border-accent text-accent'
                       : p.score >= 70
-                      ? 'border-yellow-400 text-yellow-400'
+                      ? 'border-chart-3 text-chart-3'
                       : 'border-destructive text-destructive'
                   }`}
                 >

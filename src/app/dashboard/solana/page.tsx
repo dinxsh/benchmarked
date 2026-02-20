@@ -173,7 +173,7 @@ export default function SolanaBenchmarksPage() {
                   Leaderboard — click row for details
                 </h2>
                 {data.meta.errors && data.meta.errors.length > 0 && (
-                  <span className="text-[9px] font-mono text-yellow-400">
+                  <span className="text-[9px] font-mono text-chart-3">
                     {data.meta.errors.length} error(s)
                   </span>
                 )}
@@ -240,7 +240,7 @@ export default function SolanaBenchmarksPage() {
                   Latency vs Throughput
                   <span className="ml-2 text-muted-foreground/50 normal-case font-normal">
                     · <span style={{ color: 'hsl(var(--accent))' }}>■</span> JSON-RPC
-                    <span className="ml-1" style={{ color: 'hsl(38 70% 55%)' }}>■</span> REST API
+                    <span className="ml-1" style={{ color: 'var(--chart-3)' }}>■</span> REST API
                     <span className="ml-1" style={{ color: 'hsl(var(--destructive))' }}>■</span> Data API
                   </span>
                 </h2>

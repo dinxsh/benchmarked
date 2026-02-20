@@ -385,7 +385,7 @@ export default function Home() {
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Sort by any column · click a row for detailed metrics and capabilities
                   {data.meta.errors && data.meta.errors.length > 0 && (
-                    <span className="ml-2 text-yellow-400">
+                    <span className="ml-2 text-chart-3">
                       · {data.meta.errors.length} provider(s) had errors
                     </span>
                   )}

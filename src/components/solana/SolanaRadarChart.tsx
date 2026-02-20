@@ -19,14 +19,14 @@ interface Props {
 
 // Fixed color palette cycling for providers
 const COLORS = [
-  'hsl(var(--accent))',
-  'hsl(38 70% 55%)',
-  'hsl(217 70% 60%)',
-  'hsl(280 60% 60%)',
-  'hsl(200 70% 55%)',
-  'hsl(10 70% 55%)',
-  'hsl(160 55% 50%)',
-  'hsl(330 60% 60%)',
+  'var(--chart-1)',   /* violet  */
+  'var(--chart-2)',   /* cyan    */
+  'var(--chart-3)',   /* amber   */
+  'var(--chart-4)',   /* pink    */
+  'var(--chart-5)',   /* emerald */
+  'var(--accent)',    /* violet  (6th provider fallback) */
+  'var(--chart-2)',   /* cyan    (7th provider fallback) */
+  'var(--chart-4)',   /* pink    (8th provider fallback) */
 ];
 
 function capabilityScore(p: SolanaProvider): number {
