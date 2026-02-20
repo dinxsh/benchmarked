@@ -9,7 +9,7 @@ export class SolanaMobulaAdapter extends BaseAdapter {
   constructor() {
     super();
     this.endpoint = MOBULA_ENDPOINT;
-    this.sampleSize = 3;
+    this.sampleSize = 5;
   }
 
   private get apiKey() {

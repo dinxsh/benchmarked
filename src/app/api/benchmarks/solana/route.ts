@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { SolanaGoldRushAdapter } from '@/lib/adapters/solana-goldrush';
 import { SolanaBirdeyeAdapter } from '@/lib/adapters/solana-birdeye';
 import { SolanaMobulaAdapter } from '@/lib/adapters/solana-mobula';
-import { SolanaLaserTeamAdapter } from '@/lib/adapters/solana-laserteam';
+import { SolanaLaserStreamAdapter } from '@/lib/adapters/solana-laserteam';
 import { SolanaAlchemyAdapter } from '@/lib/adapters/solana-alchemy';
 import { SolanaHeliusAdapter } from '@/lib/adapters/solana-helius';
 import { SolanaAnkrAdapter } from '@/lib/adapters/solana-ankr';
@@ -19,22 +19,31 @@ function jsonNoCache(data: unknown) {
   });
 }
 
-// Composite score: Latency 35% + Uptime 35% + Throughput 30%
-// maxLatency=1000ms (fairer for REST/Data APIs), maxThroughput=500rps
+// Composite score: Latency 40% + Reliability 35% + Throughput 25%
+//
+// Latency:    100 - (p50 / 2000) * 100  → full marks at 0ms, 0 at ≥2000ms
+//             Capped at 2000ms so even slow REST providers get a non-zero score.
+// Reliability: success_rate from the measurement window (0–100%).
+//             With sampleSize=5: resolution is 0/20/40/60/80/100.
+//             Providers where ALL requests fail are excluded by Promise.allSettled.
+// Throughput: min(100, (rps / 200) * 100) — cap at 200 rps for fair cross-type scoring.
+//             JSON-RPC naturally achieves higher RPS; REST/Data APIs cap lower.
+//             200 rps reflects a realistic high-performance threshold for all types.
 function computeScore(
   latency_p50: number,
   uptime_percent: number,
   throughput_rps: number
 ): number {
-  const maxLatency = 1000;
-  const latencyScore = Math.max(0, 100 - (latency_p50 / maxLatency) * 100);
+  const maxLatency    = 2000;  // ms ceiling — anything ≥2s scores 0 on latency
+  const maxThroughput = 200;   // rps ceiling — fair across RPC and REST/Data types
 
-  const uptimeScore = uptime_percent;
+  const latencyScore    = Math.max(0, 100 - (latency_p50 / maxLatency) * 100);
+  const reliabilityScore = uptime_percent;                                      // 0–100
+  const throughputScore  = Math.min(100, (throughput_rps / maxThroughput) * 100);
 
-  const maxThroughput = 500;
-  const throughputScore = Math.min(100, (throughput_rps / maxThroughput) * 100);
-
-  return Number((latencyScore * 0.35 + uptimeScore * 0.35 + throughputScore * 0.30).toFixed(1));
+  return Number(
+    (latencyScore * 0.40 + reliabilityScore * 0.35 + throughputScore * 0.25).toFixed(1)
+  );
 }
 
 export async function GET(request: Request) {
@@ -50,7 +59,7 @@ export async function GET(request: Request) {
     new SolanaQuickNodeAdapter(),
     new SolanaBirdeyeAdapter(),
     new SolanaMobulaAdapter(),
-    new SolanaLaserTeamAdapter(),
+    new SolanaLaserStreamAdapter(),
   ];
 
   // Single provider detail

@@ -10,7 +10,7 @@ export class SolanaAnkrAdapter extends BaseAdapter {
     super();
     const key = process.env.ANKR_API_KEY || '';
     this.endpoint = key ? `https://rpc.ankr.com/solana/${key}` : PUBLIC_ENDPOINT;
-    this.sampleSize = 3;
+    this.sampleSize = 5;
   }
 
   getMetadata() {

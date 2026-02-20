@@ -7,7 +7,7 @@ export class SolanaQuickNodeAdapter extends BaseAdapter {
   constructor() {
     super();
     this.endpoint = process.env.QUICKNODE_SOLANA_ENDPOINT || '';
-    this.sampleSize = 3;
+    this.sampleSize = 5;
   }
 
   getMetadata() {

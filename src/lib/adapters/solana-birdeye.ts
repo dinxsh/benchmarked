@@ -10,7 +10,7 @@ export class SolanaBirdeyeAdapter extends BaseAdapter {
   constructor() {
     super();
     this.endpoint = BIRDEYE_ENDPOINT;
-    this.sampleSize = 3;
+    this.sampleSize = 5;
   }
 
   private get apiKey() {

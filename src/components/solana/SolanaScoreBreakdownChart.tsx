@@ -16,10 +16,10 @@ interface Props {
 
 function computeComponents(p: SolanaProvider) {
   return {
-    name: p.name,
-    latency:    +(Math.max(0, 100 - (p.metrics.latency_p50 / 1000) * 100) * 0.35).toFixed(1),
+    name:       p.name,
+    latency:    +(Math.max(0, 100 - (p.metrics.latency_p50 / 2000) * 100) * 0.40).toFixed(1),
     uptime:     +(p.metrics.uptime_percent * 0.35).toFixed(1),
-    throughput: +(Math.min(100, (p.metrics.throughput_rps / 500) * 100) * 0.30).toFixed(1),
+    throughput: +(Math.min(100, (p.metrics.throughput_rps / 200) * 100) * 0.25).toFixed(1),
   };
 }
 
@@ -39,9 +39,9 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   return (
     <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-xs font-sans shadow-lg space-y-1">
       <p className="font-medium text-foreground mb-1">{label}</p>
-      <p><span className="text-chart-1">Latency (35%): </span><span className="font-mono tabular-nums">{latency.toFixed(1)}</span></p>
-      <p><span className="text-chart-5">Uptime (35%): </span><span className="font-mono tabular-nums">{uptime.toFixed(1)}</span></p>
-      <p><span className="text-chart-2">Throughput (30%): </span><span className="font-mono tabular-nums">{throughput.toFixed(1)}</span></p>
+      <p><span className="text-chart-1">Latency (40%): </span><span className="font-mono tabular-nums">{latency.toFixed(1)}</span></p>
+      <p><span className="text-chart-5">Reliability (35%): </span><span className="font-mono tabular-nums">{uptime.toFixed(1)}</span></p>
+      <p><span className="text-chart-2">Throughput (25%): </span><span className="font-mono tabular-nums">{throughput.toFixed(1)}</span></p>
       <p className="border-t border-border/40 pt-1 font-medium text-foreground">Total: <span className="font-mono tabular-nums">{total}</span></p>
     </div>
   );

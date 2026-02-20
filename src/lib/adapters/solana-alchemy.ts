@@ -13,7 +13,7 @@ export class SolanaAlchemyAdapter extends BaseAdapter {
     } else {
       this.endpoint = '';
     }
-    this.sampleSize = 3;
+    this.sampleSize = 5;
   }
 
   getMetadata() {

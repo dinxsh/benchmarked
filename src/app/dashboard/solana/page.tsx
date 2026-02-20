@@ -168,7 +168,7 @@ export default function SolanaBenchmarksPage() {
           <p className="text-xs font-sans text-muted-foreground/70">
             {totalCount > 0
               ? `${totalCount} providers · latency · uptime · throughput · capabilities`
-              : 'LaserTeam · Alchemy · Helius · Ankr · QuickNode · GoldRush · Birdeye · Mobula'}
+              : 'LaserStream · Alchemy · Helius · Ankr · QuickNode · GoldRush · Birdeye · Mobula'}
           </p>
         </div>
         <div className="flex items-center gap-2">

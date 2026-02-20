@@ -293,7 +293,7 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
               <th className="py-3 px-3 text-right text-[10px] uppercase tracking-widest text-muted-foreground/55 font-semibold whitespace-nowrap">Slot</th>
               <Th col="cost"           label="$/M"     title="Cost per million API requests (USD) · 0 = free" />
               <Th col="value_score"    label="Value"   title="Score per $1/M cost — higher = more value for money. Free providers rank highest." />
-              <Th col="score"          label="Score"   title="Composite score: latency 35% + uptime 35% + throughput 30%" />
+              <Th col="score"          label="Score"   title="Composite score: latency 40% + reliability 35% + throughput 25% — cap 2000ms/200rps" />
             </tr>
           </thead>
           <tbody>

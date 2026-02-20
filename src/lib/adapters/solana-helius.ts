@@ -8,7 +8,7 @@ export class SolanaHeliusAdapter extends BaseAdapter {
     super();
     const key = process.env.HELIUS_API_KEY || '';
     this.endpoint = key ? `https://mainnet.helius-rpc.com/?api-key=${key}` : '';
-    this.sampleSize = 3;
+    this.sampleSize = 5;
   }
 
   getMetadata() {

@@ -11,7 +11,7 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
 
   constructor() {
     super();
-    this.sampleSize = 3;
+    this.sampleSize = 5;
   }
 
   // GOLDRUSH_API_KEY is the canonical Next.js server env var.

@@ -216,7 +216,7 @@ function HeroWinnerCard({ winner, providers }: { winner: SolanaProvider; provide
               </div>
               <div className="flex justify-between text-[10px] text-muted-foreground/45">
                 <span>0</span>
-                <span>latency 35% · uptime 35% · throughput 30%</span>
+                <span>latency 40% · reliability 35% · throughput 25%</span>
                 <span>100</span>
               </div>
             </div>
@@ -354,8 +354,8 @@ export default function Home() {
   const [data, setData] = useState<BenchmarkData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [nextRefreshAt, setNextRefreshAt] = useState(Date.now() + 30_000);
-  const [secsLeft, setSecsLeft] = useState(30);
+  const [nextRefreshAt, setNextRefreshAt] = useState(Date.now() + 60_000);
+  const [secsLeft, setSecsLeft] = useState(60);
   const [selectedProvider, setSelectedProvider] = useState<SolanaProvider | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -369,7 +369,7 @@ export default function Home() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setData(json);
-      setNextRefreshAt(Date.now() + 30_000);
+      setNextRefreshAt(Date.now() + 60_000);
     } catch (e: any) {
       setError(e.message || 'Failed to fetch benchmarks');
     } finally {
@@ -379,7 +379,7 @@ export default function Home() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => {
-    const id = setInterval(() => fetchData(), 30_000);
+    const id = setInterval(() => fetchData(), 60_000);
     return () => clearInterval(id);
   }, [fetchData]);
   useEffect(() => {
@@ -477,8 +477,9 @@ export default function Home() {
           </h1>
           {totalCount > 0 && (
             <span className="text-sm text-muted-foreground/60">
-              {totalCount} providers · live · refreshes every 30s
+              {totalCount} providers · live · refreshes every 60s
               {liveCount < totalCount && ` · ${liveCount} live`}
+              {' · '}5 samples per provider
             </span>
           )}
         </div>
@@ -748,14 +749,15 @@ export default function Home() {
             {/* ── Footnote ──────────────────────────────────────────────────── */}
             <div className="border-t border-border/20 pt-5 pb-4 space-y-1.5 text-center">
               <p className="text-xs text-muted-foreground/45">
-                Score = latency 35% + uptime 35% + throughput 30%
+                Score = latency 40% + reliability 35% + throughput 25%
                 {' · '}Jitter = P99 − P50
-                {' · '}Value = score ÷ ($/M) · latency cap 1000ms · throughput cap 500 req/s
+                {' · '}Value = score ÷ ($/M)
+                {' · '}5 samples per provider · latency cap 2000ms · throughput cap 200 rps
               </p>
               <p className="text-xs text-muted-foreground/35">
                 JSON-RPC via <code className="font-mono">getSlot</code>
                 {' · '}REST/Data APIs via primary endpoint
-                {' · '}(sim) = simulated · add API key for live
+                {' · '}Refreshes every 60s · no caching · all live measurements
               </p>
             </div>
           </>
