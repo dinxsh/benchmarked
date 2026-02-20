@@ -2,20 +2,8 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import {
-  Loader2,
-  RefreshCw,
-  Zap,
-  ShieldCheck,
-  Gauge,
-  DollarSign,
-  ExternalLink,
-  AlertCircle,
-  BarChart2,
-  Radar,
-  TrendingDown,
-  Activity,
-  GitCompare,
-  LayoutGrid,
+  Loader2, RefreshCw, Zap, ShieldCheck, Gauge, DollarSign,
+  ExternalLink, AlertCircle, BarChart2, Activity, GitCompare, LayoutGrid,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,17 +12,16 @@ import {
   SolanaLeaderboardTable,
   type SolanaProvider,
 } from '@/components/solana/SolanaLeaderboardTable';
-import { SolanaLatencyChart }       from '@/components/solana/SolanaLatencyChart';
-import { SolanaThroughputChart }    from '@/components/solana/SolanaThroughputChart';
-import { SolanaUptimeIndicators }   from '@/components/solana/SolanaUptimeIndicators';
-import { SolanaRadarChart }         from '@/components/solana/SolanaRadarChart';
-import { SolanaProviderSheet }      from '@/components/solana/SolanaProviderSheet';
-import { SolanaLatencySpreadChart } from '@/components/solana/SolanaLatencySpreadChart';
+import { SolanaLatencyChart }        from '@/components/solana/SolanaLatencyChart';
+import { SolanaThroughputChart }     from '@/components/solana/SolanaThroughputChart';
+import { SolanaUptimeIndicators }    from '@/components/solana/SolanaUptimeIndicators';
+import { SolanaRadarChart }          from '@/components/solana/SolanaRadarChart';
+import { SolanaProviderSheet }       from '@/components/solana/SolanaProviderSheet';
+import { SolanaLatencySpreadChart }  from '@/components/solana/SolanaLatencySpreadChart';
 import { SolanaCostEfficiencyChart } from '@/components/solana/SolanaCostEfficiencyChart';
 import { SolanaScoreBreakdownChart } from '@/components/solana/SolanaScoreBreakdownChart';
-import { SolanaScoreComparison }    from '@/components/solana/SolanaScoreComparison';
-import { SolanaCapabilitiesMatrix } from '@/components/solana/SolanaCapabilitiesMatrix';
-import { SolanaSummaryCards }       from '@/components/solana/SolanaSummaryCards';
+import { SolanaScoreComparison }     from '@/components/solana/SolanaScoreComparison';
+import { SolanaCapabilitiesMatrix }  from '@/components/solana/SolanaCapabilitiesMatrix';
 
 interface BenchmarkData {
   providers: SolanaProvider[];
@@ -45,15 +32,11 @@ interface BenchmarkData {
     winner: { name: string; score: number } | null;
     us_rank: number | null;
   };
-  meta: {
-    total_providers: number;
-    forced_run?: boolean;
-    errors?: string[];
-  };
+  meta: { total_providers: number; forced_run?: boolean; errors?: string[] };
   last_updated: string;
 }
 
-// ─── Winner insight generator ──────────────────────────────────────────────────
+// ─── Winner insights ───────────────────────────────────────────────────────────
 function getWinnerInsights(winner: SolanaProvider, all: SolanaProvider[]): string[] {
   const byP50    = [...all].sort((a, b) => a.metrics.latency_p50 - b.metrics.latency_p50);
   const byUptime = [...all].sort((a, b) => b.metrics.uptime_percent - a.metrics.uptime_percent);
@@ -61,32 +44,28 @@ function getWinnerInsights(winner: SolanaProvider, all: SolanaProvider[]): strin
   const insights: string[] = [];
 
   if (byP50[0]?.id === winner.id) {
-    const second = byP50[1]?.metrics.latency_p50 ?? winner.metrics.latency_p50;
-    const margin = second - winner.metrics.latency_p50;
-    insights.push(
-      margin > 0
-        ? `Lowest latency: ${winner.metrics.latency_p50}ms P50 — ${margin}ms ahead of next provider`
-        : `Lowest latency: ${winner.metrics.latency_p50}ms P50`
+    const margin = (byP50[1]?.metrics.latency_p50 ?? winner.metrics.latency_p50) - winner.metrics.latency_p50;
+    insights.push(margin > 0
+      ? `Lowest latency: ${winner.metrics.latency_p50}ms P50 — ${margin}ms ahead of #2`
+      : `Lowest latency: ${winner.metrics.latency_p50}ms P50`
     );
   } else {
     const rank = byP50.findIndex(p => p.id === winner.id) + 1;
-    insights.push(`${winner.metrics.latency_p50}ms P50 median — #${rank} of ${all.length} for speed`);
+    insights.push(`${winner.metrics.latency_p50}ms P50 — #${rank} of ${all.length} for speed`);
   }
 
   if (byUptime[0]?.id === winner.id) {
-    insights.push(`Highest availability: ${winner.metrics.uptime_percent.toFixed(2)}% measured uptime`);
-  } else if (winner.metrics.uptime_percent >= 99.9) {
-    insights.push(`${winner.metrics.uptime_percent.toFixed(2)}% uptime — enterprise-grade reliability`);
+    insights.push(`Best reliability: ${winner.metrics.uptime_percent.toFixed(0)}% success rate in benchmark window`);
   } else {
-    insights.push(`${winner.metrics.uptime_percent.toFixed(2)}% measured availability`);
+    insights.push(`${winner.metrics.uptime_percent.toFixed(0)}% reliability in current measurement window`);
   }
 
   if (winner.pricing.cost_per_million === 0) {
-    insights.push('Free tier — highest composite score among no-cost providers');
+    insights.push('No-cost tier — best composite score among free providers');
   } else if (byRps[0]?.id === winner.id) {
     insights.push(`${winner.metrics.throughput_rps} req/s peak — highest throughput in benchmark`);
   } else {
-    insights.push(`Score ${winner.score.toFixed(1)}/100 — strongest balance of latency, uptime & throughput`);
+    insights.push(`Score ${winner.score.toFixed(1)}/100 — strongest balance across all three dimensions`);
   }
 
   return insights;
@@ -96,139 +75,138 @@ function getWinnerInsights(winner: SolanaProvider, all: SolanaProvider[]): strin
 function SkeletonState() {
   return (
     <div className="space-y-6 animate-pulse">
-      <div className="rounded-xl border border-border bg-card h-72" />
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-        {[1, 2, 3, 4].map(i => <div key={i} className="rounded-lg border border-border bg-card h-24" />)}
+      <div className="rounded-2xl border border-border bg-card h-80" />
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        {[1,2,3,4].map(i => <div key={i} className="rounded-xl border border-border bg-card h-28" />)}
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        {[1, 2, 3, 4, 5, 6, 7, 8].map(i => <div key={i} className="rounded-lg border border-border bg-card h-16" />)}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[1, 2, 3, 4].map(i => <div key={i} className="rounded-xl border border-border bg-card h-80" />)}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {[1,2,3,4].map(i => <div key={i} className="rounded-2xl border border-border bg-card h-80" />)}
       </div>
     </div>
   );
 }
 
-// ─── Hero winner card ──────────────────────────────────────────────────────────
+// ─── Hero winner ───────────────────────────────────────────────────────────────
 function HeroWinnerCard({ winner, providers }: { winner: SolanaProvider; providers: SolanaProvider[] }) {
   const insights = getWinnerInsights(winner, providers);
   const jitter   = winner.metrics.latency_p99 - winner.metrics.latency_p50;
 
   return (
-    <div className="relative rounded-xl border border-accent/20 bg-card overflow-hidden">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/45 to-transparent" />
+    <div className="rounded-2xl border-2 border-border bg-card overflow-hidden">
+      {/* Top accent bar */}
+      <div className="h-1 bg-gradient-to-r from-emerald-500 via-accent to-sky-500" />
 
-      <div className="p-6 lg:p-8">
-        <div className="flex flex-col lg:flex-row lg:items-start gap-8 lg:gap-14">
+      <div className="p-7 lg:p-10">
+        <div className="flex flex-col lg:flex-row lg:items-start gap-10 lg:gap-16">
 
-          {/* Left: identity + why */}
-          <div className="space-y-5 flex-1 min-w-0">
+          {/* Left */}
+          <div className="space-y-6 flex-1 min-w-0">
+            {/* Badges */}
             <div className="flex items-center gap-2 flex-wrap">
-              <Badge className="h-6 px-2.5 text-[10px] font-bold uppercase tracking-wider border border-accent/35 bg-accent/10 text-accent rounded">
+              <Badge className="h-7 px-3 text-xs font-bold uppercase tracking-wider bg-amber-400/15 text-amber-400 border border-amber-400/30 rounded-lg">
                 #1 Overall
               </Badge>
-              <Badge variant="outline" className="h-6 px-2.5 text-[10px] text-muted-foreground/65 border-border/50 rounded">
+              <Badge variant="outline" className="h-7 px-3 text-xs font-semibold text-muted-foreground/70 border-border/60 rounded-lg">
                 {winner.provider_type === 'json-rpc' ? 'JSON-RPC'
                   : winner.provider_type === 'rest-api' ? 'REST API' : 'Data API'}
               </Badge>
-              {winner.is_us && (
-                <Badge className="h-6 px-2.5 text-[10px] font-medium border border-accent/25 bg-accent/8 text-accent/80 rounded">
-                  ★ US
-                </Badge>
-              )}
               {winner.is_mock && (
-                <Badge variant="outline" className="h-6 px-2.5 text-[10px] text-chart-3/80 border-chart-3/30 rounded">
+                <Badge variant="outline" className="h-7 px-3 text-xs text-amber-500/80 border-amber-500/30 rounded-lg">
                   simulated
                 </Badge>
               )}
             </div>
 
+            {/* Provider name */}
             <div>
-              <h2 className="text-[36px] font-bold tracking-tight leading-none">{winner.name}</h2>
+              <h2 className="text-5xl font-extrabold tracking-tight leading-none text-foreground">
+                {winner.name}
+              </h2>
               {winner.website_url && (
                 <a
                   href={winner.website_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-muted-foreground/55 hover:text-accent transition-colors duration-150 mt-2"
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground/50 hover:text-accent transition-colors mt-3"
                 >
                   {winner.website_url.replace(/^https?:\/\//, '')}
-                  <ExternalLink className="h-3 w-3" />
+                  <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               )}
             </div>
 
+            {/* Why #1 */}
             <div className="space-y-3">
-              <p className="text-xs uppercase tracking-widest text-muted-foreground/55 font-semibold">
-                Why it&apos;s #1
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground/50">
+                Why it ranks #1
               </p>
-              <ul className="space-y-2.5">
-                {insights.map((insight, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-foreground/80 leading-snug">
-                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-accent/60 shrink-0" />
-                    {insight}
+              <ul className="space-y-3">
+                {insights.map((s, i) => (
+                  <li key={i} className="flex items-start gap-3 text-base text-foreground/80">
+                    <span className="mt-2 h-2 w-2 rounded-full bg-emerald-500/70 shrink-0" />
+                    {s}
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div>
+            {/* Live indicator */}
+            <div className="flex items-center gap-2">
               {winner.is_mock ? (
                 <span className="text-sm text-muted-foreground/50">⚠ Simulated — add API key for live data</span>
               ) : (
-                <span className="flex items-center gap-2 text-sm text-chart-2/80">
-                  <span className="h-1.5 w-1.5 rounded-full bg-chart-2 animate-pulse" />
-                  Live measurements · real API calls
-                </span>
+                <>
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-sm font-medium text-emerald-500/80">Live measurements · real API calls · 5 samples</span>
+                </>
               )}
             </div>
           </div>
 
-          {/* Right: metrics panel */}
-          <div className="shrink-0 space-y-6 lg:min-w-[260px]">
+          {/* Right — giant number + score */}
+          <div className="shrink-0 space-y-7 lg:min-w-[260px]">
             <div>
-              <div className="tabular-nums leading-none">
-                <span className="text-[80px] font-bold text-accent tracking-tight">
+              <div className="flex items-end gap-2 leading-none tabular-nums">
+                <span className="text-[96px] font-extrabold text-foreground tracking-tighter leading-none">
                   {winner.metrics.latency_p50}
                 </span>
-                <span className="text-4xl font-light text-accent/35 ml-2">ms</span>
+                <span className="text-4xl font-light text-muted-foreground/40 mb-3">ms</span>
               </div>
-              <p className="text-xs text-muted-foreground/60 uppercase tracking-widest mt-2">
+              <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground/50 mt-2">
                 P50 Median Latency
               </p>
             </div>
 
             {/* Score bar */}
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground/65">Composite score</span>
-                <span className="text-base font-bold font-mono tabular-nums">
+                <span className="text-sm font-semibold text-muted-foreground/60">Composite score</span>
+                <span className="text-2xl font-extrabold font-mono tabular-nums text-foreground">
                   {winner.score.toFixed(1)}
-                  <span className="text-muted-foreground/45 font-normal text-sm"> / 100</span>
+                  <span className="text-base font-normal text-muted-foreground/40"> /100</span>
                 </span>
               </div>
-              <div className="h-2.5 bg-muted/35 rounded-full overflow-hidden">
+              <div className="h-3 bg-muted/40 rounded-full overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-accent transition-all duration-700"
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-accent transition-all duration-1000"
                   style={{ width: `${winner.score}%` }}
                 />
               </div>
-              <div className="flex justify-between text-[10px] text-muted-foreground/45">
+              <div className="flex justify-between text-xs text-muted-foreground/40 font-mono">
                 <span>0</span>
                 <span>latency 40% · reliability 35% · throughput 25%</span>
                 <span>100</span>
               </div>
             </div>
 
-            {/* Jitter indicator */}
-            <div className="flex items-center justify-between rounded-lg border border-border/30 bg-muted/[0.03] px-3 py-2.5">
+            {/* Jitter pill */}
+            <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/[0.04] px-4 py-3">
               <div>
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground/50 font-semibold">Jitter (P99−P50)</p>
-                <p className="text-xs text-muted-foreground/40 mt-0.5">Consistency indicator</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/50">Jitter (P99−P50)</p>
+                <p className="text-xs text-muted-foreground/35 mt-0.5">response consistency</p>
               </div>
-              <span className={`text-base font-bold font-mono tabular-nums ${
-                jitter < 50 ? 'text-chart-2' : jitter < 150 ? 'text-chart-3' : 'text-destructive'
+              <span className={`text-xl font-extrabold font-mono tabular-nums ${
+                jitter < 60 ? 'text-emerald-500' : jitter < 200 ? 'text-amber-500' : 'text-red-500'
               }`}>
                 {jitter}ms
               </span>
@@ -237,22 +215,19 @@ function HeroWinnerCard({ winner, providers }: { winner: SolanaProvider; provide
         </div>
       </div>
 
-      {/* Bottom metrics strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 border-t border-accent/10">
+      {/* Bottom strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 border-t-2 border-border/30">
         {[
-          { label: 'P95 Latency',  value: `${winner.metrics.latency_p95}ms`,                sub: '95th percentile',     color: 'text-chart-3' },
-          { label: 'P99 Latency',  value: `${winner.metrics.latency_p99}ms`,                sub: 'tail latency',        color: 'text-destructive/80' },
-          { label: 'Uptime',       value: `${winner.metrics.uptime_percent.toFixed(2)}%`,   sub: 'measured avail.',     color: 'text-chart-2' },
-          { label: 'Throughput',   value: `${winner.metrics.throughput_rps} req/s`,         sub: 'peak concurrent',     color: 'text-foreground/80' },
-          { label: 'Cost / M req', value: winner.pricing.cost_per_million === 0 ? 'Free' : `$${winner.pricing.cost_per_million}`, sub: 'per million requests', color: winner.pricing.cost_per_million === 0 ? 'text-chart-2' : 'text-foreground/70' },
+          { label: 'P95 Latency',  value: `${winner.metrics.latency_p95}ms`,               sub: '95th percentile',      color: 'text-amber-500' },
+          { label: 'P99 Latency',  value: `${winner.metrics.latency_p99}ms`,               sub: 'tail latency',         color: 'text-red-400' },
+          { label: 'Reliability',  value: `${winner.metrics.uptime_percent.toFixed(0)}%`,  sub: 'request success rate', color: 'text-emerald-500' },
+          { label: 'Throughput',   value: `${winner.metrics.throughput_rps} rps`,          sub: 'peak concurrent',      color: 'text-sky-400' },
+          { label: 'Cost / M req', value: winner.pricing.cost_per_million === 0 ? 'Free' : `$${winner.pricing.cost_per_million}`, sub: 'per million requests', color: winner.pricing.cost_per_million === 0 ? 'text-emerald-500' : 'text-foreground/70' },
         ].map((s, i) => (
-          <div
-            key={s.label}
-            className={`px-5 py-4 space-y-1.5 bg-muted/[0.015] ${i > 0 ? 'border-l border-accent/8' : ''}`}
-          >
-            <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground/50">{s.label}</div>
-            <div className={`text-base font-bold font-mono tabular-nums ${s.color}`}>{s.value}</div>
-            <div className="text-[10px] text-muted-foreground/45">{s.sub}</div>
+          <div key={s.label} className={`px-6 py-5 bg-muted/[0.015] ${i > 0 ? 'border-l border-border/30' : ''}`}>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/50 mb-2">{s.label}</p>
+            <p className={`text-xl font-extrabold font-mono tabular-nums ${s.color}`}>{s.value}</p>
+            <p className="text-xs text-muted-foreground/40 mt-1">{s.sub}</p>
           </div>
         ))}
       </div>
@@ -260,76 +235,76 @@ function HeroWinnerCard({ winner, providers }: { winner: SolanaProvider; provide
   );
 }
 
-// ─── Quick decision card ───────────────────────────────────────────────────────
-function QuickCard({
-  icon, badge, label, name, metric, isMock,
-}: {
+// ─── Quick card ────────────────────────────────────────────────────────────────
+function QuickCard({ icon, badge, label, name, metric, sub, isMock }: {
   icon: React.ReactNode; badge: string; label: string;
-  name: string; metric: string; isMock?: boolean;
+  name: string; metric: string; sub?: string; isMock?: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-card px-4 py-4 space-y-3 hover:border-border/60 hover:shadow-sm transition-all duration-200">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/55">
-          <span className="text-accent/65">{icon}</span>
+    <div className="rounded-xl border-2 border-border bg-card px-5 py-5 space-y-4 hover:border-border/80 hover:shadow-md transition-all duration-200">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/50">
+          <span className="text-accent">{icon}</span>
           {label}
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground/45 bg-muted/40 px-1.5 py-0.5 rounded-sm">
+        <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground/40 bg-muted/50 px-2 py-0.5 rounded-md shrink-0">
           {badge}
         </span>
       </div>
       <div>
-        <div className="text-base font-bold text-foreground leading-snug">{name}</div>
-        <div className="text-sm font-mono tabular-nums text-accent mt-1 font-semibold">{metric}</div>
-        {isMock && <div className="text-[10px] text-muted-foreground/40 mt-0.5">simulated data</div>}
+        <div className="text-xl font-extrabold text-foreground leading-tight">{name}</div>
+        <div className="text-lg font-bold font-mono tabular-nums text-accent mt-1.5">{metric}</div>
+        {sub && <div className="text-xs text-muted-foreground/50 mt-1">{sub}</div>}
+        {isMock && <div className="text-xs text-muted-foreground/35 mt-1 font-mono">simulated data</div>}
       </div>
     </div>
   );
 }
 
-// ─── Benchmark kanban card ─────────────────────────────────────────────────────
+// ─── KPI strip card ────────────────────────────────────────────────────────────
+function KpiCard({ label, value, sub, valueColor }: {
+  label: string; value: string; sub?: string; valueColor?: string;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-card px-4 py-4 space-y-2">
+      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/50">{label}</p>
+      <p className={`text-2xl font-extrabold font-mono tabular-nums leading-none ${valueColor ?? 'text-foreground'}`}>{value}</p>
+      {sub && <p className="text-xs text-muted-foreground/50 truncate">{sub}</p>}
+    </div>
+  );
+}
+
+// ─── Benchmark chart card ──────────────────────────────────────────────────────
 function BenchmarkCard({
   accentColor, icon, title, description,
   statLabel, statValue, statSub, statColor, children,
 }: {
-  accentColor: string;
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  statLabel?: string;
-  statValue?: string;
-  statSub?: string;
-  statColor?: string;
+  accentColor: string; icon: React.ReactNode; title: string; description: string;
+  statLabel?: string; statValue?: string; statSub?: string; statColor?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden flex flex-col hover:border-border/70 transition-colors duration-200">
-      <div className="h-[3px] shrink-0" style={{ backgroundColor: accentColor }} />
-      <div className="px-5 pt-4 pb-4 border-b border-border/30 flex items-start justify-between gap-4 shrink-0">
+    <div className="rounded-2xl border-2 border-border bg-card overflow-hidden flex flex-col hover:border-border/70 transition-colors duration-200">
+      <div className="h-1 shrink-0" style={{ backgroundColor: accentColor }} />
+      <div className="px-6 pt-5 pb-4 border-b border-border/30 flex items-start justify-between gap-4 shrink-0">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 text-base font-bold text-foreground">
+          <div className="flex items-center gap-2.5 text-lg font-extrabold text-foreground">
             <span style={{ color: accentColor }}>{icon}</span>
             {title}
           </div>
-          <p className="text-xs text-muted-foreground/55 mt-1 leading-relaxed">{description}</p>
+          <p className="text-sm text-muted-foreground/55 mt-1.5 leading-relaxed">{description}</p>
         </div>
         {statValue && (
           <div className="text-right shrink-0">
-            {statLabel && (
-              <div className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-wide mb-0.5">{statLabel}</div>
-            )}
-            <div className="text-xl font-bold font-mono tabular-nums" style={{ color: statColor ?? accentColor }}>
+            {statLabel && <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground/50 mb-1">{statLabel}</div>}
+            <div className="text-2xl font-extrabold font-mono tabular-nums" style={{ color: statColor ?? accentColor }}>
               {statValue}
             </div>
-            {statSub && (
-              <div className="text-xs text-muted-foreground/50 mt-0.5 max-w-[110px] truncate">{statSub}</div>
-            )}
+            {statSub && <div className="text-sm text-muted-foreground/50 mt-0.5 max-w-[120px] truncate">{statSub}</div>}
           </div>
         )}
       </div>
-      <div className="px-5 py-5 flex-1 min-h-0">
-        {children}
-      </div>
+      <div className="px-6 py-6 flex-1 min-h-0">{children}</div>
     </div>
   );
 }
@@ -337,13 +312,11 @@ function BenchmarkCard({
 // ─── Section heading ───────────────────────────────────────────────────────────
 function SectionHeading({ children, count }: { children: React.ReactNode; count?: number }) {
   return (
-    <div className="flex items-center gap-3 mb-4">
-      <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/55">
-        {children}
-      </h2>
-      <div className="flex-1 h-px bg-border/30" />
+    <div className="flex items-center gap-4 mb-5">
+      <h2 className="text-lg font-extrabold text-foreground tracking-tight">{children}</h2>
+      <div className="flex-1 h-px bg-border/40" />
       {count !== undefined && (
-        <span className="text-xs text-muted-foreground/45 font-mono">{count} providers</span>
+        <span className="text-sm text-muted-foreground/50 font-mono tabular-nums">{count} providers</span>
       )}
     </div>
   );
@@ -351,9 +324,9 @@ function SectionHeading({ children, count }: { children: React.ReactNode; count?
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function Home() {
-  const [data, setData] = useState<BenchmarkData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [data, setData]         = useState<BenchmarkData | null>(null);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState<string | null>(null);
   const [nextRefreshAt, setNextRefreshAt] = useState(Date.now() + 60_000);
   const [secsLeft, setSecsLeft] = useState(60);
   const [selectedProvider, setSelectedProvider] = useState<SolanaProvider | null>(null);
@@ -363,12 +336,11 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const ts = Date.now();
+      const ts  = Date.now();
       const url = `/api/benchmarks/solana?t=${ts}${forceRun ? '&run=true' : ''}`;
       const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      setData(json);
+      setData(await res.json());
       setNextRefreshAt(Date.now() + 60_000);
     } catch (e: any) {
       setError(e.message || 'Failed to fetch benchmarks');
@@ -383,111 +355,100 @@ export default function Home() {
     return () => clearInterval(id);
   }, [fetchData]);
   useEffect(() => {
-    const id = setInterval(() => {
-      setSecsLeft(Math.max(0, Math.round((nextRefreshAt - Date.now()) / 1000)));
-    }, 1_000);
+    const id = setInterval(() => setSecsLeft(Math.max(0, Math.round((nextRefreshAt - Date.now()) / 1000))), 1_000);
     return () => clearInterval(id);
   }, [nextRefreshAt]);
 
-  const winner     = data?.providers.find(p => p.rank === 1) ?? null;
-  const totalCount = data?.providers.length ?? 0;
-  const mockCount  = data?.providers.filter(p => p.is_mock).length ?? 0;
-  const liveCount  = data?.providers.filter(p => !p.is_mock).length ?? 0;
-
-  const fastest    = data?.providers.reduce((a, b) => a.metrics.latency_p50 < b.metrics.latency_p50 ? a : b);
-  const mostUptime = data?.providers.reduce((a, b) => a.metrics.uptime_percent > b.metrics.uptime_percent ? a : b);
-  const mostRps    = data?.providers.reduce((a, b) => a.metrics.throughput_rps > b.metrics.throughput_rps ? a : b);
-  const mostStable = data?.providers.reduce((a, b) =>
+  const providers  = data?.providers ?? [];
+  const winner     = providers.find(p => p.rank === 1) ?? null;
+  const totalCount = providers.length;
+  const mockCount  = providers.filter(p => p.is_mock).length;
+  const fastest    = providers.length ? providers.reduce((a, b) => a.metrics.latency_p50 < b.metrics.latency_p50 ? a : b) : null;
+  const mostUptime = providers.length ? providers.reduce((a, b) => a.metrics.uptime_percent > b.metrics.uptime_percent ? a : b) : null;
+  const mostRps    = providers.length ? providers.reduce((a, b) => a.metrics.throughput_rps > b.metrics.throughput_rps ? a : b) : null;
+  const mostStable = providers.length ? providers.reduce((a, b) =>
     (a.metrics.latency_p99 - a.metrics.latency_p50) < (b.metrics.latency_p99 - b.metrics.latency_p50) ? a : b
-  );
-
-  const freeProviders = (data?.providers ?? []).filter(p => p.pricing.cost_per_million === 0);
-  const bestFree = freeProviders.length > 0
+  ) : null;
+  const freeProviders = providers.filter(p => p.pricing.cost_per_million === 0);
+  const bestFree   = freeProviders.length > 0
     ? freeProviders.reduce((a, b) => a.score > b.score ? a : b)
-    : data?.providers.reduce((a, b) => a.pricing.cost_per_million <= b.pricing.cost_per_million ? a : b);
-
-  const errorCount = data?.meta.errors?.length ?? 0;
-
-  function handleSelectProvider(p: SolanaProvider) {
-    setSelectedProvider(p);
-    setSheetOpen(true);
-  }
+    : providers.length ? providers.reduce((a, b) => a.pricing.cost_per_million <= b.pricing.cost_per_million ? a : b) : null;
+  const lowestErr  = providers.length ? providers.reduce((a, b) => a.metrics.error_rate < b.metrics.error_rate ? a : b) : null;
+  const paid       = providers.filter(p => p.pricing.cost_per_million > 0);
+  const bestValue  = paid.length > 0 ? paid.reduce((a, b) => (a.score / a.pricing.cost_per_million) > (b.score / b.pricing.cost_per_million) ? a : b) : null;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
 
-      {/* ── Sticky header ──────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md">
-        <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <span className="text-sm font-bold tracking-tight text-foreground">benchmarked</span>
-            <span className="text-border/80 select-none hidden sm:inline">/</span>
-            <span className="text-sm text-muted-foreground/70 hidden sm:inline">Solana RPC</span>
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-50 border-b-2 border-border bg-background/95 backdrop-blur-md">
+        <div className="mx-auto max-w-screen-2xl px-5 sm:px-8 h-16 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="text-base font-extrabold tracking-tight text-foreground">Solana RPC Benchmark</span>
+            <span className="hidden sm:block text-xs font-semibold text-muted-foreground/40 bg-muted/40 px-2 py-1 rounded-md">
+              {totalCount > 0 ? `${totalCount} providers` : 'loading…'}
+            </span>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-3">
             {data && (
-              <span className="hidden lg:block text-xs text-muted-foreground/45 font-mono tabular-nums">
+              <span className="hidden lg:block text-sm text-muted-foreground/50 font-mono tabular-nums">
                 next in {secsLeft}s
               </span>
             )}
             {data && mockCount > 0 && (
-              <span className="hidden md:block text-xs text-chart-3/65 font-mono font-medium">
-                {mockCount} sim
+              <span className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-amber-500/80 bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/20">
+                {mockCount} simulated
               </span>
             )}
-            <Badge className="gap-1.5 h-6 px-2.5 text-[10px] font-bold border border-accent/35 bg-accent/8 text-accent rounded-md">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-              <span className="hidden sm:inline">LIVE</span>
-            </Badge>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/25">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              LIVE
+            </div>
             <Button
               size="sm"
               variant="outline"
               onClick={() => fetchData(true)}
               disabled={loading}
-              className="h-8 text-xs font-semibold gap-1.5 border-border hover:border-accent/40 hover:text-accent transition-all duration-200"
+              className="h-9 px-4 text-sm font-semibold gap-2 border-2 hover:border-accent/50 hover:text-accent transition-all duration-200"
             >
-              {loading
-                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                : <RefreshCw className="h-3.5 w-3.5" />}
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
               <span className="hidden sm:inline">Run Now</span>
             </Button>
           </div>
         </div>
       </header>
 
-      {/* ── Simulated data banner ───────────────────────────────────────────── */}
+      {/* ── Simulated banner ───────────────────────────────────────────────── */}
       {data && mockCount > 0 && (
-        <div className="border-b border-chart-3/20 bg-chart-3/[0.06] px-4 sm:px-6 py-3 flex items-center gap-3">
-          <div className="h-1.5 w-1.5 rounded-full bg-chart-3 shrink-0" />
-          <span className="text-sm font-semibold text-chart-3/90">
+        <div className="border-b border-amber-500/20 bg-amber-500/[0.05] px-5 sm:px-8 py-3 flex items-center gap-3">
+          <div className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+          <span className="text-sm font-bold text-amber-500/90">
             {mockCount} of {totalCount} providers using simulated data
           </span>
-          <span className="text-sm text-chart-3/60 hidden sm:inline">
-            — add API keys to .env for live measurements
+          <span className="text-sm text-amber-500/60 hidden sm:inline">
+            — configure API keys in .env.local for live measurements
           </span>
         </div>
       )}
 
-      <main className="mx-auto max-w-screen-2xl px-4 sm:px-6 py-6 sm:py-8 space-y-8">
+      <main className="mx-auto max-w-screen-2xl px-5 sm:px-8 py-8 sm:py-10 space-y-10">
 
-        {/* ── Page intro ─────────────────────────────────────────────────────── */}
-        <div className="flex items-baseline gap-3 flex-wrap">
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
-            Which Solana RPC should you use?
+        {/* ── Title ──────────────────────────────────────────────────────────── */}
+        <div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
+            Which Solana RPC is fastest right now?
           </h1>
           {totalCount > 0 && (
-            <span className="text-sm text-muted-foreground/60">
-              {totalCount} providers · live · refreshes every 60s
-              {liveCount < totalCount && ` · ${liveCount} live`}
-              {' · '}5 samples per provider
-            </span>
+            <p className="text-base text-muted-foreground/60 mt-2">
+              {totalCount} providers · 5 live samples each · refreshes every 60s · no caching
+            </p>
           )}
         </div>
 
         {/* ── Error ──────────────────────────────────────────────────────────── */}
         {error && (
-          <div className="flex items-center gap-2.5 rounded-lg border border-destructive/30 bg-destructive/[0.06] px-4 py-3 text-sm text-destructive">
-            <AlertCircle className="h-4 w-4 shrink-0" />
+          <div className="flex items-center gap-3 rounded-xl border-2 border-destructive/30 bg-destructive/[0.06] px-5 py-4 text-sm text-destructive font-semibold">
+            <AlertCircle className="h-5 w-5 shrink-0" />
             <span>{error}</span>
           </div>
         )}
@@ -497,267 +458,209 @@ export default function Home() {
         {data && winner && (
           <>
             {/* ── Zone 1: Hero ──────────────────────────────────────────────── */}
-            <HeroWinnerCard winner={winner} providers={data.providers} />
+            <HeroWinnerCard winner={winner} providers={providers} />
 
-            {/* ── Zone 2: Quick decision cards ──────────────────────────────── */}
-            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+            {/* ── Zone 2: Quick decisions ────────────────────────────────────── */}
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
               {fastest && (
                 <QuickCard
-                  icon={<Zap className="h-3.5 w-3.5" />} badge="Fastest"
-                  label="Fastest" name={fastest.name}
-                  metric={`${fastest.metrics.latency_p50}ms P50`} isMock={fastest.is_mock}
+                  icon={<Zap className="h-4 w-4" />} badge="Speed"
+                  label="Lowest Latency" name={fastest.name}
+                  metric={`${fastest.metrics.latency_p50}ms`} sub="P50 median" isMock={fastest.is_mock}
                 />
               )}
               {mostUptime && (
                 <QuickCard
-                  icon={<ShieldCheck className="h-3.5 w-3.5" />} badge="Reliable"
+                  icon={<ShieldCheck className="h-4 w-4" />} badge="Uptime"
                   label="Most Reliable" name={mostUptime.name}
-                  metric={`${mostUptime.metrics.uptime_percent.toFixed(2)}% uptime`} isMock={mostUptime.is_mock}
+                  metric={`${mostUptime.metrics.uptime_percent.toFixed(0)}%`} sub="request success" isMock={mostUptime.is_mock}
                 />
               )}
               {mostRps && (
                 <QuickCard
-                  icon={<Gauge className="h-3.5 w-3.5" />} badge="Throughput"
+                  icon={<Gauge className="h-4 w-4" />} badge="Throughput"
                   label="Highest Throughput" name={mostRps.name}
-                  metric={`${mostRps.metrics.throughput_rps} req/s`} isMock={mostRps.is_mock}
+                  metric={`${mostRps.metrics.throughput_rps} rps`} sub="peak concurrent" isMock={mostRps.is_mock}
                 />
               )}
               {bestFree && (
                 <QuickCard
-                  icon={<DollarSign className="h-3.5 w-3.5" />} badge="Best Free"
-                  label="Best Free Tier" name={bestFree.name}
-                  metric={
-                    freeProviders.some(p => p.id === bestFree.id)
-                      ? `Free · Score ${bestFree.score.toFixed(0)}`
-                      : `$${bestFree.pricing.cost_per_million}/M`
-                  }
+                  icon={<DollarSign className="h-4 w-4" />} badge="Value"
+                  label="Best Free / Value" name={bestFree.name}
+                  metric={freeProviders.some(p => p.id === bestFree.id) ? 'Free' : `$${bestFree.pricing.cost_per_million}/M`}
+                  sub={`Score ${bestFree.score.toFixed(1)}`}
                   isMock={bestFree.is_mock}
                 />
               )}
             </div>
 
-            {/* ── Zone 3: KPI Summary Strip ─────────────────────────────────── */}
+            {/* ── Zone 3: KPI strip ──────────────────────────────────────────── */}
             <div>
-              <SectionHeading count={data.providers.length}>Key Metrics</SectionHeading>
-              <SolanaSummaryCards stats={data.stats} providers={data.providers} />
+              <SectionHeading count={totalCount}>Key Metrics</SectionHeading>
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+                <KpiCard label="Fastest P50"    value={fastest ? `${fastest.metrics.latency_p50}ms` : '—'}       sub={fastest?.name} />
+                <KpiCard label="Best Uptime"    value={mostUptime ? `${mostUptime.metrics.uptime_percent.toFixed(0)}%` : '—'}  sub={mostUptime?.name} />
+                <KpiCard label="Peak Throughput" value={mostRps ? `${mostRps.metrics.throughput_rps}` : '—'}      sub={mostRps ? `${mostRps.name} · rps` : undefined} />
+                <KpiCard label="Top Score"      value={winner ? `${winner.score.toFixed(1)}` : '—'}               sub={winner?.name} valueColor="text-amber-400" />
+                <KpiCard label="Most Consistent" value={mostStable ? `${mostStable.metrics.latency_p99 - mostStable.metrics.latency_p50}ms` : '—'} sub={mostStable ? `${mostStable.name} · jitter` : undefined} valueColor="text-emerald-500" />
+                <KpiCard label="Lowest Error"   value={lowestErr ? `${lowestErr.metrics.error_rate.toFixed(0)}%` : '—'} sub={lowestErr?.name} valueColor="text-emerald-500" />
+                <KpiCard label="Best Value"     value={bestValue ? `${Math.round(bestValue.score / bestValue.pricing.cost_per_million)}` : '—'} sub={bestValue ? `${bestValue.name} · pts/$` : 'no paid data'} />
+                <KpiCard label="Free Providers" value={`${freeProviders.length}`} sub={`of ${totalCount} total`} />
+              </div>
             </div>
 
-            {/* ── Zone 4: Benchmark Analysis — tabbed ───────────────────────── */}
+            {/* ── Zone 4: Analysis tabs ──────────────────────────────────────── */}
             <div>
-              <SectionHeading count={data.providers.length}>Benchmark Analysis</SectionHeading>
+              <SectionHeading count={totalCount}>Benchmark Analysis</SectionHeading>
 
-              <Tabs defaultValue="performance" className="space-y-4">
-                <TabsList className="h-9 bg-muted/40 border border-border/40 rounded-lg p-1">
-                  <TabsTrigger value="performance" className="text-xs gap-1.5 data-[state=active]:bg-card">
-                    <Zap className="h-3.5 w-3.5" />
-                    Performance
-                  </TabsTrigger>
-                  <TabsTrigger value="reliability" className="text-xs gap-1.5 data-[state=active]:bg-card">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                    Reliability
-                  </TabsTrigger>
-                  <TabsTrigger value="value" className="text-xs gap-1.5 data-[state=active]:bg-card">
-                    <DollarSign className="h-3.5 w-3.5" />
-                    Value
-                  </TabsTrigger>
-                  <TabsTrigger value="overview" className="text-xs gap-1.5 data-[state=active]:bg-card">
-                    <Radar className="h-3.5 w-3.5" />
-                    Overview
-                  </TabsTrigger>
+              <Tabs defaultValue="performance" className="space-y-5">
+                <TabsList className="h-11 bg-muted/40 border-2 border-border/40 rounded-xl p-1 gap-1">
+                  {[
+                    { value: 'performance', icon: <Zap className="h-4 w-4" />,        label: 'Performance' },
+                    { value: 'reliability', icon: <ShieldCheck className="h-4 w-4" />, label: 'Reliability' },
+                    { value: 'value',       icon: <DollarSign className="h-4 w-4" />,  label: 'Value' },
+                    { value: 'overview',    icon: <GitCompare className="h-4 w-4" />,   label: 'Overview' },
+                  ].map(t => (
+                    <TabsTrigger
+                      key={t.value}
+                      value={t.value}
+                      className="text-sm font-semibold gap-2 px-4 data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:font-bold"
+                    >
+                      {t.icon}{t.label}
+                    </TabsTrigger>
+                  ))}
                 </TabsList>
 
-                {/* Performance tab */}
-                <TabsContent value="performance" className="space-y-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <TabsContent value="performance">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <BenchmarkCard
-                      accentColor="var(--color-accent)"
-                      icon={<Zap className="h-4 w-4" />}
-                      title="Latency"
-                      description="Ranked by P50 · P95/P99 extensions · Δ vs fastest annotated"
-                      statLabel="Fastest P50"
-                      statValue={fastest ? `${fastest.metrics.latency_p50}ms` : '—'}
-                      statSub={fastest?.name}
-                      statColor="var(--color-accent)"
+                      accentColor="#22c55e" icon={<Zap className="h-5 w-5" />}
+                      title="Latency" description="Ranked by P50 median · P95 and P99 tail extensions · Δ vs fastest annotated"
+                      statLabel="Best P50" statValue={fastest ? `${fastest.metrics.latency_p50}ms` : '—'} statSub={fastest?.name} statColor="#22c55e"
                     >
-                      <SolanaLatencyChart providers={data.providers} />
+                      <SolanaLatencyChart providers={providers} />
                     </BenchmarkCard>
-
                     <BenchmarkCard
-                      accentColor="var(--color-accent)"
-                      icon={<Gauge className="h-4 w-4" />}
-                      title="Throughput"
-                      description="Peak req/s sorted descending · multiplier vs median annotated"
-                      statLabel="Peak RPS"
-                      statValue={mostRps ? `${mostRps.metrics.throughput_rps}` : '—'}
-                      statSub={mostRps ? `${mostRps.name} · rps` : undefined}
-                      statColor="var(--color-accent)"
+                      accentColor="#38bdf8" icon={<Gauge className="h-5 w-5" />}
+                      title="Throughput" description="Peak concurrent req/s · 10 parallel requests fired simultaneously"
+                      statLabel="Peak RPS" statValue={mostRps ? `${mostRps.metrics.throughput_rps}` : '—'} statSub={mostRps?.name} statColor="#38bdf8"
                     >
-                      <SolanaThroughputChart providers={data.providers} />
+                      <SolanaThroughputChart providers={providers} />
                     </BenchmarkCard>
                   </div>
                 </TabsContent>
 
-                {/* Reliability tab */}
-                <TabsContent value="reliability" className="space-y-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <TabsContent value="reliability">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <BenchmarkCard
-                      accentColor="var(--color-chart-2)"
-                      icon={<ShieldCheck className="h-4 w-4" />}
-                      title="Uptime"
-                      description="Availability sorted descending · Green ≥99.9% · Amber <99.9% · Red <98%"
-                      statLabel="Best Uptime"
-                      statValue={mostUptime ? `${mostUptime.metrics.uptime_percent.toFixed(2)}%` : '—'}
-                      statSub={mostUptime?.name}
-                      statColor="var(--color-chart-2)"
+                      accentColor="#22c55e" icon={<ShieldCheck className="h-5 w-5" />}
+                      title="Uptime / Reliability" description="Request success rate in current benchmark window · green ≥99% · amber ≥80% · red <80%"
+                      statLabel="Best Uptime" statValue={mostUptime ? `${mostUptime.metrics.uptime_percent.toFixed(0)}%` : '—'} statSub={mostUptime?.name} statColor="#22c55e"
                     >
-                      <SolanaUptimeIndicators providers={data.providers} />
+                      <SolanaUptimeIndicators providers={providers} />
                     </BenchmarkCard>
-
                     <BenchmarkCard
-                      accentColor="var(--color-chart-4)"
-                      icon={<Activity className="h-4 w-4" />}
-                      title="Latency Spread"
-                      description="Stacked P50 → P95 → P99 · shows tail risk and jitter per provider"
-                      statLabel="Most Stable"
-                      statValue={mostStable ? `${mostStable.metrics.latency_p99 - mostStable.metrics.latency_p50}ms` : '—'}
-                      statSub={mostStable ? `${mostStable.name} · jitter` : undefined}
-                      statColor="var(--color-chart-4)"
+                      accentColor="#f59e0b" icon={<Activity className="h-5 w-5" />}
+                      title="Latency Spread" description="Stacked P50→P95→P99 · shows tail risk and jitter per provider"
+                      statLabel="Best Jitter" statValue={mostStable ? `${mostStable.metrics.latency_p99 - mostStable.metrics.latency_p50}ms` : '—'} statSub={mostStable?.name} statColor="#f59e0b"
                     >
-                      <SolanaLatencySpreadChart providers={data.providers} />
+                      <SolanaLatencySpreadChart providers={providers} />
                     </BenchmarkCard>
                   </div>
                 </TabsContent>
 
-                {/* Value tab */}
-                <TabsContent value="value" className="space-y-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <TabsContent value="value">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <BenchmarkCard
-                      accentColor="var(--color-chart-5)"
-                      icon={<DollarSign className="h-4 w-4" />}
-                      title="Cost vs Performance"
-                      description="X = cost/M req · Y = composite score · bubble size = throughput"
+                      accentColor="#a78bfa" icon={<DollarSign className="h-5 w-5" />}
+                      title="Cost vs Performance" description="X = cost/M req · Y = composite score · bubble size = throughput"
                       statLabel="Best Paid Value"
-                      statValue={(() => {
-                        const paid = data.providers.filter(p => p.pricing.cost_per_million > 0);
-                        if (!paid.length) return '—';
-                        const best = paid.reduce((a, b) =>
-                          (a.score / a.pricing.cost_per_million) > (b.score / b.pricing.cost_per_million) ? a : b
-                        );
-                        return `${Math.round(best.score / best.pricing.cost_per_million)} pts/$`;
-                      })()}
-                      statSub="score per $1/M"
-                      statColor="var(--color-chart-5)"
+                      statValue={bestValue ? `${Math.round(bestValue.score / bestValue.pricing.cost_per_million)} pts/$` : '—'}
+                      statSub="score per $1/M" statColor="#a78bfa"
                     >
-                      <SolanaCostEfficiencyChart providers={data.providers} />
+                      <SolanaCostEfficiencyChart providers={providers} />
                     </BenchmarkCard>
-
                     <BenchmarkCard
-                      accentColor="var(--color-chart-1)"
-                      icon={<BarChart2 className="h-4 w-4" />}
-                      title="Score Breakdown"
-                      description="Composite score decomposed: latency 35% · uptime 35% · throughput 30%"
-                      statLabel="Top Score"
-                      statValue={winner ? `${winner.score.toFixed(1)}` : '—'}
-                      statSub={winner?.name}
-                      statColor="var(--color-chart-1)"
+                      accentColor="#38bdf8" icon={<BarChart2 className="h-5 w-5" />}
+                      title="Score Breakdown" description="Composite decomposed: latency 40% · reliability 35% · throughput 25%"
+                      statLabel="Top Score" statValue={winner ? `${winner.score.toFixed(1)}` : '—'} statSub={winner?.name} statColor="#38bdf8"
                     >
-                      <SolanaScoreBreakdownChart providers={data.providers} />
+                      <SolanaScoreBreakdownChart providers={providers} />
                     </BenchmarkCard>
                   </div>
                 </TabsContent>
 
-                {/* Overview tab */}
-                <TabsContent value="overview" className="space-y-0">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <TabsContent value="overview">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                     <BenchmarkCard
-                      accentColor="var(--color-chart-5)"
-                      icon={<Radar className="h-4 w-4" />}
-                      title="Multi-Axis Radar"
-                      description="Speed · Uptime · Throughput · Reliability · Coverage — normalized to 100"
-                      statLabel="Leader score"
-                      statValue={winner ? `${winner.score.toFixed(1)}` : '—'}
-                      statSub={winner?.name}
-                      statColor="var(--color-chart-5)"
+                      accentColor="#a78bfa" icon={<GitCompare className="h-5 w-5" />}
+                      title="Multi-Axis Radar" description="Speed · Uptime · Throughput · Reliability · Coverage — normalized to 100"
+                      statLabel="Leader score" statValue={winner ? `${winner.score.toFixed(1)}` : '—'} statSub={winner?.name} statColor="#a78bfa"
                     >
-                      <SolanaRadarChart providers={data.providers} showLegend height={320} />
+                      <SolanaRadarChart providers={providers} showLegend height={340} />
                     </BenchmarkCard>
-
                     <BenchmarkCard
-                      accentColor="var(--color-chart-3)"
-                      icon={<GitCompare className="h-4 w-4" />}
-                      title="Dimension Comparison"
-                      description="5 metrics per provider: Speed · Uptime · Throughput · Reliability · Coverage"
-                      statLabel="Providers"
-                      statValue={`${data.providers.length}`}
-                      statSub="all types"
-                      statColor="var(--color-chart-3)"
+                      accentColor="#f59e0b" icon={<BarChart2 className="h-5 w-5" />}
+                      title="Dimension Comparison" description="5 metrics per provider · bars relative to highest scorer in each dimension"
+                      statLabel="Providers" statValue={`${totalCount}`} statSub="all types" statColor="#f59e0b"
                     >
-                      <SolanaScoreComparison providers={data.providers} />
+                      <SolanaScoreComparison providers={providers} />
                     </BenchmarkCard>
                   </div>
                 </TabsContent>
               </Tabs>
             </div>
 
-            {/* ── Zone 5: Provider Comparison Table ─────────────────────────── */}
+            {/* ── Zone 5: Full table ─────────────────────────────────────────── */}
             <div>
-              <SectionHeading count={data.providers.length}>Provider Comparison</SectionHeading>
-              <div className="rounded-xl border border-border overflow-hidden">
-                <div className="border-b border-border bg-card px-4 sm:px-6 py-4 flex items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <h2 className="flex items-center gap-2 text-base font-bold text-foreground">
-                      <BarChart2 className="h-4 w-4 text-muted-foreground/55" />
-                      Full Benchmark Table
-                    </h2>
-                    <p className="text-sm text-muted-foreground/55">
-                      Sort any column · Jitter = P99−P50 · Value = score÷cost · click row for details
-                      {errorCount > 0 && ` · ${errorCount} provider${errorCount !== 1 ? 's' : ''} had errors`}
+              <SectionHeading count={totalCount}>Full Provider Comparison</SectionHeading>
+              <div className="rounded-2xl border-2 border-border overflow-hidden">
+                <div className="border-b-2 border-border bg-card px-6 py-5 flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-extrabold text-foreground">Benchmark Table</h2>
+                    <p className="text-sm text-muted-foreground/55 mt-1">
+                      Click any column header to sort · click a row for full provider details · Jitter = P99−P50 · Value = score÷cost
                     </p>
                   </div>
-                  <span className="text-xs font-mono text-muted-foreground/45 tabular-nums shrink-0">
-                    {data.providers.length} providers
-                  </span>
+                  {loading && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground/60 font-medium shrink-0">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Refreshing…
+                    </div>
+                  )}
                 </div>
-                <SolanaLeaderboardTable
-                  providers={data.providers}
-                  onSelect={handleSelectProvider}
-                />
+                <SolanaLeaderboardTable providers={providers} onSelect={p => { setSelectedProvider(p); setSheetOpen(true); }} />
               </div>
             </div>
 
-            {/* ── Zone 6: Capabilities Matrix ───────────────────────────────── */}
+            {/* ── Zone 6: Capabilities ──────────────────────────────────────── */}
             <div>
-              <SectionHeading count={data.providers.length}>Feature Capabilities</SectionHeading>
-              <div className="rounded-xl border border-border bg-card overflow-hidden">
-                <div className="border-b border-border px-4 sm:px-6 py-4 flex items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <h2 className="flex items-center gap-2 text-base font-bold text-foreground">
-                      <LayoutGrid className="h-4 w-4 text-muted-foreground/55" />
-                      Capability Matrix
-                    </h2>
-                    <p className="text-sm text-muted-foreground/55">
-                      Feature support, pricing, rate limits, and data depth across all providers
-                    </p>
-                  </div>
+              <SectionHeading count={totalCount}>Feature Capabilities</SectionHeading>
+              <div className="rounded-2xl border-2 border-border bg-card overflow-hidden">
+                <div className="border-b-2 border-border px-6 py-5">
+                  <h2 className="text-xl font-extrabold text-foreground">Capability Matrix</h2>
+                  <p className="text-sm text-muted-foreground/55 mt-1">
+                    Feature support, pricing tiers, rate limits, and data depth across all providers
+                  </p>
                 </div>
-                <div className="px-4 sm:px-6 py-4 overflow-x-auto">
-                  <SolanaCapabilitiesMatrix providers={data.providers} />
+                <div className="px-6 py-5 overflow-x-auto">
+                  <SolanaCapabilitiesMatrix providers={providers} />
                 </div>
               </div>
             </div>
 
             {/* ── Footnote ──────────────────────────────────────────────────── */}
-            <div className="border-t border-border/20 pt-5 pb-4 space-y-1.5 text-center">
-              <p className="text-xs text-muted-foreground/45">
+            <div className="border-t border-border/30 pt-6 pb-4 text-center space-y-2">
+              <p className="text-sm text-muted-foreground/50">
                 Score = latency 40% + reliability 35% + throughput 25%
                 {' · '}Jitter = P99 − P50
                 {' · '}Value = score ÷ ($/M)
-                {' · '}5 samples per provider · latency cap 2000ms · throughput cap 200 rps
+                {' · '}5 samples · latency cap 2000ms · throughput cap 200 rps
               </p>
               <p className="text-xs text-muted-foreground/35">
-                JSON-RPC via <code className="font-mono">getSlot</code>
+                JSON-RPC via <code className="font-mono bg-muted/50 px-1.5 py-0.5 rounded">getSlot</code>
                 {' · '}REST/Data APIs via primary endpoint
-                {' · '}Refreshes every 60s · no caching · all live measurements
+                {' · '}Refreshes every 60s · no server-side caching · all live measurements
               </p>
             </div>
           </>
