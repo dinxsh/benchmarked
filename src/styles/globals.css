@@ -13,6 +13,31 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: 'ss01' 1, 'cv01' 1, 'calt' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Thin custom scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
+  }
+
+  /* Text selection */
+  ::selection {
+    background: oklch(0.630 0.205 218 / 0.25);
+    color: inherit;
   }
 }
 

@@ -1,76 +1,75 @@
 /* ============================================================
-   Hyperliquid — terminal dark · Inter · enforced · dark-only
-   Lighter slate palette, clear visual depth, vivid green accent
+   Hyperliquid — terminal dark · Inter · terminal green · slate
    ============================================================ */
 
 [data-theme='hyperliquid'] {
   /* ─── Base ─────────────────────────────────────────────── */
-  --background: oklch(0.13 0.006 250);     /* dark blue-slate  #171a23 */
-  --foreground: oklch(0.93 0 0);           /* near-white       #eaeaea */
-  --card: oklch(0.17 0.006 250);           /* elevated panel   #1e2130 */
-  --card-foreground: oklch(0.93 0 0);
-  --popover: oklch(0.19 0.006 250);        /* dropdown surface */
-  --popover-foreground: oklch(0.93 0 0);
+  --background: oklch(0.140 0.010 250);     /* deep slate   #181D29 */
+  --foreground: oklch(0.940 0.006 240);     /* near-white   #EAECF0 */
+  --card: oklch(0.185 0.015 250);           /* elevated     #1E2535 — clearly above bg */
+  --card-foreground: oklch(0.940 0.006 240);
+  --popover: oklch(0.215 0.016 250);        /* dropdown     #222A3A */
+  --popover-foreground: oklch(0.940 0.006 240);
 
   /* ─── Primary / Accent — terminal green ────────────────── */
-  --primary: oklch(0.72 0.22 148);         /* vivid #00e87a-ish */
+  --primary: oklch(0.710 0.210 148);        /* vivid green  #00cc66-ish */
   --primary-foreground: oklch(0.10 0 0);
 
   /* ─── Secondary ─────────────────────────────────────────── */
-  --secondary: oklch(0.21 0.005 250);
-  --secondary-foreground: oklch(0.93 0 0);
+  --secondary: oklch(0.220 0.012 250);
+  --secondary-foreground: oklch(0.940 0.006 240);
 
   /* ─── Muted ─────────────────────────────────────────────── */
-  --muted: oklch(0.21 0.005 250);
-  --muted-foreground: oklch(0.65 0 0);     /* #9b9b9b — clearly readable */
+  --muted: oklch(0.215 0.012 250);
+  --muted-foreground: oklch(0.655 0.012 250);  /* readable secondary with blue tint */
 
   /* ─── Accent ────────────────────────────────────────────── */
-  --accent: oklch(0.72 0.22 148);
+  --accent: oklch(0.710 0.210 148);
   --accent-foreground: oklch(0.10 0 0);
 
-  /* ─── Destructive — clear red ───────────────────────────── */
-  --destructive: oklch(0.65 0.22 25);
-  --destructive-foreground: oklch(0.93 0 0);
+  /* ─── Destructive ────────────────────────────────────────── */
+  --destructive: oklch(0.640 0.215 25);
+  --destructive-foreground: oklch(0.940 0.006 240);
 
-  /* ─── Borders — visible but subtle ─────────────────────── */
-  --border: oklch(0.27 0.004 250);         /* #303444 — clear separation */
-  --input: oklch(0.27 0.004 250);
-  --ring: oklch(0.72 0.22 148);
+  /* ─── Borders ────────────────────────────────────────────── */
+  --border: oklch(0.292 0.012 250);         /* clear separation */
+  --input:  oklch(0.265 0.010 250);
+  --ring:   oklch(0.710 0.210 148);
 
-  /* ─── Charts ────────────────────────────────────────────── */
-  --chart-1: oklch(0.72 0.22 148);         /* green */
-  --chart-2: oklch(0.65 0.22 25);          /* red */
-  --chart-3: oklch(0.68 0.16 250);         /* blue */
-  --chart-4: oklch(0.72 0.17 55);          /* amber */
-  --chart-5: oklch(0.68 0.13 300);         /* violet */
+  /* ─── Charts ─────────────────────────────────────────────── */
+  --chart-1: oklch(0.710 0.210 148);        /* green */
+  --chart-2: oklch(0.640 0.215 25);         /* red */
+  --chart-3: oklch(0.670 0.160 248);        /* blue */
+  --chart-4: oklch(0.720 0.165 55);         /* amber */
+  --chart-5: oklch(0.670 0.125 300);        /* violet */
 
-  /* ─── Sidebar — slightly darker than bg ────────────────── */
-  --sidebar: oklch(0.11 0.005 250);
-  --sidebar-foreground: oklch(0.93 0 0);
-  --sidebar-primary: oklch(0.72 0.22 148);
+  /* ─── Sidebar ─────────────────────────────────────────────── */
+  --sidebar: oklch(0.115 0.008 250);
+  --sidebar-foreground: oklch(0.940 0.006 240);
+  --sidebar-primary: oklch(0.710 0.210 148);
   --sidebar-primary-foreground: oklch(0.10 0 0);
-  --sidebar-accent: oklch(0.19 0.005 250);
-  --sidebar-accent-foreground: oklch(0.93 0 0);
-  --sidebar-border: oklch(0.22 0.004 250);
-  --sidebar-ring: oklch(0.72 0.22 148);
+  --sidebar-accent: oklch(0.195 0.012 250);
+  --sidebar-accent-foreground: oklch(0.870 0.006 240);
+  --sidebar-border: oklch(0.238 0.010 250);
+  --sidebar-ring: oklch(0.710 0.210 148);
 
-  /* ─── Typography — Inter primary, Fira Code for data ───── */
+  /* ─── Typography ─────────────────────────────────────────── */
   --font-sans: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: var(--font-fira-code), 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
   --font-serif: var(--font-inter), 'Inter', sans-serif;
 
-  /* ─── Radius — clean slight rounding ───────────────────── */
+  /* ─── Radius ─────────────────────────────────────────────── */
   --radius: 6px;
 
-  /* ─── Shadows — soft depth ──────────────────────────────── */
-  --shadow-2xs: 0 1px 3px 0 oklch(0 0 0 / 0.40);
-  --shadow-xs:  0 1px 5px 0 oklch(0 0 0 / 0.45);
-  --shadow-sm:  0 2px 8px 0 oklch(0 0 0 / 0.50);
-  --shadow:     0 4px 14px 0 oklch(0 0 0 / 0.50);
-  --shadow-md:  0 6px 20px 0 oklch(0 0 0 / 0.52);
-  --shadow-lg:  0 8px 28px 0 oklch(0 0 0 / 0.55);
-  --shadow-xl:  0 14px 40px 0 oklch(0 0 0 / 0.58);
-  --shadow-2xl: 0 24px 60px 0 oklch(0 0 0 / 0.65);
+  /* ─── Shadows ─────────────────────────────────────────────── */
+  --shadow-2xs: 0 1px 3px 0 oklch(0 0 0 / 0.45);
+  --shadow-xs:  0 1px 5px 0 oklch(0 0 0 / 0.48);
+  --shadow-sm:  0 2px 8px 0 oklch(0 0 0 / 0.52);
+  --shadow:     0 4px 14px 0 oklch(0 0 0 / 0.55);
+  --shadow-md:  0 6px 20px 0 oklch(0 0 0 / 0.58);
+  --shadow-lg:  0 8px 28px 0 oklch(0 0 0 / 0.62);
+  --shadow-xl:  0 14px 40px 0 oklch(0 0 0 / 0.65);
+  --shadow-2xl: 0 24px 60px 0 oklch(0 0 0 / 0.72);
 
   /* ─── Tailwind color mapping ────────────────────────────── */
   @theme inline {
@@ -127,14 +126,14 @@
   }
 }
 
-/* ─── Price-tick flash animations ────────────────────────── */
+/* ─── Flash animations ───────────────────────────────────── */
 @keyframes hl-flash-green {
   0%, 100% { background-color: transparent; }
-  40%       { background-color: oklch(0.72 0.22 148 / 0.14); }
+  40%       { background-color: oklch(0.710 0.210 148 / 0.14); }
 }
 @keyframes hl-flash-red {
   0%, 100% { background-color: transparent; }
-  40%       { background-color: oklch(0.65 0.22 25 / 0.14); }
+  40%       { background-color: oklch(0.640 0.215 25 / 0.14); }
 }
 
 [data-theme='hyperliquid'] .flash-green { animation: hl-flash-green 600ms ease-out; }
