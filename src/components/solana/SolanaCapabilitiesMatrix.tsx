@@ -6,112 +6,119 @@ interface Props {
   providers: SolanaProvider[];
 }
 
-// Boolean capability keys counted in Cap. Score row
 const BOOL_KEYS: (keyof SolanaProvider['capabilities'])[] = [
   'transactions', 'logs', 'token_balances', 'nft_metadata', 'custom_indexing', 'traces',
 ];
 
-const FEATURES = [
-  { key: 'provider_type', label: 'Type', render: (p: SolanaProvider) => (
-    <span className={`text-[9px] uppercase font-bold px-1 py-0.5 rounded ${
-      p.provider_type === 'json-rpc' ? 'bg-accent/15 text-accent' :
-      p.provider_type === 'rest-api' ? 'bg-chart-3/15 text-chart-3' :
-      'bg-destructive/15 text-destructive'
-    }`}>
-      {p.provider_type === 'json-rpc' ? 'RPC' : p.provider_type === 'rest-api' ? 'REST' : 'Data'}
-    </span>
-  )},
-  { key: 'transactions',   label: 'Transactions',   render: (p: SolanaProvider) => bool(p.capabilities.transactions) },
-  { key: 'logs',           label: 'Event Logs',      render: (p: SolanaProvider) => bool(p.capabilities.logs) },
-  { key: 'token_balances', label: 'Token Balances',  render: (p: SolanaProvider) => bool(p.capabilities.token_balances) },
-  { key: 'nft_metadata',   label: 'NFT Metadata',    render: (p: SolanaProvider) => bool(p.capabilities.nft_metadata) },
-  { key: 'custom_indexing',label: 'Custom Indexing', render: (p: SolanaProvider) => bool(p.capabilities.custom_indexing) },
-  { key: 'traces',         label: 'Traces',          render: (p: SolanaProvider) => bool(p.capabilities.traces) },
-  { key: 'historical_depth', label: 'History Depth', render: (p: SolanaProvider) => (
-    <span className="font-sans text-muted-foreground/80">{p.capabilities.historical_depth}</span>
-  )},
-  { key: 'cost', label: 'Cost / M Req', render: (p: SolanaProvider) => (
-    <span className={`font-mono tabular-nums ${p.pricing.cost_per_million === 0 ? 'text-accent' : 'text-foreground'}`}>
-      {p.pricing.cost_per_million === 0 ? 'Free' : `$${p.pricing.cost_per_million}`}
-    </span>
-  )},
-  { key: 'rate_limit', label: 'Rate Limit', render: (p: SolanaProvider) => (
-    <span className="font-sans text-muted-foreground/80">{p.pricing.rate_limit}</span>
-  )},
-] as const;
+const TYPE_BADGE: Record<string, string> = {
+  'json-rpc': 'bg-violet-500/10 text-violet-400 border border-violet-500/20',
+  'rest-api': 'bg-sky-500/10 text-sky-400 border border-sky-500/20',
+  'data-api': 'bg-orange-500/10 text-orange-400 border border-orange-500/20',
+};
+const TYPE_LABEL: Record<string, string> = {
+  'json-rpc': 'RPC',
+  'rest-api': 'REST',
+  'data-api': 'Data',
+};
+
+const FEATURES: { key: string; label: string; render: (p: SolanaProvider) => React.ReactNode }[] = [
+  {
+    key: 'type', label: 'Provider Type',
+    render: (p) => (
+      <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded-md ${TYPE_BADGE[p.provider_type]}`}>
+        {TYPE_LABEL[p.provider_type]}
+      </span>
+    ),
+  },
+  { key: 'transactions',    label: 'Transactions',    render: (p) => bool(p.capabilities.transactions) },
+  { key: 'logs',            label: 'Event Logs',       render: (p) => bool(p.capabilities.logs) },
+  { key: 'token_balances',  label: 'Token Balances',   render: (p) => bool(p.capabilities.token_balances) },
+  { key: 'nft_metadata',    label: 'NFT Metadata',     render: (p) => bool(p.capabilities.nft_metadata) },
+  { key: 'custom_indexing', label: 'Custom Indexing',  render: (p) => bool(p.capabilities.custom_indexing) },
+  { key: 'traces',          label: 'Traces',           render: (p) => bool(p.capabilities.traces) },
+  {
+    key: 'historical_depth', label: 'History Depth',
+    render: (p) => (
+      <span className="text-sm font-semibold text-foreground/75">{p.capabilities.historical_depth}</span>
+    ),
+  },
+  {
+    key: 'cost', label: 'Cost / M Req',
+    render: (p) => (
+      <span className={`text-sm font-bold font-mono tabular-nums ${p.pricing.cost_per_million === 0 ? 'text-emerald-500' : 'text-foreground/80'}`}>
+        {p.pricing.cost_per_million === 0 ? 'Free' : `$${p.pricing.cost_per_million}`}
+      </span>
+    ),
+  },
+  {
+    key: 'rate_limit', label: 'Rate Limit',
+    render: (p) => (
+      <span className="text-sm font-medium text-foreground/65">{p.pricing.rate_limit}</span>
+    ),
+  },
+];
 
 function bool(v: boolean) {
   return v ? (
-    <span className="inline-flex w-5 h-5 items-center justify-center rounded bg-accent/15 text-accent font-bold text-[11px]">✓</span>
+    <span className="inline-flex w-7 h-7 items-center justify-center rounded-lg bg-emerald-500/12 text-emerald-500 font-bold text-sm">✓</span>
   ) : (
-    <span className="inline-flex w-5 h-5 items-center justify-center rounded bg-muted/20 text-muted-foreground/30 text-[11px]">✗</span>
+    <span className="inline-flex w-7 h-7 items-center justify-center rounded-lg bg-muted/20 text-muted-foreground/25 text-sm">✗</span>
   );
 }
-
-const TYPE_SUB: Record<string, { label: string; color: string }> = {
-  'json-rpc': { label: 'RPC',  color: 'text-accent/60' },
-  'rest-api': { label: 'REST', color: 'text-chart-3/60' },
-  'data-api': { label: 'Data', color: 'text-destructive/60' },
-};
 
 export function SolanaCapabilitiesMatrix({ providers }: Props) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-[11px] border-collapse">
+      <table className="w-full border-collapse">
         <thead>
-          <tr className="border-b border-border/40 bg-muted/20">
-            <th className="py-2 px-3 text-left text-[10px] text-muted-foreground/60 font-sans font-medium sticky left-0 bg-muted/20 min-w-[130px]">
+          <tr className="border-b-2 border-border/50">
+            <th className="py-3 px-4 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground/60 sticky left-0 bg-card min-w-[150px]">
               Feature
             </th>
-            {providers.map(p => {
-              const sub = TYPE_SUB[p.provider_type];
-              return (
-                <th key={p.id} className="py-2 px-2 text-center text-[10px] text-muted-foreground/60 font-sans font-medium min-w-[88px]">
-                  <span className={p.is_us ? 'text-accent' : 'text-muted-foreground'}>
-                    {p.name}
-                  </span>
-                  <span className={`block text-[8px] font-normal ${sub.color}`}>
-                    {sub.label}
-                  </span>
-                  {p.is_mock && <span className="block text-[8px] text-muted-foreground/40">sim</span>}
-                </th>
-              );
-            })}
+            {providers.map(p => (
+              <th key={p.id} className="py-3 px-3 text-center min-w-[110px]">
+                <span className="block text-sm font-extrabold text-foreground">{p.name}</span>
+                <span className={`inline-block mt-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${TYPE_BADGE[p.provider_type]}`}>
+                  {TYPE_LABEL[p.provider_type]}
+                </span>
+                {p.is_mock && (
+                  <span className="block text-[10px] text-muted-foreground/40 font-mono mt-0.5">sim</span>
+                )}
+              </th>
+            ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-border/25">
           {FEATURES.map(({ key, label, render }) => (
-            <tr key={key} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
-              <td className="py-2 px-3 text-muted-foreground/70 font-sans sticky left-0 bg-background text-[10px]">
+            <tr key={key} className="hover:bg-muted/15 transition-colors">
+              <td className="py-3 px-4 text-sm font-semibold text-muted-foreground/70 sticky left-0 bg-card whitespace-nowrap">
                 {label}
               </td>
               {providers.map(p => (
-                <td key={p.id} className="py-2 px-2 text-center">
+                <td key={p.id} className="py-3 px-3 text-center">
                   {render(p)}
                 </td>
               ))}
             </tr>
           ))}
-          {/* Capability Score totals row */}
-          <tr className="border-t-2 border-border/40 bg-muted/20">
-            <td className="py-2 px-3 text-[10px] text-muted-foreground/70 font-sans sticky left-0 bg-muted/20 font-medium">
+
+          {/* Capability score row */}
+          <tr className="border-t-2 border-border/50 bg-muted/[0.03]">
+            <td className="py-3.5 px-4 text-sm font-bold text-foreground sticky left-0 bg-muted/[0.03] whitespace-nowrap">
               Cap. Score
             </td>
             {providers.map(p => {
-              const trueCount = BOOL_KEYS.filter(k => p.capabilities[k] as unknown as boolean).length;
-              const pct = Math.round((trueCount / BOOL_KEYS.length) * 100);
+              const count = BOOL_KEYS.filter(k => p.capabilities[k] as unknown as boolean).length;
+              const pct   = Math.round((count / BOOL_KEYS.length) * 100);
+              const color = pct >= 80 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+              const textCls = pct >= 80 ? 'text-emerald-500' : pct >= 50 ? 'text-amber-500' : 'text-red-500';
               return (
-                <td key={p.id} className="py-2 px-2 text-center">
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="w-12 h-1 bg-border/30 rounded-full overflow-hidden">
-                      <div
-                        className={pct >= 80 ? 'bg-accent h-full' : pct >= 50 ? 'bg-chart-3 h-full' : 'bg-destructive h-full'}
-                        style={{ width: `${pct}%` }}
-                      />
+                <td key={p.id} className="py-3.5 px-3 text-center">
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div className="w-14 h-1.5 bg-border/40 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
                     </div>
-                    <span className={`text-[9px] font-mono tabular-nums ${pct >= 80 ? 'text-accent' : pct >= 50 ? 'text-chart-3' : 'text-destructive'}`}>
-                      {pct}%
-                    </span>
+                    <span className={`text-sm font-bold font-mono tabular-nums ${textCls}`}>{pct}%</span>
                   </div>
                 </td>
               );
