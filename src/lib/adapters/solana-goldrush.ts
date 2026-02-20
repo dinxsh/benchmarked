@@ -1,5 +1,9 @@
 import { BaseAdapter } from './base';
 
+// Well-known active Solana wallet used as the benchmark target.
+// GoldRush balances_v2 is the correct REST endpoint — block_v2 is NOT supported on Solana (returns 501).
+const BENCHMARK_WALLET = 'GThUX1Atko4tqhN2NaiTazWSeFWMuiUvfFnyJyUghFMJ';
+
 export class SolanaGoldRushAdapter extends BaseAdapter {
   id = 'solana-goldrush';
   name = 'GoldRush';
@@ -10,13 +14,21 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
     this.sampleSize = 3;
   }
 
+  // GOLDRUSH_API_KEY is the canonical Next.js server env var.
+  // VITE_GOLDRUSH_API_KEY is kept as a fallback for parity with local .env.local naming.
   private get apiKey() {
-    return process.env.VITE_GOLDRUSH_API_KEY || process.env.GOLDRUSH_API_KEY || '';
+    return process.env.GOLDRUSH_API_KEY || process.env.VITE_GOLDRUSH_API_KEY || '';
   }
 
-  private get solanaEndpoint() {
-    if (!this.apiKey) return '';
-    return `https://api.covalenthq.com/v1/solana-mainnet/block_v2/latest/?key=${this.apiKey}`;
+  private get grEndpoint() {
+    return `https://api.covalenthq.com/v1/solana-mainnet/address/${BENCHMARK_WALLET}/balances_v2/`;
+  }
+
+  // Auth headers: use Authorization header (GoldRush SDK style) so the key never appears in server logs.
+  private get authHeaders(): Record<string, string> {
+    return {
+      'Authorization': `Bearer ${this.apiKey}`,
+    };
   }
 
   getMetadata() {
@@ -46,44 +58,38 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
   }
 
   protected async testCall(): Promise<number> {
-    if (!this.apiKey) throw new Error('GoldRush: no API key configured');
+    if (!this.apiKey) throw new Error('GoldRush: GOLDRUSH_API_KEY not set');
     const startTime = performance.now();
-    const response = await fetch(this.solanaEndpoint, {
+    const response = await fetch(this.grEndpoint, {
       method: 'GET',
-      signal: AbortSignal.timeout(5000)
+      headers: this.authHeaders,
+      signal: AbortSignal.timeout(8000)
     });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) throw new Error(`GoldRush HTTP ${response.status}`);
     await response.text();
     return Math.round(performance.now() - startTime);
   }
 
   protected async captureResponse(): Promise<{ body: any; size: number }> {
-    if (!this.apiKey) throw new Error('GoldRush: no API key configured');
-    const response = await fetch(this.solanaEndpoint, {
+    if (!this.apiKey) throw new Error('GoldRush: GOLDRUSH_API_KEY not set');
+    const response = await fetch(this.grEndpoint, {
       method: 'GET',
-      signal: AbortSignal.timeout(5000)
+      headers: this.authHeaders,
+      signal: AbortSignal.timeout(8000)
     });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) throw new Error(`GoldRush HTTP ${response.status}`);
     const data = await response.json();
-    const jsonString = JSON.stringify(data);
-    return { body: data, size: new Blob([jsonString]).size };
+    return { body: data, size: new Blob([JSON.stringify(data)]).size };
   }
 
+  // Solana's chain_tip_height comes back null from GoldRush — return 0 rather than faking.
   async getBlockHeight(): Promise<number> {
-    if (!this.apiKey) return 0;
-    try {
-      const response = await fetch(this.solanaEndpoint, { signal: AbortSignal.timeout(3000) });
-      if (!response.ok) return 0;
-      const data = await response.json();
-      return data?.data?.items?.[0]?.height ?? 0;
-    } catch {
-      return 0;
-    }
+    return 0;
   }
 
   async measureThroughput(): Promise<number> {
-    if (!this.apiKey) throw new Error('GoldRush: no API key configured');
-    const CONCURRENT = 10;
+    if (!this.apiKey) throw new Error('GoldRush: GOLDRUSH_API_KEY not set');
+    const CONCURRENT = 8;
     const start = performance.now();
     await Promise.allSettled(Array.from({ length: CONCURRENT }, () => this.testCall()));
     const elapsed = (performance.now() - start) / 1000;
@@ -91,12 +97,14 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
   }
 
   async measureWithThroughput() {
-    if (!this.apiKey) throw new Error('GoldRush: no API key configured');
+    if (!this.apiKey) throw new Error('GoldRush: GOLDRUSH_API_KEY not set');
     const [metrics, throughput_rps] = await Promise.all([
       this.measure(),
       this.measureThroughput()
     ]);
-    if (metrics.error_rate === 100) throw new Error('GoldRush: all requests failed');
-    return { ...metrics, throughput_rps, slot_height: await this.getBlockHeight(), is_mock: false };
+    if (metrics.error_rate === 100) {
+      throw new Error('GoldRush: all benchmark requests failed — check key and Solana access');
+    }
+    return { ...metrics, throughput_rps, slot_height: 0, is_mock: false };
   }
 }
