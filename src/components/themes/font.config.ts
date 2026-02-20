@@ -2,7 +2,6 @@ import {
   Architects_Daughter,
   DM_Sans,
   Fira_Code,
-  Geist,
   Geist_Mono,
   Instrument_Sans,
   Inter,
@@ -14,7 +13,7 @@ import {
 
 import { cn } from '@/lib/utils';
 
-const fontSans = Geist({
+const fontSans = Inter({
   subsets: ['latin'],
   variable: '--font-sans'
 });
@@ -37,11 +36,6 @@ const fontNotoMono = Noto_Sans_Mono({
 const fontMullish = Mulish({
   subsets: ['latin'],
   variable: '--font-mullish'
-});
-
-const fontInter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter'
 });
 
 const fontArchitectsDaughter = Architects_Daughter({
@@ -77,7 +71,6 @@ export const fontVariables = cn(
   fontInstrument.variable,
   fontNotoMono.variable,
   fontMullish.variable,
-  fontInter.variable,
   fontArchitectsDaughter.variable,
   fontDMSans.variable,
   fontFiraCode.variable,
