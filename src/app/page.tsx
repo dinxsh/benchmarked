@@ -12,18 +12,29 @@ import {
   AlertCircle,
   BarChart2,
   Radar,
+  TrendingDown,
+  Activity,
+  GitCompare,
+  LayoutGrid,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   SolanaLeaderboardTable,
   type SolanaProvider,
 } from '@/components/solana/SolanaLeaderboardTable';
-import { SolanaLatencyChart }     from '@/components/solana/SolanaLatencyChart';
-import { SolanaThroughputChart }  from '@/components/solana/SolanaThroughputChart';
-import { SolanaUptimeIndicators } from '@/components/solana/SolanaUptimeIndicators';
-import { SolanaRadarChart }       from '@/components/solana/SolanaRadarChart';
-import { SolanaProviderSheet }    from '@/components/solana/SolanaProviderSheet';
+import { SolanaLatencyChart }       from '@/components/solana/SolanaLatencyChart';
+import { SolanaThroughputChart }    from '@/components/solana/SolanaThroughputChart';
+import { SolanaUptimeIndicators }   from '@/components/solana/SolanaUptimeIndicators';
+import { SolanaRadarChart }         from '@/components/solana/SolanaRadarChart';
+import { SolanaProviderSheet }      from '@/components/solana/SolanaProviderSheet';
+import { SolanaLatencySpreadChart } from '@/components/solana/SolanaLatencySpreadChart';
+import { SolanaCostEfficiencyChart } from '@/components/solana/SolanaCostEfficiencyChart';
+import { SolanaScoreBreakdownChart } from '@/components/solana/SolanaScoreBreakdownChart';
+import { SolanaScoreComparison }    from '@/components/solana/SolanaScoreComparison';
+import { SolanaCapabilitiesMatrix } from '@/components/solana/SolanaCapabilitiesMatrix';
+import { SolanaSummaryCards }       from '@/components/solana/SolanaSummaryCards';
 
 interface BenchmarkData {
   providers: SolanaProvider[];
@@ -42,7 +53,7 @@ interface BenchmarkData {
   last_updated: string;
 }
 
-// ─── "Why it's #1" insight generator ─────────────────────────────────────────
+// ─── Winner insight generator ──────────────────────────────────────────────────
 function getWinnerInsights(winner: SolanaProvider, all: SolanaProvider[]): string[] {
   const byP50    = [...all].sort((a, b) => a.metrics.latency_p50 - b.metrics.latency_p50);
   const byUptime = [...all].sort((a, b) => b.metrics.uptime_percent - a.metrics.uptime_percent);
@@ -81,13 +92,16 @@ function getWinnerInsights(winner: SolanaProvider, all: SolanaProvider[]): strin
   return insights;
 }
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+// ─── Skeleton ──────────────────────────────────────────────────────────────────
 function SkeletonState() {
   return (
     <div className="space-y-6 animate-pulse">
       <div className="rounded-xl border border-border bg-card h-72" />
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         {[1, 2, 3, 4].map(i => <div key={i} className="rounded-lg border border-border bg-card h-24" />)}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+        {[1, 2, 3, 4, 5, 6, 7, 8].map(i => <div key={i} className="rounded-lg border border-border bg-card h-16" />)}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[1, 2, 3, 4].map(i => <div key={i} className="rounded-xl border border-border bg-card h-80" />)}
@@ -96,15 +110,10 @@ function SkeletonState() {
   );
 }
 
-// ─── Hero Winner Card ─────────────────────────────────────────────────────────
-function HeroWinnerCard({
-  winner,
-  providers,
-}: {
-  winner: SolanaProvider;
-  providers: SolanaProvider[];
-}) {
+// ─── Hero winner card ──────────────────────────────────────────────────────────
+function HeroWinnerCard({ winner, providers }: { winner: SolanaProvider; providers: SolanaProvider[] }) {
   const insights = getWinnerInsights(winner, providers);
+  const jitter   = winner.metrics.latency_p99 - winner.metrics.latency_p50;
 
   return (
     <div className="relative rounded-xl border border-accent/20 bg-card overflow-hidden">
@@ -115,7 +124,6 @@ function HeroWinnerCard({
 
           {/* Left: identity + why */}
           <div className="space-y-5 flex-1 min-w-0">
-            {/* Badges */}
             <div className="flex items-center gap-2 flex-wrap">
               <Badge className="h-6 px-2.5 text-[10px] font-bold uppercase tracking-wider border border-accent/35 bg-accent/10 text-accent rounded">
                 #1 Overall
@@ -136,7 +144,6 @@ function HeroWinnerCard({
               )}
             </div>
 
-            {/* Provider name */}
             <div>
               <h2 className="text-[36px] font-bold tracking-tight leading-none">{winner.name}</h2>
               {winner.website_url && (
@@ -152,7 +159,6 @@ function HeroWinnerCard({
               )}
             </div>
 
-            {/* Why #1 */}
             <div className="space-y-3">
               <p className="text-xs uppercase tracking-widest text-muted-foreground/55 font-semibold">
                 Why it&apos;s #1
@@ -167,21 +173,20 @@ function HeroWinnerCard({
               </ul>
             </div>
 
-            {/* Live status */}
             <div>
               {winner.is_mock ? (
                 <span className="text-sm text-muted-foreground/50">⚠ Simulated — add API key for live data</span>
               ) : (
-                <span className="flex items-center gap-2 text-sm text-success/80">
-                  <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+                <span className="flex items-center gap-2 text-sm text-chart-2/80">
+                  <span className="h-1.5 w-1.5 rounded-full bg-chart-2 animate-pulse" />
                   Live measurements · real API calls
                 </span>
               )}
             </div>
           </div>
 
-          {/* Right: giant P50 + score */}
-          <div className="shrink-0 space-y-6 lg:min-w-[230px]">
+          {/* Right: metrics panel */}
+          <div className="shrink-0 space-y-6 lg:min-w-[260px]">
             <div>
               <div className="tabular-nums leading-none">
                 <span className="text-[80px] font-bold text-accent tracking-tight">
@@ -194,6 +199,7 @@ function HeroWinnerCard({
               </p>
             </div>
 
+            {/* Score bar */}
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground/65">Composite score</span>
@@ -214,17 +220,31 @@ function HeroWinnerCard({
                 <span>100</span>
               </div>
             </div>
+
+            {/* Jitter indicator */}
+            <div className="flex items-center justify-between rounded-lg border border-border/30 bg-muted/[0.03] px-3 py-2.5">
+              <div>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground/50 font-semibold">Jitter (P99−P50)</p>
+                <p className="text-xs text-muted-foreground/40 mt-0.5">Consistency indicator</p>
+              </div>
+              <span className={`text-base font-bold font-mono tabular-nums ${
+                jitter < 50 ? 'text-chart-2' : jitter < 150 ? 'text-chart-3' : 'text-destructive'
+              }`}>
+                {jitter}ms
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Bottom metrics strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-accent/10">
+      <div className="grid grid-cols-2 sm:grid-cols-5 border-t border-accent/10">
         {[
-          { label: 'P95 Latency', value: `${winner.metrics.latency_p95}ms`, sub: '95th percentile', color: 'text-chart-3' },
-          { label: 'P99 Latency', value: `${winner.metrics.latency_p99}ms`, sub: 'tail latency',    color: 'text-destructive/80' },
-          { label: 'Uptime',      value: `${winner.metrics.uptime_percent.toFixed(2)}%`, sub: 'measured availability', color: 'text-chart-2' },
-          { label: 'Throughput',  value: `${winner.metrics.throughput_rps} req/s`, sub: 'peak concurrent', color: 'text-foreground/80' },
+          { label: 'P95 Latency',  value: `${winner.metrics.latency_p95}ms`,                sub: '95th percentile',     color: 'text-chart-3' },
+          { label: 'P99 Latency',  value: `${winner.metrics.latency_p99}ms`,                sub: 'tail latency',        color: 'text-destructive/80' },
+          { label: 'Uptime',       value: `${winner.metrics.uptime_percent.toFixed(2)}%`,   sub: 'measured avail.',     color: 'text-chart-2' },
+          { label: 'Throughput',   value: `${winner.metrics.throughput_rps} req/s`,         sub: 'peak concurrent',     color: 'text-foreground/80' },
+          { label: 'Cost / M req', value: winner.pricing.cost_per_million === 0 ? 'Free' : `$${winner.pricing.cost_per_million}`, sub: 'per million requests', color: winner.pricing.cost_per_million === 0 ? 'text-chart-2' : 'text-foreground/70' },
         ].map((s, i) => (
           <div
             key={s.label}
@@ -240,7 +260,7 @@ function HeroWinnerCard({
   );
 }
 
-// ─── Quick Decision Card ──────────────────────────────────────────────────────
+// ─── Quick decision card ───────────────────────────────────────────────────────
 function QuickCard({
   icon, badge, label, name, metric, isMock,
 }: {
@@ -267,17 +287,10 @@ function QuickCard({
   );
 }
 
-// ─── Benchmark Kanban Card ────────────────────────────────────────────────────
+// ─── Benchmark kanban card ─────────────────────────────────────────────────────
 function BenchmarkCard({
-  accentColor,
-  icon,
-  title,
-  description,
-  statLabel,
-  statValue,
-  statSub,
-  statColor,
-  children,
+  accentColor, icon, title, description,
+  statLabel, statValue, statSub, statColor, children,
 }: {
   accentColor: string;
   icon: React.ReactNode;
@@ -291,10 +304,7 @@ function BenchmarkCard({
 }) {
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden flex flex-col hover:border-border/70 transition-colors duration-200">
-      {/* Colored accent top bar */}
       <div className="h-[3px] shrink-0" style={{ backgroundColor: accentColor }} />
-
-      {/* Card header */}
       <div className="px-5 pt-4 pb-4 border-b border-border/30 flex items-start justify-between gap-4 shrink-0">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-base font-bold text-foreground">
@@ -308,10 +318,7 @@ function BenchmarkCard({
             {statLabel && (
               <div className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-wide mb-0.5">{statLabel}</div>
             )}
-            <div
-              className="text-xl font-bold font-mono tabular-nums"
-              style={{ color: statColor ?? accentColor }}
-            >
+            <div className="text-xl font-bold font-mono tabular-nums" style={{ color: statColor ?? accentColor }}>
               {statValue}
             </div>
             {statSub && (
@@ -320,8 +327,6 @@ function BenchmarkCard({
           </div>
         )}
       </div>
-
-      {/* Chart body */}
       <div className="px-5 py-5 flex-1 min-h-0">
         {children}
       </div>
@@ -329,7 +334,22 @@ function BenchmarkCard({
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Section heading ───────────────────────────────────────────────────────────
+function SectionHeading({ children, count }: { children: React.ReactNode; count?: number }) {
+  return (
+    <div className="flex items-center gap-3 mb-4">
+      <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/55">
+        {children}
+      </h2>
+      <div className="flex-1 h-px bg-border/30" />
+      {count !== undefined && (
+        <span className="text-xs text-muted-foreground/45 font-mono">{count} providers</span>
+      )}
+    </div>
+  );
+}
+
+// ─── Main page ─────────────────────────────────────────────────────────────────
 export default function Home() {
   const [data, setData] = useState<BenchmarkData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -377,6 +397,9 @@ export default function Home() {
   const fastest    = data?.providers.reduce((a, b) => a.metrics.latency_p50 < b.metrics.latency_p50 ? a : b);
   const mostUptime = data?.providers.reduce((a, b) => a.metrics.uptime_percent > b.metrics.uptime_percent ? a : b);
   const mostRps    = data?.providers.reduce((a, b) => a.metrics.throughput_rps > b.metrics.throughput_rps ? a : b);
+  const mostStable = data?.providers.reduce((a, b) =>
+    (a.metrics.latency_p99 - a.metrics.latency_p50) < (b.metrics.latency_p99 - b.metrics.latency_p50) ? a : b
+  );
 
   const freeProviders = (data?.providers ?? []).filter(p => p.pricing.cost_per_million === 0);
   const bestFree = freeProviders.length > 0
@@ -393,9 +416,9 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
 
-      {/* ── Sticky header ────────────────────────────────────────────────── */}
+      {/* ── Sticky header ──────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md">
-        <div className="mx-auto max-w-screen-xl px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <span className="text-sm font-bold tracking-tight text-foreground">benchmarked</span>
             <span className="text-border/80 select-none hidden sm:inline">/</span>
@@ -432,7 +455,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ── Simulated data banner ─────────────────────────────────────────── */}
+      {/* ── Simulated data banner ───────────────────────────────────────────── */}
       {data && mockCount > 0 && (
         <div className="border-b border-chart-3/20 bg-chart-3/[0.06] px-4 sm:px-6 py-3 flex items-center gap-3">
           <div className="h-1.5 w-1.5 rounded-full bg-chart-3 shrink-0" />
@@ -445,9 +468,9 @@ export default function Home() {
         </div>
       )}
 
-      <main className="mx-auto max-w-screen-xl px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+      <main className="mx-auto max-w-screen-2xl px-4 sm:px-6 py-6 sm:py-8 space-y-8">
 
-        {/* ── Page intro ──────────────────────────────────────────────────── */}
+        {/* ── Page intro ─────────────────────────────────────────────────────── */}
         <div className="flex items-baseline gap-3 flex-wrap">
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">
             Which Solana RPC should you use?
@@ -460,7 +483,7 @@ export default function Home() {
           )}
         </div>
 
-        {/* ── Error ──────────────────────────────────────────────────────── */}
+        {/* ── Error ──────────────────────────────────────────────────────────── */}
         {error && (
           <div className="flex items-center gap-2.5 rounded-lg border border-destructive/30 bg-destructive/[0.06] px-4 py-3 text-sm text-destructive">
             <AlertCircle className="h-4 w-4 shrink-0" />
@@ -472,10 +495,10 @@ export default function Home() {
 
         {data && winner && (
           <>
-            {/* ── Zone 1: Hero Decision Block ──────────────────────────── */}
+            {/* ── Zone 1: Hero ──────────────────────────────────────────────── */}
             <HeroWinnerCard winner={winner} providers={data.providers} />
 
-            {/* ── Zone 2: Quick Decision Grid ──────────────────────────── */}
+            {/* ── Zone 2: Quick decision cards ──────────────────────────────── */}
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
               {fastest && (
                 <QuickCard
@@ -512,107 +535,222 @@ export default function Home() {
               )}
             </div>
 
-            {/* ── Zone 3: Benchmark Kanban ─────────────────────────────── */}
+            {/* ── Zone 3: KPI Summary Strip ─────────────────────────────────── */}
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/55">
-                  Benchmark Analysis
-                </h2>
-                <div className="flex-1 h-px bg-border/30" />
-                <span className="text-xs text-muted-foreground/45 font-mono">
-                  {data.providers.length} providers
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                {/* Latency */}
-                <BenchmarkCard
-                  accentColor="var(--color-accent)"
-                  icon={<Zap className="h-4 w-4" />}
-                  title="Latency"
-                  description="Ranked by P50 · P95/P99 extensions · Δ vs fastest annotated right of bar"
-                  statLabel="Fastest P50"
-                  statValue={fastest ? `${fastest.metrics.latency_p50}ms` : '—'}
-                  statSub={fastest?.name}
-                  statColor="var(--color-accent)"
-                >
-                  <SolanaLatencyChart providers={data.providers} />
-                </BenchmarkCard>
-
-                {/* Uptime */}
-                <BenchmarkCard
-                  accentColor="var(--color-chart-2)"
-                  icon={<ShieldCheck className="h-4 w-4" />}
-                  title="Uptime"
-                  description="Availability sorted descending · Green ≥99.9% · Amber <99.9% · Red <98%"
-                  statLabel="Best Uptime"
-                  statValue={mostUptime ? `${mostUptime.metrics.uptime_percent.toFixed(2)}%` : '—'}
-                  statSub={mostUptime?.name}
-                  statColor="var(--color-chart-2)"
-                >
-                  <SolanaUptimeIndicators providers={data.providers} />
-                </BenchmarkCard>
-
-                {/* Throughput */}
-                <BenchmarkCard
-                  accentColor="var(--color-accent)"
-                  icon={<Gauge className="h-4 w-4" />}
-                  title="Throughput"
-                  description="Peak req/s sorted descending · Multiplier vs benchmark median annotated"
-                  statLabel="Peak RPS"
-                  statValue={mostRps ? `${mostRps.metrics.throughput_rps}` : '—'}
-                  statSub={mostRps ? `${mostRps.name} · rps` : undefined}
-                  statColor="var(--color-accent)"
-                >
-                  <SolanaThroughputChart providers={data.providers} />
-                </BenchmarkCard>
-
-                {/* Radar */}
-                <BenchmarkCard
-                  accentColor="var(--color-chart-5)"
-                  icon={<Radar className="h-4 w-4" />}
-                  title="Multi-Axis Overview"
-                  description="Speed · Uptime · Throughput · Reliability · Coverage — normalized to 100"
-                  statLabel="Leader score"
-                  statValue={winner ? `${winner.score.toFixed(1)}` : '—'}
-                  statSub={winner?.name}
-                  statColor="var(--color-chart-5)"
-                >
-                  <SolanaRadarChart providers={data.providers} showLegend height={320} />
-                </BenchmarkCard>
-
-              </div>
+              <SectionHeading count={data.providers.length}>Key Metrics</SectionHeading>
+              <SolanaSummaryCards stats={data.stats} providers={data.providers} />
             </div>
 
-            {/* ── Zone 4: Comparison Table ──────────────────────────────── */}
-            <div className="rounded-xl border border-border overflow-hidden">
-              <div className="border-b border-border bg-card px-4 sm:px-6 py-4 flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <h2 className="flex items-center gap-2 text-base font-bold text-foreground">
-                    <BarChart2 className="h-4 w-4 text-muted-foreground/55" />
-                    Provider Comparison
-                  </h2>
-                  <p className="text-sm text-muted-foreground/55">
-                    Sort any column · click a row for full provider details
-                    {errorCount > 0 && ` · ${errorCount} provider${errorCount !== 1 ? 's' : ''} had errors`}
-                  </p>
+            {/* ── Zone 4: Benchmark Analysis — tabbed ───────────────────────── */}
+            <div>
+              <SectionHeading count={data.providers.length}>Benchmark Analysis</SectionHeading>
+
+              <Tabs defaultValue="performance" className="space-y-4">
+                <TabsList className="h-9 bg-muted/40 border border-border/40 rounded-lg p-1">
+                  <TabsTrigger value="performance" className="text-xs gap-1.5 data-[state=active]:bg-card">
+                    <Zap className="h-3.5 w-3.5" />
+                    Performance
+                  </TabsTrigger>
+                  <TabsTrigger value="reliability" className="text-xs gap-1.5 data-[state=active]:bg-card">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    Reliability
+                  </TabsTrigger>
+                  <TabsTrigger value="value" className="text-xs gap-1.5 data-[state=active]:bg-card">
+                    <DollarSign className="h-3.5 w-3.5" />
+                    Value
+                  </TabsTrigger>
+                  <TabsTrigger value="overview" className="text-xs gap-1.5 data-[state=active]:bg-card">
+                    <Radar className="h-3.5 w-3.5" />
+                    Overview
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* Performance tab */}
+                <TabsContent value="performance" className="space-y-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <BenchmarkCard
+                      accentColor="var(--color-accent)"
+                      icon={<Zap className="h-4 w-4" />}
+                      title="Latency"
+                      description="Ranked by P50 · P95/P99 extensions · Δ vs fastest annotated"
+                      statLabel="Fastest P50"
+                      statValue={fastest ? `${fastest.metrics.latency_p50}ms` : '—'}
+                      statSub={fastest?.name}
+                      statColor="var(--color-accent)"
+                    >
+                      <SolanaLatencyChart providers={data.providers} />
+                    </BenchmarkCard>
+
+                    <BenchmarkCard
+                      accentColor="var(--color-accent)"
+                      icon={<Gauge className="h-4 w-4" />}
+                      title="Throughput"
+                      description="Peak req/s sorted descending · multiplier vs median annotated"
+                      statLabel="Peak RPS"
+                      statValue={mostRps ? `${mostRps.metrics.throughput_rps}` : '—'}
+                      statSub={mostRps ? `${mostRps.name} · rps` : undefined}
+                      statColor="var(--color-accent)"
+                    >
+                      <SolanaThroughputChart providers={data.providers} />
+                    </BenchmarkCard>
+                  </div>
+                </TabsContent>
+
+                {/* Reliability tab */}
+                <TabsContent value="reliability" className="space-y-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <BenchmarkCard
+                      accentColor="var(--color-chart-2)"
+                      icon={<ShieldCheck className="h-4 w-4" />}
+                      title="Uptime"
+                      description="Availability sorted descending · Green ≥99.9% · Amber <99.9% · Red <98%"
+                      statLabel="Best Uptime"
+                      statValue={mostUptime ? `${mostUptime.metrics.uptime_percent.toFixed(2)}%` : '—'}
+                      statSub={mostUptime?.name}
+                      statColor="var(--color-chart-2)"
+                    >
+                      <SolanaUptimeIndicators providers={data.providers} />
+                    </BenchmarkCard>
+
+                    <BenchmarkCard
+                      accentColor="var(--color-chart-4)"
+                      icon={<Activity className="h-4 w-4" />}
+                      title="Latency Spread"
+                      description="Stacked P50 → P95 → P99 · shows tail risk and jitter per provider"
+                      statLabel="Most Stable"
+                      statValue={mostStable ? `${mostStable.metrics.latency_p99 - mostStable.metrics.latency_p50}ms` : '—'}
+                      statSub={mostStable ? `${mostStable.name} · jitter` : undefined}
+                      statColor="var(--color-chart-4)"
+                    >
+                      <SolanaLatencySpreadChart providers={data.providers} />
+                    </BenchmarkCard>
+                  </div>
+                </TabsContent>
+
+                {/* Value tab */}
+                <TabsContent value="value" className="space-y-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <BenchmarkCard
+                      accentColor="var(--color-chart-5)"
+                      icon={<DollarSign className="h-4 w-4" />}
+                      title="Cost vs Performance"
+                      description="X = cost/M req · Y = composite score · bubble size = throughput"
+                      statLabel="Best Paid Value"
+                      statValue={(() => {
+                        const paid = data.providers.filter(p => p.pricing.cost_per_million > 0);
+                        if (!paid.length) return '—';
+                        const best = paid.reduce((a, b) =>
+                          (a.score / a.pricing.cost_per_million) > (b.score / b.pricing.cost_per_million) ? a : b
+                        );
+                        return `${Math.round(best.score / best.pricing.cost_per_million)} pts/$`;
+                      })()}
+                      statSub="score per $1/M"
+                      statColor="var(--color-chart-5)"
+                    >
+                      <SolanaCostEfficiencyChart providers={data.providers} />
+                    </BenchmarkCard>
+
+                    <BenchmarkCard
+                      accentColor="var(--color-chart-1)"
+                      icon={<BarChart2 className="h-4 w-4" />}
+                      title="Score Breakdown"
+                      description="Composite score decomposed: latency 35% · uptime 35% · throughput 30%"
+                      statLabel="Top Score"
+                      statValue={winner ? `${winner.score.toFixed(1)}` : '—'}
+                      statSub={winner?.name}
+                      statColor="var(--color-chart-1)"
+                    >
+                      <SolanaScoreBreakdownChart providers={data.providers} />
+                    </BenchmarkCard>
+                  </div>
+                </TabsContent>
+
+                {/* Overview tab */}
+                <TabsContent value="overview" className="space-y-0">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <BenchmarkCard
+                      accentColor="var(--color-chart-5)"
+                      icon={<Radar className="h-4 w-4" />}
+                      title="Multi-Axis Radar"
+                      description="Speed · Uptime · Throughput · Reliability · Coverage — normalized to 100"
+                      statLabel="Leader score"
+                      statValue={winner ? `${winner.score.toFixed(1)}` : '—'}
+                      statSub={winner?.name}
+                      statColor="var(--color-chart-5)"
+                    >
+                      <SolanaRadarChart providers={data.providers} showLegend height={320} />
+                    </BenchmarkCard>
+
+                    <BenchmarkCard
+                      accentColor="var(--color-chart-3)"
+                      icon={<GitCompare className="h-4 w-4" />}
+                      title="Dimension Comparison"
+                      description="5 metrics per provider: Speed · Uptime · Throughput · Reliability · Coverage"
+                      statLabel="Providers"
+                      statValue={`${data.providers.length}`}
+                      statSub="all types"
+                      statColor="var(--color-chart-3)"
+                    >
+                      <SolanaScoreComparison providers={data.providers} />
+                    </BenchmarkCard>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            {/* ── Zone 5: Provider Comparison Table ─────────────────────────── */}
+            <div>
+              <SectionHeading count={data.providers.length}>Provider Comparison</SectionHeading>
+              <div className="rounded-xl border border-border overflow-hidden">
+                <div className="border-b border-border bg-card px-4 sm:px-6 py-4 flex items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <h2 className="flex items-center gap-2 text-base font-bold text-foreground">
+                      <BarChart2 className="h-4 w-4 text-muted-foreground/55" />
+                      Full Benchmark Table
+                    </h2>
+                    <p className="text-sm text-muted-foreground/55">
+                      Sort any column · Jitter = P99−P50 · Value = score÷cost · click row for details
+                      {errorCount > 0 && ` · ${errorCount} provider${errorCount !== 1 ? 's' : ''} had errors`}
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono text-muted-foreground/45 tabular-nums shrink-0">
+                    {data.providers.length} providers
+                  </span>
                 </div>
-                <span className="text-xs font-mono text-muted-foreground/45 tabular-nums shrink-0">
-                  {data.providers.length} providers
-                </span>
+                <SolanaLeaderboardTable
+                  providers={data.providers}
+                  onSelect={handleSelectProvider}
+                />
               </div>
-              <SolanaLeaderboardTable
-                providers={data.providers}
-                onSelect={handleSelectProvider}
-              />
             </div>
 
-            {/* ── Footnote ──────────────────────────────────────────────── */}
+            {/* ── Zone 6: Capabilities Matrix ───────────────────────────────── */}
+            <div>
+              <SectionHeading count={data.providers.length}>Feature Capabilities</SectionHeading>
+              <div className="rounded-xl border border-border bg-card overflow-hidden">
+                <div className="border-b border-border px-4 sm:px-6 py-4 flex items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <h2 className="flex items-center gap-2 text-base font-bold text-foreground">
+                      <LayoutGrid className="h-4 w-4 text-muted-foreground/55" />
+                      Capability Matrix
+                    </h2>
+                    <p className="text-sm text-muted-foreground/55">
+                      Feature support, pricing, rate limits, and data depth across all providers
+                    </p>
+                  </div>
+                </div>
+                <div className="px-4 sm:px-6 py-4 overflow-x-auto">
+                  <SolanaCapabilitiesMatrix providers={data.providers} />
+                </div>
+              </div>
+            </div>
+
+            {/* ── Footnote ──────────────────────────────────────────────────── */}
             <div className="border-t border-border/20 pt-5 pb-4 space-y-1.5 text-center">
               <p className="text-xs text-muted-foreground/45">
                 Score = latency 35% + uptime 35% + throughput 30%
-                {' · '}latency cap 1000ms · throughput cap 500 req/s
+                {' · '}Jitter = P99 − P50
+                {' · '}Value = score ÷ ($/M) · latency cap 1000ms · throughput cap 500 req/s
               </p>
               <p className="text-xs text-muted-foreground/35">
                 JSON-RPC via <code className="font-mono">getSlot</code>

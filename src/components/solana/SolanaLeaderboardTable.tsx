@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { ChevronUp, ChevronDown, ChevronsUpDown, Info } from 'lucide-react';
 
 export interface SolanaProvider {
   id: string;
@@ -34,7 +34,11 @@ export interface SolanaProvider {
   };
 }
 
-type SortKey = 'rank' | 'latency_p50' | 'latency_p95' | 'latency_p99' | 'uptime_percent' | 'error_rate' | 'throughput_rps' | 'score';
+type SortKey =
+  | 'rank' | 'latency_p50' | 'latency_p95' | 'latency_p99'
+  | 'uptime_percent' | 'error_rate' | 'throughput_rps' | 'score'
+  | 'jitter' | 'cost' | 'value_score';
+
 type TypeFilter = 'all' | 'json-rpc' | 'rest-api' | 'data-api';
 
 interface Props {
@@ -42,6 +46,7 @@ interface Props {
   onSelect?: (provider: SolanaProvider) => void;
 }
 
+// ─── Color helpers ─────────────────────────────────────────────────────────────
 function latencyColor(ms: number): string {
   if (ms < 100) return 'text-accent';
   if (ms < 300) return 'text-chart-3';
@@ -60,31 +65,37 @@ function errColor(pct: number): string {
   return 'text-destructive';
 }
 
+function jitterColor(ms: number): string {
+  if (ms < 50)  return 'text-chart-2';
+  if (ms < 150) return 'text-chart-3';
+  return 'text-destructive';
+}
+
 function formatSlot(slot: number): string {
   if (!slot) return '—';
   return `${(slot / 1_000_000).toFixed(1)}M`;
 }
 
+function valueScore(p: SolanaProvider): number {
+  if (p.pricing.cost_per_million === 0) return 999_999;
+  return p.score / p.pricing.cost_per_million;
+}
+
+// ─── Sub-components ────────────────────────────────────────────────────────────
 function RankBadge({ rank }: { rank: number }) {
-  if (rank === 1) {
-    return (
-      <span className="inline-flex items-center text-xs font-bold tabular-nums"
-        style={{ color: 'oklch(0.80 0.15 80)' }}>
-        #{rank}
-      </span>
-    );
-  }
-  if (rank === 2) {
-    return <span className="text-xs font-semibold tabular-nums text-muted-foreground/80">#{rank}</span>;
-  }
-  if (rank === 3) {
-    return (
-      <span className="text-xs font-semibold tabular-nums"
-        style={{ color: 'oklch(0.65 0.10 55)' }}>
-        #{rank}
-      </span>
-    );
-  }
+  if (rank === 1) return (
+    <span className="inline-flex items-center text-xs font-bold tabular-nums"
+      style={{ color: 'oklch(0.80 0.15 80)' }}>
+      #{rank}
+    </span>
+  );
+  if (rank === 2) return <span className="text-xs font-semibold tabular-nums text-muted-foreground/80">#{rank}</span>;
+  if (rank === 3) return (
+    <span className="text-xs font-semibold tabular-nums"
+      style={{ color: 'oklch(0.65 0.10 55)' }}>
+      #{rank}
+    </span>
+  );
   return <span className="text-xs font-mono tabular-nums text-muted-foreground/50">#{rank}</span>;
 }
 
@@ -123,8 +134,10 @@ const BADGE_STYLES: Record<string, string> = {
   'Fastest':      'bg-accent/8 text-accent/80 border-accent/18',
   'Throughput':   'bg-chart-2/10 text-chart-2/85 border-chart-2/22',
   'Free':         'bg-chart-3/10 text-chart-3/85 border-chart-3/22',
+  'Most Stable':  'bg-chart-5/10 text-chart-5/85 border-chart-5/22',
 };
 
+// ─── Main component ────────────────────────────────────────────────────────────
 export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('rank');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -135,7 +148,9 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
       setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortKey(key);
-      setSortDir(['latency_p50', 'latency_p95', 'latency_p99', 'error_rate', 'rank'].includes(key) ? 'asc' : 'desc');
+      // Lower is better: latency, error_rate, jitter, cost, rank
+      const ascFirst: SortKey[] = ['latency_p50', 'latency_p95', 'latency_p99', 'error_rate', 'jitter', 'cost', 'rank'];
+      setSortDir(ascFirst.includes(key) ? 'asc' : 'desc');
     }
   }
 
@@ -144,29 +159,34 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
   const sorted = [...filtered].sort((a, b) => {
     let av: number, bv: number;
     switch (sortKey) {
-      case 'rank':           av = a.rank;                   bv = b.rank;                   break;
-      case 'latency_p50':    av = a.metrics.latency_p50;    bv = b.metrics.latency_p50;    break;
-      case 'latency_p95':    av = a.metrics.latency_p95;    bv = b.metrics.latency_p95;    break;
-      case 'latency_p99':    av = a.metrics.latency_p99;    bv = b.metrics.latency_p99;    break;
-      case 'uptime_percent': av = a.metrics.uptime_percent; bv = b.metrics.uptime_percent; break;
-      case 'error_rate':     av = a.metrics.error_rate;     bv = b.metrics.error_rate;     break;
-      case 'throughput_rps': av = a.metrics.throughput_rps; bv = b.metrics.throughput_rps; break;
-      case 'score':          av = a.score;                  bv = b.score;                  break;
-      default:               av = a.rank;                   bv = b.rank;
+      case 'rank':           av = a.rank;                                   bv = b.rank;                                   break;
+      case 'latency_p50':    av = a.metrics.latency_p50;                    bv = b.metrics.latency_p50;                    break;
+      case 'latency_p95':    av = a.metrics.latency_p95;                    bv = b.metrics.latency_p95;                    break;
+      case 'latency_p99':    av = a.metrics.latency_p99;                    bv = b.metrics.latency_p99;                    break;
+      case 'uptime_percent': av = a.metrics.uptime_percent;                 bv = b.metrics.uptime_percent;                 break;
+      case 'error_rate':     av = a.metrics.error_rate;                     bv = b.metrics.error_rate;                     break;
+      case 'throughput_rps': av = a.metrics.throughput_rps;                 bv = b.metrics.throughput_rps;                 break;
+      case 'score':          av = a.score;                                  bv = b.score;                                  break;
+      case 'jitter':         av = a.metrics.latency_p99 - a.metrics.latency_p50; bv = b.metrics.latency_p99 - b.metrics.latency_p50; break;
+      case 'cost':           av = a.pricing.cost_per_million;               bv = b.pricing.cost_per_million;               break;
+      case 'value_score':    av = valueScore(a);                            bv = valueScore(b);                            break;
+      default:               av = a.rank;                                   bv = b.rank;
     }
     return sortDir === 'asc' ? av - bv : bv - av;
   });
 
-  const leader = providers.reduce(
+  const leader  = providers.reduce(
     (best, p) => p.metrics.latency_p50 < best.metrics.latency_p50 ? p : best,
     providers[0]
   );
-  const maxP50 = Math.max(...providers.map(p => p.metrics.latency_p50), 1);
+  const maxP50  = Math.max(...providers.map(p => p.metrics.latency_p50), 1);
 
   // Decision badges
   const rankOne    = providers.find(p => p.rank === 1);
   const byP50      = [...providers].sort((a, b) => a.metrics.latency_p50 - b.metrics.latency_p50);
   const byRps      = [...providers].sort((a, b) => b.metrics.throughput_rps - a.metrics.throughput_rps);
+  const byJitter   = [...providers].sort((a, b) =>
+    (a.metrics.latency_p99 - a.metrics.latency_p50) - (b.metrics.latency_p99 - b.metrics.latency_p50));
   const frees      = providers.filter(p => p.pricing.cost_per_million === 0);
   const bestFreeId = frees.length > 0 ? frees.reduce((a, b) => a.score > b.score ? a : b).id : null;
 
@@ -179,6 +199,10 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
   if (byRps[0] && byRps[0].id !== rankOne?.id) {
     const id = byRps[0].id;
     decisionBadges[id] = [...(decisionBadges[id] ?? []), { text: 'Throughput', className: BADGE_STYLES['Throughput'] }];
+  }
+  if (byJitter[0] && byJitter[0].id !== rankOne?.id && byJitter[0].id !== byP50[0]?.id) {
+    const id = byJitter[0].id;
+    decisionBadges[id] = [...(decisionBadges[id] ?? []), { text: 'Most Stable', className: BADGE_STYLES['Most Stable'] }];
   }
   if (bestFreeId) {
     const id = bestFreeId;
@@ -199,7 +223,10 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
         className={`py-3 px-3 text-${align} text-[10px] uppercase tracking-widest text-muted-foreground/55 font-semibold cursor-pointer select-none hover:text-muted-foreground transition-colors duration-150 whitespace-nowrap`}
         onClick={() => handleSort(col)}
       >
-        {label}<SortIcon col={col} />
+        <span className="inline-flex items-center gap-0.5">
+          {label}<SortIcon col={col} />
+          {title && <Info className="h-2.5 w-2.5 opacity-25 ml-0.5 cursor-help" />}
+        </span>
       </th>
     );
   }
@@ -237,28 +264,36 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
             </button>
           ))}
         </div>
-        <span className="text-xs text-muted-foreground/45 font-mono">
-          {filtered.length} of {providers.length}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="hidden sm:block text-[10px] text-muted-foreground/40 font-mono">
+            Jitter = P99−P50 · Value = score per $1/M
+          </span>
+          <span className="text-xs text-muted-foreground/45 font-mono">
+            {filtered.length} of {providers.length}
+          </span>
+        </div>
       </div>
 
       {/* Table */}
-      <div className="overflow-auto max-h-[560px]">
+      <div className="overflow-auto max-h-[600px]">
         <table className="w-full text-xs">
           <thead className="sticky top-0 z-10 bg-card border-b border-border/45 shadow-sm">
             <tr>
-              <Th col="rank"           label="Rank"   align="left"  title="Overall rank by composite score" />
+              <Th col="rank"           label="Rank"    align="left"  title="Overall rank by composite score" />
               <th className="py-3 px-3 text-left text-[10px] uppercase tracking-widest text-muted-foreground/55 font-semibold whitespace-nowrap">Type</th>
               <th className="py-3 px-3 text-left text-[10px] uppercase tracking-widest text-muted-foreground/55 font-semibold whitespace-nowrap">Provider</th>
-              <Th col="latency_p50"    label="P50"    title="Median latency (50th percentile)" />
+              <Th col="latency_p50"    label="P50"     title="Median latency — 50th percentile response time" />
               <th className="py-3 px-3 text-right text-[10px] uppercase tracking-widest text-muted-foreground/55 font-semibold whitespace-nowrap">Δ vs #1</th>
-              <Th col="latency_p95"    label="P95"    title="95th percentile latency" />
-              <Th col="latency_p99"    label="P99"    title="99th percentile latency (tail)" />
-              <Th col="uptime_percent" label="Uptime" title="Measured availability %" />
-              <Th col="error_rate"     label="Err%"   title="Error rate across measurement window" />
-              <Th col="throughput_rps" label="RPS"    title="Max requests per second" />
+              <Th col="latency_p95"    label="P95"     title="95th percentile latency" />
+              <Th col="latency_p99"    label="P99"     title="Tail latency — worst 1% of requests" />
+              <Th col="jitter"         label="Jitter"  title="P99−P50: smaller = more consistent response times" />
+              <Th col="uptime_percent" label="Uptime"  title="Measured availability across benchmark window" />
+              <Th col="error_rate"     label="Err%"    title="Error rate: % of requests that failed" />
+              <Th col="throughput_rps" label="RPS"     title="Peak throughput in concurrent requests/sec" />
               <th className="py-3 px-3 text-right text-[10px] uppercase tracking-widest text-muted-foreground/55 font-semibold whitespace-nowrap">Slot</th>
-              <Th col="score"          label="Score"  title="Composite: latency 35% + uptime 35% + throughput 30%" />
+              <Th col="cost"           label="$/M"     title="Cost per million API requests (USD) · 0 = free" />
+              <Th col="value_score"    label="Value"   title="Score per $1/M cost — higher = more value for money. Free providers rank highest." />
+              <Th col="score"          label="Score"   title="Composite score: latency 35% + uptime 35% + throughput 30%" />
             </tr>
           </thead>
           <tbody>
@@ -268,6 +303,8 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
               const isTopThree = p.rank <= 3;
               const isUs       = p.is_us;
               const badges     = decisionBadges[p.id] ?? [];
+              const jitter     = p.metrics.latency_p99 - p.metrics.latency_p50;
+              const vs         = valueScore(p);
 
               return (
                 <tr
@@ -357,6 +394,11 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
                     {p.metrics.latency_p99}ms
                   </td>
 
+                  {/* Jitter (P99 - P50) */}
+                  <td className={`py-3 px-3 text-right font-mono tabular-nums font-semibold ${jitterColor(jitter)}`}>
+                    {jitter}ms
+                  </td>
+
                   {/* Uptime */}
                   <td className={`py-3 px-3 text-right font-mono tabular-nums font-semibold ${uptimeColor(p.metrics.uptime_percent)}`}>
                     {p.metrics.uptime_percent.toFixed(1)}%
@@ -377,6 +419,22 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
                     {formatSlot(p.metrics.slot_height)}
                   </td>
 
+                  {/* Cost/M */}
+                  <td className="py-3 px-3 text-right font-mono tabular-nums">
+                    {p.pricing.cost_per_million === 0
+                      ? <span className="text-chart-2 font-semibold">Free</span>
+                      : <span className="text-foreground/75">${p.pricing.cost_per_million}</span>
+                    }
+                  </td>
+
+                  {/* Value score */}
+                  <td className="py-3 px-3 text-right font-mono tabular-nums">
+                    {p.pricing.cost_per_million === 0
+                      ? <span className="text-chart-2 font-bold">∞</span>
+                      : <span className="text-foreground/75 font-semibold">{Math.round(vs)}</span>
+                    }
+                  </td>
+
                   {/* Score bar */}
                   <td className="py-3 px-3 text-right">
                     <ScoreBar score={p.score} />
@@ -386,6 +444,25 @@ export function SolanaLeaderboardTable({ providers, onSelect }: Props) {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Legend */}
+      <div className="px-4 py-2.5 border-t border-border/20 flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
+          {[
+            { color: 'text-chart-2',     label: '< 50ms or ≥ 99.5%' },
+            { color: 'text-chart-3',     label: '50–150ms or 98–99.5%' },
+            { color: 'text-destructive', label: '> 150ms or < 98%' },
+          ].map(({ color, label }) => (
+            <span key={label} className="flex items-center gap-1">
+              <span className={`text-xs font-bold ${color}`}>■</span>
+              <span className="text-[10px] text-muted-foreground/50">{label}</span>
+            </span>
+          ))}
+        </div>
+        <span className="ml-auto text-[10px] text-muted-foreground/35 font-mono hidden md:block">
+          Jitter = P99−P50 · Value = score÷($/M) · ★ US = GoldRush
+        </span>
       </div>
     </div>
   );
