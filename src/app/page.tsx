@@ -11,7 +11,6 @@ import {
   ExternalLink,
   AlertCircle,
   BarChart2,
-  Activity,
   Radar,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -76,9 +75,7 @@ function getWinnerInsights(winner: SolanaProvider, all: SolanaProvider[]): strin
   } else if (byRps[0]?.id === winner.id) {
     insights.push(`${winner.metrics.throughput_rps} req/s peak — highest throughput in benchmark`);
   } else {
-    insights.push(
-      `Score ${winner.score.toFixed(1)}/100 — strongest balance of latency, uptime & throughput`
-    );
+    insights.push(`Score ${winner.score.toFixed(1)}/100 — strongest balance of latency, uptime & throughput`);
   }
 
   return insights;
@@ -118,34 +115,36 @@ function HeroWinnerCard({
 
           {/* Left: identity + why */}
           <div className="space-y-5 flex-1 min-w-0">
+            {/* Badges */}
             <div className="flex items-center gap-2 flex-wrap">
-              <Badge className="h-5 px-2 text-[9px] font-bold uppercase tracking-wider border border-accent/35 bg-accent/10 text-accent rounded">
+              <Badge className="h-6 px-2.5 text-[10px] font-bold uppercase tracking-wider border border-accent/35 bg-accent/10 text-accent rounded">
                 #1 Overall
               </Badge>
-              <Badge variant="outline" className="h-5 px-2 text-[9px] text-muted-foreground/55 border-border/50 rounded">
+              <Badge variant="outline" className="h-6 px-2.5 text-[10px] text-muted-foreground/65 border-border/50 rounded">
                 {winner.provider_type === 'json-rpc' ? 'JSON-RPC'
                   : winner.provider_type === 'rest-api' ? 'REST API' : 'Data API'}
               </Badge>
               {winner.is_us && (
-                <Badge className="h-5 px-2 text-[9px] font-medium border border-accent/25 bg-accent/8 text-accent/80 rounded">
+                <Badge className="h-6 px-2.5 text-[10px] font-medium border border-accent/25 bg-accent/8 text-accent/80 rounded">
                   ★ US
                 </Badge>
               )}
               {winner.is_mock && (
-                <Badge variant="outline" className="h-5 px-2 text-[9px] text-chart-3/80 border-chart-3/30 rounded">
+                <Badge variant="outline" className="h-6 px-2.5 text-[10px] text-chart-3/80 border-chart-3/30 rounded">
                   simulated
                 </Badge>
               )}
             </div>
 
+            {/* Provider name */}
             <div>
-              <h2 className="text-[32px] font-bold tracking-tight leading-none">{winner.name}</h2>
+              <h2 className="text-[36px] font-bold tracking-tight leading-none">{winner.name}</h2>
               {winner.website_url && (
                 <a
                   href={winner.website_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-muted-foreground/40 hover:text-accent transition-colors duration-150 mt-1.5"
+                  className="inline-flex items-center gap-1 text-xs text-muted-foreground/55 hover:text-accent transition-colors duration-150 mt-2"
                 >
                   {winner.website_url.replace(/^https?:\/\//, '')}
                   <ExternalLink className="h-3 w-3" />
@@ -153,25 +152,27 @@ function HeroWinnerCard({
               )}
             </div>
 
-            <div className="space-y-2.5">
-              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/40 font-semibold">
+            {/* Why #1 */}
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-widest text-muted-foreground/55 font-semibold">
                 Why it&apos;s #1
               </p>
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {insights.map((insight, i) => (
-                  <li key={i} className="flex items-start gap-2.5 text-[13px] text-foreground/70 leading-snug">
-                    <span className="mt-[5px] h-1.5 w-1.5 rounded-full bg-accent/50 shrink-0" />
+                  <li key={i} className="flex items-start gap-3 text-sm text-foreground/80 leading-snug">
+                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-accent/60 shrink-0" />
                     {insight}
                   </li>
                 ))}
               </ul>
             </div>
 
+            {/* Live status */}
             <div>
               {winner.is_mock ? (
-                <span className="text-xs text-muted-foreground/40">⚠ Simulated — add API key for live data</span>
+                <span className="text-sm text-muted-foreground/50">⚠ Simulated — add API key for live data</span>
               ) : (
-                <span className="flex items-center gap-2 text-xs text-success/75">
+                <span className="flex items-center gap-2 text-sm text-success/80">
                   <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
                   Live measurements · real API calls
                 </span>
@@ -180,34 +181,34 @@ function HeroWinnerCard({
           </div>
 
           {/* Right: giant P50 + score */}
-          <div className="shrink-0 space-y-6 lg:min-w-[220px]">
+          <div className="shrink-0 space-y-6 lg:min-w-[230px]">
             <div>
               <div className="tabular-nums leading-none">
-                <span className="text-[72px] font-bold text-accent tracking-tight">
+                <span className="text-[80px] font-bold text-accent tracking-tight">
                   {winner.metrics.latency_p50}
                 </span>
-                <span className="text-3xl font-light text-accent/35 ml-2">ms</span>
+                <span className="text-4xl font-light text-accent/35 ml-2">ms</span>
               </div>
-              <p className="text-[10px] text-muted-foreground/45 uppercase tracking-widest mt-2">
+              <p className="text-xs text-muted-foreground/60 uppercase tracking-widest mt-2">
                 P50 Median Latency
               </p>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground/50">Composite score</span>
-                <span className="text-sm font-bold font-mono tabular-nums">
+                <span className="text-sm text-muted-foreground/65">Composite score</span>
+                <span className="text-base font-bold font-mono tabular-nums">
                   {winner.score.toFixed(1)}
-                  <span className="text-muted-foreground/35 font-normal text-xs"> / 100</span>
+                  <span className="text-muted-foreground/45 font-normal text-sm"> / 100</span>
                 </span>
               </div>
-              <div className="h-2 bg-muted/35 rounded-full overflow-hidden">
+              <div className="h-2.5 bg-muted/35 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full bg-accent transition-all duration-700"
                   style={{ width: `${winner.score}%` }}
                 />
               </div>
-              <div className="flex justify-between text-[9px] text-muted-foreground/28">
+              <div className="flex justify-between text-[10px] text-muted-foreground/45">
                 <span>0</span>
                 <span>latency 35% · uptime 35% · throughput 30%</span>
                 <span>100</span>
@@ -223,15 +224,15 @@ function HeroWinnerCard({
           { label: 'P95 Latency', value: `${winner.metrics.latency_p95}ms`, sub: '95th percentile', color: 'text-chart-3' },
           { label: 'P99 Latency', value: `${winner.metrics.latency_p99}ms`, sub: 'tail latency',    color: 'text-destructive/80' },
           { label: 'Uptime',      value: `${winner.metrics.uptime_percent.toFixed(2)}%`, sub: 'measured availability', color: 'text-chart-2' },
-          { label: 'Throughput',  value: `${winner.metrics.throughput_rps} req/s`, sub: 'peak concurrent', color: 'text-foreground/75' },
+          { label: 'Throughput',  value: `${winner.metrics.throughput_rps} req/s`, sub: 'peak concurrent', color: 'text-foreground/80' },
         ].map((s, i) => (
           <div
             key={s.label}
-            className={`px-5 py-4 space-y-1 bg-muted/[0.012] ${i > 0 ? 'border-l border-accent/8' : ''}`}
+            className={`px-5 py-4 space-y-1.5 bg-muted/[0.015] ${i > 0 ? 'border-l border-accent/8' : ''}`}
           >
-            <div className="text-[9px] font-medium uppercase tracking-widest text-muted-foreground/40">{s.label}</div>
-            <div className={`text-sm font-bold font-mono tabular-nums ${s.color}`}>{s.value}</div>
-            <div className="text-[9px] text-muted-foreground/30">{s.sub}</div>
+            <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground/50">{s.label}</div>
+            <div className={`text-base font-bold font-mono tabular-nums ${s.color}`}>{s.value}</div>
+            <div className="text-[10px] text-muted-foreground/45">{s.sub}</div>
           </div>
         ))}
       </div>
@@ -249,18 +250,18 @@ function QuickCard({
   return (
     <div className="rounded-lg border border-border bg-card px-4 py-4 space-y-3 hover:border-border/60 hover:shadow-sm transition-all duration-200">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/45">
-          <span className="text-accent/55">{icon}</span>
+        <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/55">
+          <span className="text-accent/65">{icon}</span>
           {label}
         </div>
-        <span className="text-[8px] font-bold uppercase tracking-wide text-muted-foreground/30 bg-muted/35 px-1.5 py-0.5 rounded-sm">
+        <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground/45 bg-muted/40 px-1.5 py-0.5 rounded-sm">
           {badge}
         </span>
       </div>
       <div>
-        <div className="text-sm font-semibold text-foreground leading-snug">{name}</div>
-        <div className="text-xs font-mono tabular-nums text-accent mt-1">{metric}</div>
-        {isMock && <div className="text-[9px] text-muted-foreground/30 mt-0.5">simulated data</div>}
+        <div className="text-base font-bold text-foreground leading-snug">{name}</div>
+        <div className="text-sm font-mono tabular-nums text-accent mt-1 font-semibold">{metric}</div>
+        {isMock && <div className="text-[10px] text-muted-foreground/40 mt-0.5">simulated data</div>}
       </div>
     </div>
   );
@@ -289,39 +290,39 @@ function BenchmarkCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden flex flex-col hover:border-border/70 transition-colors duration-200 group">
+    <div className="rounded-xl border border-border bg-card overflow-hidden flex flex-col hover:border-border/70 transition-colors duration-200">
       {/* Colored accent top bar */}
       <div className="h-[3px] shrink-0" style={{ backgroundColor: accentColor }} />
 
       {/* Card header */}
-      <div className="px-5 pt-4 pb-3.5 border-b border-border/30 flex items-start justify-between gap-4 shrink-0">
+      <div className="px-5 pt-4 pb-4 border-b border-border/30 flex items-start justify-between gap-4 shrink-0">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <div className="flex items-center gap-2 text-base font-bold text-foreground">
             <span style={{ color: accentColor }}>{icon}</span>
             {title}
           </div>
-          <p className="text-[10px] text-muted-foreground/40 mt-0.5 leading-relaxed">{description}</p>
+          <p className="text-xs text-muted-foreground/55 mt-1 leading-relaxed">{description}</p>
         </div>
         {statValue && (
           <div className="text-right shrink-0">
             {statLabel && (
-              <div className="text-[9px] text-muted-foreground/40 uppercase tracking-wide mb-0.5">{statLabel}</div>
+              <div className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-wide mb-0.5">{statLabel}</div>
             )}
             <div
-              className="text-base font-bold font-mono tabular-nums"
+              className="text-xl font-bold font-mono tabular-nums"
               style={{ color: statColor ?? accentColor }}
             >
               {statValue}
             </div>
             {statSub && (
-              <div className="text-[9px] text-muted-foreground/40 mt-0.5 max-w-[100px] truncate">{statSub}</div>
+              <div className="text-xs text-muted-foreground/50 mt-0.5 max-w-[110px] truncate">{statSub}</div>
             )}
           </div>
         )}
       </div>
 
       {/* Chart body */}
-      <div className="px-5 py-4 flex-1 min-h-0">
+      <div className="px-5 py-5 flex-1 min-h-0">
         {children}
       </div>
     </div>
@@ -397,20 +398,20 @@ export default function Home() {
           <div className="flex items-center gap-2.5">
             <span className="text-sm font-bold tracking-tight text-foreground">benchmarked</span>
             <span className="text-border/80 select-none hidden sm:inline">/</span>
-            <span className="text-sm text-muted-foreground/65 hidden sm:inline">Solana RPC</span>
+            <span className="text-sm text-muted-foreground/70 hidden sm:inline">Solana RPC</span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             {data && (
-              <span className="hidden lg:block text-[10px] text-muted-foreground/30 font-mono tabular-nums">
+              <span className="hidden lg:block text-xs text-muted-foreground/45 font-mono tabular-nums">
                 next in {secsLeft}s
               </span>
             )}
             {data && mockCount > 0 && (
-              <span className="hidden md:block text-[10px] text-chart-3/55 font-mono">
+              <span className="hidden md:block text-xs text-chart-3/65 font-mono font-medium">
                 {mockCount} sim
               </span>
             )}
-            <Badge className="gap-1.5 h-6 px-2.5 text-[10px] font-medium border border-accent/35 bg-accent/8 text-accent rounded-md">
+            <Badge className="gap-1.5 h-6 px-2.5 text-[10px] font-bold border border-accent/35 bg-accent/8 text-accent rounded-md">
               <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
               <span className="hidden sm:inline">LIVE</span>
             </Badge>
@@ -419,7 +420,7 @@ export default function Home() {
               variant="outline"
               onClick={() => fetchData(true)}
               disabled={loading}
-              className="h-8 text-xs gap-1.5 border-border hover:border-accent/40 hover:text-accent transition-all duration-200"
+              className="h-8 text-xs font-semibold gap-1.5 border-border hover:border-accent/40 hover:text-accent transition-all duration-200"
             >
               {loading
                 ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -432,12 +433,12 @@ export default function Home() {
 
       {/* ── Simulated data banner ─────────────────────────────────────────── */}
       {data && mockCount > 0 && (
-        <div className="border-b border-chart-3/20 bg-chart-3/[0.05] px-4 sm:px-6 py-2.5 flex items-center gap-3">
+        <div className="border-b border-chart-3/20 bg-chart-3/[0.06] px-4 sm:px-6 py-3 flex items-center gap-3">
           <div className="h-1.5 w-1.5 rounded-full bg-chart-3 shrink-0" />
-          <span className="text-xs font-medium text-chart-3/85">
+          <span className="text-sm font-semibold text-chart-3/90">
             {mockCount} of {totalCount} providers using simulated data
           </span>
-          <span className="text-xs text-chart-3/50 hidden sm:inline">
+          <span className="text-sm text-chart-3/60 hidden sm:inline">
             — add API keys to .env for live measurements
           </span>
         </div>
@@ -447,11 +448,11 @@ export default function Home() {
 
         {/* ── Page intro ──────────────────────────────────────────────────── */}
         <div className="flex items-baseline gap-3 flex-wrap">
-          <h1 className="text-base sm:text-lg font-semibold text-foreground/85">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
             Which Solana RPC should you use?
           </h1>
           {totalCount > 0 && (
-            <span className="text-xs sm:text-sm text-muted-foreground/45">
+            <span className="text-sm text-muted-foreground/60">
               {totalCount} providers · benchmarked every 60s
               {liveCount < totalCount && ` · ${liveCount} live`}
             </span>
@@ -477,28 +478,28 @@ export default function Home() {
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
               {fastest && (
                 <QuickCard
-                  icon={<Zap className="h-3 w-3" />} badge="Fastest"
-                  label="Fastest Response" name={fastest.name}
+                  icon={<Zap className="h-3.5 w-3.5" />} badge="Fastest"
+                  label="Fastest" name={fastest.name}
                   metric={`${fastest.metrics.latency_p50}ms P50`} isMock={fastest.is_mock}
                 />
               )}
               {mostUptime && (
                 <QuickCard
-                  icon={<ShieldCheck className="h-3 w-3" />} badge="Reliable"
+                  icon={<ShieldCheck className="h-3.5 w-3.5" />} badge="Reliable"
                   label="Most Reliable" name={mostUptime.name}
                   metric={`${mostUptime.metrics.uptime_percent.toFixed(2)}% uptime`} isMock={mostUptime.is_mock}
                 />
               )}
               {mostRps && (
                 <QuickCard
-                  icon={<Gauge className="h-3 w-3" />} badge="Throughput"
+                  icon={<Gauge className="h-3.5 w-3.5" />} badge="Throughput"
                   label="Highest Throughput" name={mostRps.name}
                   metric={`${mostRps.metrics.throughput_rps} req/s`} isMock={mostRps.is_mock}
                 />
               )}
               {bestFree && (
                 <QuickCard
-                  icon={<DollarSign className="h-3 w-3" />} badge="Best Free"
+                  icon={<DollarSign className="h-3.5 w-3.5" />} badge="Best Free"
                   label="Best Free Tier" name={bestFree.name}
                   metric={
                     freeProviders.some(p => p.id === bestFree.id)
@@ -512,24 +513,24 @@ export default function Home() {
 
             {/* ── Zone 3: Benchmark Kanban ─────────────────────────────── */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/45">
+              <div className="flex items-center gap-3 mb-4">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/55">
                   Benchmark Analysis
                 </h2>
                 <div className="flex-1 h-px bg-border/30" />
-                <span className="text-[10px] text-muted-foreground/30 font-mono">
+                <span className="text-xs text-muted-foreground/45 font-mono">
                   {data.providers.length} providers
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                {/* ── Latency card ─────────────────────────────────────── */}
+                {/* Latency */}
                 <BenchmarkCard
                   accentColor="var(--color-accent)"
-                  icon={<Zap className="h-3.5 w-3.5" />}
+                  icon={<Zap className="h-4 w-4" />}
                   title="Latency"
-                  description="Ranked by P50 · P95/P99 extensions shown · Δ vs fastest annotated"
+                  description="Ranked by P50 · P95/P99 extensions · Δ vs fastest annotated right of bar"
                   statLabel="Fastest P50"
                   statValue={fastest ? `${fastest.metrics.latency_p50}ms` : '—'}
                   statSub={fastest?.name}
@@ -538,10 +539,10 @@ export default function Home() {
                   <SolanaLatencyChart providers={data.providers} />
                 </BenchmarkCard>
 
-                {/* ── Uptime card ───────────────────────────────────────── */}
+                {/* Uptime */}
                 <BenchmarkCard
                   accentColor="var(--color-chart-2)"
-                  icon={<ShieldCheck className="h-3.5 w-3.5" />}
+                  icon={<ShieldCheck className="h-4 w-4" />}
                   title="Uptime"
                   description="Availability sorted descending · Green ≥99.9% · Amber <99.9% · Red <98%"
                   statLabel="Best Uptime"
@@ -552,10 +553,10 @@ export default function Home() {
                   <SolanaUptimeIndicators providers={data.providers} />
                 </BenchmarkCard>
 
-                {/* ── Throughput card ───────────────────────────────────── */}
+                {/* Throughput */}
                 <BenchmarkCard
                   accentColor="var(--color-accent)"
-                  icon={<Gauge className="h-3.5 w-3.5" />}
+                  icon={<Gauge className="h-4 w-4" />}
                   title="Throughput"
                   description="Peak req/s sorted descending · Multiplier vs benchmark median annotated"
                   statLabel="Peak RPS"
@@ -566,10 +567,10 @@ export default function Home() {
                   <SolanaThroughputChart providers={data.providers} />
                 </BenchmarkCard>
 
-                {/* ── Radar card ────────────────────────────────────────── */}
+                {/* Radar */}
                 <BenchmarkCard
                   accentColor="var(--color-chart-5)"
-                  icon={<Radar className="h-3.5 w-3.5" />}
+                  icon={<Radar className="h-4 w-4" />}
                   title="Multi-Axis Overview"
                   description="Speed · Uptime · Throughput · Reliability · Coverage — normalized to 100"
                   statLabel="Leader score"
@@ -586,17 +587,17 @@ export default function Home() {
             {/* ── Zone 4: Comparison Table ──────────────────────────────── */}
             <div className="rounded-xl border border-border overflow-hidden">
               <div className="border-b border-border bg-card px-4 sm:px-6 py-4 flex items-start justify-between gap-4">
-                <div className="space-y-0.5">
-                  <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                    <BarChart2 className="h-3.5 w-3.5 text-muted-foreground/45" />
+                <div className="space-y-1">
+                  <h2 className="flex items-center gap-2 text-base font-bold text-foreground">
+                    <BarChart2 className="h-4 w-4 text-muted-foreground/55" />
                     Provider Comparison
                   </h2>
-                  <p className="text-xs text-muted-foreground/45">
-                    Sort any column · click a row for full details
+                  <p className="text-sm text-muted-foreground/55">
+                    Sort any column · click a row for full provider details
                     {errorCount > 0 && ` · ${errorCount} provider${errorCount !== 1 ? 's' : ''} had errors`}
                   </p>
                 </div>
-                <span className="text-[10px] font-mono text-muted-foreground/30 tabular-nums shrink-0">
+                <span className="text-xs font-mono text-muted-foreground/45 tabular-nums shrink-0">
                   {data.providers.length} providers
                 </span>
               </div>
@@ -608,11 +609,11 @@ export default function Home() {
 
             {/* ── Footnote ──────────────────────────────────────────────── */}
             <div className="border-t border-border/20 pt-5 pb-4 space-y-1.5 text-center">
-              <p className="text-[10px] text-muted-foreground/30">
+              <p className="text-xs text-muted-foreground/45">
                 Score = latency 35% + uptime 35% + throughput 30%
                 {' · '}latency cap 1000ms · throughput cap 500 req/s
               </p>
-              <p className="text-[10px] text-muted-foreground/25">
+              <p className="text-xs text-muted-foreground/35">
                 JSON-RPC via <code className="font-mono">getSlot</code>
                 {' · '}REST/Data APIs via primary endpoint
                 {' · '}(sim) = simulated · add API key for live

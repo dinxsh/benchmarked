@@ -72,17 +72,17 @@ export function SolanaScoreComparison({ providers }: Props) {
         className="grid gap-2 items-center pb-2 border-b border-border/30"
         style={{ gridTemplateColumns: '130px repeat(5, 1fr) 52px' }}
       >
-        <div className="text-[9px] uppercase tracking-widest text-muted-foreground/40 font-semibold">Provider</div>
+        <div className="text-[10px] uppercase tracking-widest text-muted-foreground/50 font-semibold">Provider</div>
         {DIMENSIONS.map(d => (
           <div
             key={d.key}
             title={d.description}
-            className="text-[9px] uppercase tracking-widest text-muted-foreground/50 text-center font-medium cursor-help"
+            className="text-[10px] uppercase tracking-widest text-muted-foreground/60 text-center font-semibold cursor-help"
           >
             {d.label}
           </div>
         ))}
-        <div className="text-[9px] uppercase tracking-widest text-muted-foreground/40 text-right font-semibold">Total</div>
+        <div className="text-[10px] uppercase tracking-widest text-muted-foreground/50 text-right font-semibold">Total</div>
       </div>
 
       {/* Provider rows */}
@@ -95,11 +95,11 @@ export function SolanaScoreComparison({ providers }: Props) {
           >
             {/* Provider name */}
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-[9px] font-mono text-muted-foreground/35 tabular-nums w-4 shrink-0">
+              <span className="text-[10px] font-mono text-muted-foreground/45 tabular-nums w-4 shrink-0">
                 #{p.rank}
               </span>
               <span
-                className={`text-[11px] font-medium truncate ${p.is_us ? 'text-accent' : 'text-foreground/85'}`}
+                className={`text-xs font-semibold truncate ${p.is_us ? 'text-accent' : 'text-foreground/90'}`}
                 title={p.name}
               >
                 {p.name}
@@ -119,7 +119,7 @@ export function SolanaScoreComparison({ providers }: Props) {
                       style={{ width: `${relWidth}%`, backgroundColor: color }}
                     />
                   </div>
-                  <div className="text-[9px] font-mono tabular-nums text-muted-foreground/45 text-center leading-none">
+                  <div className="text-[10px] font-mono tabular-nums text-muted-foreground/55 text-center leading-none font-medium">
                     {score}
                   </div>
                 </div>
@@ -129,7 +129,7 @@ export function SolanaScoreComparison({ providers }: Props) {
             {/* Total composite score */}
             <div className="text-right">
               <span
-                className={`text-[11px] font-bold font-mono tabular-nums ${
+                className={`text-sm font-bold font-mono tabular-nums ${
                   p.score >= 85 ? 'text-accent' : p.score >= 70 ? 'text-chart-3' : 'text-destructive/80'
                 }`}
               >
@@ -154,7 +154,7 @@ export function SolanaScoreComparison({ providers }: Props) {
               className="h-[4px] w-4 rounded-full"
               style={{ backgroundColor: item.color }}
             />
-            <span className="text-[9px] text-muted-foreground/45">{item.label}</span>
+            <span className="text-[10px] text-muted-foreground/55">{item.label}</span>
           </div>
         ))}
       </div>

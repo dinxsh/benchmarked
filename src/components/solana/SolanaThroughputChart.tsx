@@ -22,8 +22,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   const rps = payload[0]?.value ?? 0;
   return (
-    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-lg px-3.5 py-3 text-xs shadow-lg min-w-[140px]">
-      <p className="text-[10px] font-semibold text-foreground mb-2">{label}</p>
+    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-lg px-3.5 py-3 text-xs shadow-lg min-w-[148px]">
+      <p className="text-xs font-semibold text-foreground mb-2">{label}</p>
       <div className="flex items-center justify-between gap-4">
         <span className="text-muted-foreground">Throughput</span>
         <span className="font-mono tabular-nums font-medium text-accent">{rps} req/s</span>
@@ -66,7 +66,7 @@ export function SolanaThroughputChart({ providers }: Props) {
         />
         <XAxis
           type="number"
-          tick={{ fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 12, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
           axisLine={false}
           tickLine={false}
           unit=" rps"
@@ -76,10 +76,10 @@ export function SolanaThroughputChart({ providers }: Props) {
         <YAxis
           type="category"
           dataKey="name"
-          tick={{ fontSize: 10, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 12, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           axisLine={false}
           tickLine={false}
-          width={86}
+          width={90}
         />
         <Tooltip
           content={<CustomTooltip />}
@@ -131,10 +131,10 @@ export function SolanaThroughputChart({ providers }: Props) {
                 <text
                   x={cx} y={cy}
                   fill={ratio >= 1 ? 'var(--color-accent)' : 'var(--color-muted-foreground)'}
-                  fontSize={9}
+                  fontSize={11}
                   fontFamily="var(--font-mono)"
                   dominantBaseline="central"
-                  opacity={ratio >= 1 ? 0.65 : 0.45}
+                  opacity={ratio >= 1 ? 0.80 : 0.60}
                 >
                   {label}
                 </text>

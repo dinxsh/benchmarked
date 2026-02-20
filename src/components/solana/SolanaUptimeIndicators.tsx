@@ -7,10 +7,10 @@ interface Props {
 }
 
 function UptimeTier({ pct }: { pct: number }) {
-  if (pct >= 99.9) return <span className="text-[9px] font-mono text-success/80 bg-success/10 px-1.5 py-0.5 rounded">99.9%+</span>;
-  if (pct >= 99.5) return <span className="text-[9px] font-mono text-accent/80 bg-accent/10 px-1.5 py-0.5 rounded">≥99.5%</span>;
-  if (pct >= 98)   return <span className="text-[9px] font-mono text-chart-3/80 bg-chart-3/10 px-1.5 py-0.5 rounded">≥98%</span>;
-  return <span className="text-[9px] font-mono text-destructive/80 bg-destructive/10 px-1.5 py-0.5 rounded">&lt;98%</span>;
+  if (pct >= 99.9) return <span className="text-[10px] font-mono text-success/80 bg-success/10 px-1.5 py-0.5 rounded">99.9%+</span>;
+  if (pct >= 99.5) return <span className="text-[10px] font-mono text-accent/80 bg-accent/10 px-1.5 py-0.5 rounded">≥99.5%</span>;
+  if (pct >= 98)   return <span className="text-[10px] font-mono text-chart-3/80 bg-chart-3/10 px-1.5 py-0.5 rounded">≥98%</span>;
+  return <span className="text-[10px] font-mono text-destructive/80 bg-destructive/10 px-1.5 py-0.5 rounded">&lt;98%</span>;
 }
 
 export function SolanaUptimeIndicators({ providers }: Props) {
@@ -38,24 +38,24 @@ export function SolanaUptimeIndicators({ providers }: Props) {
           <div key={p.id} className="group space-y-1.5">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-[10px] font-mono text-muted-foreground/40 tabular-nums w-4 shrink-0 select-none">
+                <span className="text-xs font-mono text-muted-foreground/50 tabular-nums w-4 shrink-0 select-none">
                   {i + 1}
                 </span>
                 <span
-                  className={`text-[11px] font-medium truncate transition-colors ${
+                  className={`text-sm font-semibold truncate transition-colors ${
                     p.is_us ? 'text-accent' : 'text-foreground'
                   }`}
                 >
                   {p.name}
                 </span>
                 {p.is_mock && (
-                  <span className="text-[9px] text-muted-foreground/35 shrink-0">(sim)</span>
+                  <span className="text-xs text-muted-foreground/45 shrink-0">(sim)</span>
                 )}
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
                 <UptimeTier pct={pct} />
-                <span className={`text-[11px] font-mono tabular-nums font-semibold ${textClass}`}>
+                <span className={`text-sm font-mono tabular-nums font-bold ${textClass}`}>
                   {pct.toFixed(2)}%
                 </span>
               </div>
@@ -79,7 +79,7 @@ export function SolanaUptimeIndicators({ providers }: Props) {
 
             {/* Error rate context */}
             {p.metrics.error_rate > 0 && (
-              <p className="text-[9px] text-muted-foreground/40 font-mono">
+              <p className="text-xs text-muted-foreground/50 font-mono">
                 {p.metrics.error_rate.toFixed(1)}% error rate
               </p>
             )}
@@ -89,10 +89,10 @@ export function SolanaUptimeIndicators({ providers }: Props) {
 
       {/* Scale legend */}
       <div className="flex items-center justify-between pt-1 border-t border-border/30">
-        <span className="text-[9px] text-muted-foreground/40">98%</span>
-        <span className="text-[9px] text-muted-foreground/40">99%</span>
-        <span className="text-[9px] text-muted-foreground/40">99.5%</span>
-        <span className="text-[9px] text-muted-foreground/40">100%</span>
+        <span className="text-[10px] text-muted-foreground/50">98%</span>
+        <span className="text-[10px] text-muted-foreground/50">99%</span>
+        <span className="text-[10px] text-muted-foreground/50">99.5%</span>
+        <span className="text-[10px] text-muted-foreground/50">100%</span>
       </div>
     </div>
   );

@@ -27,8 +27,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   const p99Val     = p95Val + p99Delta;
 
   return (
-    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-lg px-3.5 py-3 text-xs shadow-lg min-w-[148px]">
-      <p className="text-[10px] font-semibold text-foreground mb-2.5 pb-2 border-b border-border/40">{label}</p>
+    <div className="border border-border/60 bg-card/95 backdrop-blur-sm rounded-lg px-3.5 py-3 text-xs shadow-lg min-w-[156px]">
+      <p className="text-xs font-semibold text-foreground mb-2.5 pb-2 border-b border-border/40">{label}</p>
       <div className="space-y-1.5">
         {[
           { label: 'P50', value: p50Val,  color: 'var(--color-accent)' },
@@ -62,7 +62,7 @@ const LegendRenderer = ({ payload }: any) => {
       {payload.map((entry: any) => (
         <div key={entry.dataKey} className="flex items-center gap-1.5">
           <span className="h-2 w-3 rounded-sm inline-block" style={{ backgroundColor: entry.color }} />
-          <span className="text-[10px] font-sans text-muted-foreground/60">
+          <span className="text-xs font-sans text-muted-foreground/70">
             {labels[entry.dataKey] ?? entry.value}
           </span>
         </div>
@@ -103,7 +103,7 @@ export function SolanaLatencyChart({ providers }: Props) {
         />
         <XAxis
           type="number"
-          tick={{ fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 12, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
           axisLine={false}
           tickLine={false}
           unit="ms"
@@ -112,10 +112,10 @@ export function SolanaLatencyChart({ providers }: Props) {
         <YAxis
           type="category"
           dataKey="name"
-          tick={{ fontSize: 10, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
+          tick={{ fontSize: 12, fontFamily: 'var(--font-sans)', fill: 'var(--color-muted-foreground)' }}
           axisLine={false}
           tickLine={false}
-          width={86}
+          width={90}
         />
         <Tooltip
           content={<CustomTooltip />}
@@ -179,9 +179,9 @@ export function SolanaLatencyChart({ providers }: Props) {
                 return (
                   <text
                     x={cx} y={cy}
-                    fill="var(--color-accent)" fontSize={9}
+                    fill="var(--color-accent)" fontSize={11}
                     fontFamily="var(--font-mono)"
-                    dominantBaseline="central" opacity={0.65}
+                    dominantBaseline="central" opacity={0.80}
                   >
                     #1
                   </text>
@@ -190,9 +190,9 @@ export function SolanaLatencyChart({ providers }: Props) {
               return (
                 <text
                   x={cx} y={cy}
-                  fill="var(--color-muted-foreground)" fontSize={9}
+                  fill="var(--color-muted-foreground)" fontSize={11}
                   fontFamily="var(--font-mono)"
-                  dominantBaseline="central" opacity={0.50}
+                  dominantBaseline="central" opacity={0.65}
                 >
                   +{value}ms
                 </text>

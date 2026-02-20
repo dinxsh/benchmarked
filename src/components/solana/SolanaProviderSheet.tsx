@@ -21,15 +21,15 @@ interface Props {
 function MetricChip({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <div className="flex flex-col items-center gap-0.5 border border-border/50 rounded-md px-3 py-2 min-w-[72px]">
-      <span className="text-[9px] font-sans text-muted-foreground/70">{label}</span>
-      <span className={`text-[13px] font-mono font-bold tabular-nums ${color ?? 'text-foreground'}`}>{value}</span>
+      <span className="text-[10px] font-sans text-muted-foreground/70">{label}</span>
+      <span className={`text-sm font-mono font-bold tabular-nums ${color ?? 'text-foreground'}`}>{value}</span>
     </div>
   );
 }
 
 function CapBool({ label, value }: { label: string; value: boolean }) {
   return (
-    <div className="flex items-center gap-1.5 text-[11px] font-sans">
+    <div className="flex items-center gap-1.5 text-sm font-sans">
       <span className={value ? 'text-accent' : 'text-muted-foreground/40'}>{value ? '✓' : '✗'}</span>
       <span className={value ? 'text-foreground' : 'text-muted-foreground/60'}>{label}</span>
     </div>
@@ -108,11 +108,11 @@ export function SolanaProviderSheet({ provider: p, open, onClose, providers }: P
                 <SheetTitle className={`text-sm font-sans font-semibold ${p.is_us ? 'text-accent' : 'text-foreground'}`}>
                   {p.is_us && <span className="mr-1">★</span>}{p.name}
                 </SheetTitle>
-                <Badge variant="outline" className={`text-[9px] font-sans px-1.5 h-4 border ${TYPE_COLORS[p.provider_type]}`}>
+                <Badge variant="outline" className={`text-[10px] font-sans px-1.5 h-5 border ${TYPE_COLORS[p.provider_type]}`}>
                   {TYPE_LABELS[p.provider_type]}
                 </Badge>
                 {p.is_mock && (
-                  <Badge variant="outline" className="text-[9px] font-sans px-1.5 h-4 border-muted-foreground/30 text-muted-foreground/50">
+                  <Badge variant="outline" className="text-[10px] font-sans px-1.5 h-5 border-muted-foreground/30 text-muted-foreground/50">
                     simulated
                   </Badge>
                 )}
@@ -121,7 +121,7 @@ export function SolanaProviderSheet({ provider: p, open, onClose, providers }: P
                 href={p.website_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-[10px] font-sans text-muted-foreground hover:text-accent transition-colors"
+                className="flex items-center gap-1 text-xs font-sans text-muted-foreground hover:text-accent transition-colors"
               >
                 {p.website_url.replace(/^https?:\/\//, '')}
                 <ExternalLink className="h-2.5 w-2.5" />
@@ -134,7 +134,7 @@ export function SolanaProviderSheet({ provider: p, open, onClose, providers }: P
                   <div style={{ width: `${(components.uptime / totalComponent) * 100}%` }} className="bg-chart-5" />
                   <div style={{ width: `${(components.throughput / totalComponent) * 100}%` }} className="bg-chart-2" />
                 </div>
-                <div className="flex items-center gap-3 text-[8px] font-sans text-muted-foreground/70">
+                <div className="flex items-center gap-3 text-[10px] font-sans text-muted-foreground/70">
                   <span><span className="inline-block w-2 h-1.5 bg-chart-1 rounded-sm mr-1" />Lat <span className="font-mono">{components.latency.toFixed(1)}</span></span>
                   <span><span className="inline-block w-2 h-1.5 bg-chart-5 rounded-sm mr-1" />Up <span className="font-mono">{components.uptime.toFixed(1)}</span></span>
                   <span><span className="inline-block w-2 h-1.5 bg-chart-2 rounded-sm mr-1" />RPS <span className="font-mono">{components.throughput.toFixed(1)}</span></span>
@@ -153,14 +153,14 @@ export function SolanaProviderSheet({ provider: p, open, onClose, providers }: P
         <div className="px-5 py-4 space-y-5">
           {/* Latency spread */}
           <section className="space-y-2">
-            <h3 className="text-[10px] font-sans font-medium text-muted-foreground/70">Latency</h3>
+            <h3 className="text-xs font-sans font-semibold text-muted-foreground/80">Latency</h3>
             <div className="space-y-1">
               <div className="flex h-3 w-full rounded overflow-hidden">
                 <div style={{ width: `${p50Pct}%` }}     className="bg-chart-1" />
                 <div style={{ width: `${p95gapPct}%` }}  className="bg-chart-3" />
                 <div style={{ width: `${p99gapPct}%` }}  className="bg-chart-4" />
               </div>
-              <div className="flex items-center gap-3 text-[8px] font-sans text-muted-foreground/70">
+              <div className="flex items-center gap-3 text-[10px] font-sans text-muted-foreground/70">
                 <span className="text-chart-1">■ P50</span>
                 <span className="text-chart-3">■ P50→P95</span>
                 <span className="text-chart-4">■ P95→P99</span>
@@ -176,7 +176,7 @@ export function SolanaProviderSheet({ provider: p, open, onClose, providers }: P
 
           {/* Reliability */}
           <section className="space-y-2">
-            <h3 className="text-[10px] font-sans font-medium text-muted-foreground/70">Reliability</h3>
+            <h3 className="text-xs font-sans font-semibold text-muted-foreground/80">Reliability</h3>
             <div className="flex gap-2 flex-wrap">
               <MetricChip
                 label="Uptime"
@@ -198,7 +198,7 @@ export function SolanaProviderSheet({ provider: p, open, onClose, providers }: P
               )}
             </div>
             {providers && providers.length > 1 && (
-              <p className="text-[10px] font-sans text-muted-foreground/60 mt-1">
+              <p className="text-xs font-sans text-muted-foreground/65 mt-1">
                 #{p.rank} of {providers.length} · Faster than {fasterCount} provider{fasterCount !== 1 ? 's' : ''}
               </p>
             )}
@@ -206,7 +206,7 @@ export function SolanaProviderSheet({ provider: p, open, onClose, providers }: P
 
           {/* Capabilities */}
           <section className="space-y-2">
-            <h3 className="text-[10px] font-sans font-medium text-muted-foreground/70">Capabilities</h3>
+            <h3 className="text-xs font-sans font-semibold text-muted-foreground/80">Capabilities</h3>
             <div className="grid grid-cols-2 gap-1.5">
               <CapBool label="Transactions"   value={p.capabilities.transactions} />
               <CapBool label="Event Logs"     value={p.capabilities.logs} />
@@ -215,15 +215,15 @@ export function SolanaProviderSheet({ provider: p, open, onClose, providers }: P
               <CapBool label="Custom Indexing" value={p.capabilities.custom_indexing} />
               <CapBool label="Traces"         value={p.capabilities.traces} />
             </div>
-            <p className="text-[10px] font-sans text-muted-foreground/60 mt-1">
+            <p className="text-xs font-sans text-muted-foreground/65 mt-1">
               History depth: <span className="text-foreground">{p.capabilities.historical_depth}</span>
             </p>
           </section>
 
           {/* Pricing */}
           <section className="space-y-2">
-            <h3 className="text-[10px] font-sans font-medium text-muted-foreground/70">Pricing</h3>
-            <div className="flex gap-4 text-[11px] font-sans">
+            <h3 className="text-xs font-sans font-semibold text-muted-foreground/80">Pricing</h3>
+            <div className="flex gap-4 text-sm font-sans">
               <div>
                 <span className="text-muted-foreground/70">Cost / M req: </span>
                 <span className={p.pricing.cost_per_million === 0 ? 'text-accent font-medium' : 'font-mono tabular-nums text-foreground'}>
@@ -236,7 +236,7 @@ export function SolanaProviderSheet({ provider: p, open, onClose, providers }: P
               </div>
             </div>
             {valueRating && (
-              <p className="text-[10px] font-sans text-muted-foreground/60">
+              <p className="text-xs font-sans text-muted-foreground/65">
                 Value: <span className="text-chart-5 font-mono">{valueRating} pts per $1/M req</span>
               </p>
             )}
@@ -244,12 +244,12 @@ export function SolanaProviderSheet({ provider: p, open, onClose, providers }: P
 
           {/* Chains */}
           <section className="space-y-2">
-            <h3 className="text-[10px] font-sans font-medium text-muted-foreground/70">
+            <h3 className="text-xs font-sans font-semibold text-muted-foreground/80">
               Supported Chains ({p.supported_chains.length})
             </h3>
             <div className="flex flex-wrap gap-1">
               {visibleChains.map(c => (
-                <span key={c} className="text-[9px] font-sans px-1.5 py-0.5 border border-border/40 rounded text-muted-foreground/70">
+                <span key={c} className="text-[10px] font-sans px-1.5 py-0.5 border border-border/40 rounded text-muted-foreground/75">
                   {c}
                 </span>
               ))}
@@ -257,7 +257,7 @@ export function SolanaProviderSheet({ provider: p, open, onClose, providers }: P
             {p.supported_chains.length > CHAIN_LIMIT && (
               <button
                 onClick={() => setShowAllChains(v => !v)}
-                className="text-[9px] font-sans text-accent hover:text-accent/80 transition-colors"
+                className="text-xs font-sans text-accent hover:text-accent/80 transition-colors"
               >
                 {showAllChains
                   ? '▲ Show less'
@@ -268,7 +268,7 @@ export function SolanaProviderSheet({ provider: p, open, onClose, providers }: P
 
           {/* Data quality note */}
           <section className="border-t border-border/40 pt-3">
-            <p className={`text-[10px] font-sans ${p.is_mock ? 'text-chart-3/70' : 'text-accent/70'}`}>
+            <p className={`text-xs font-sans ${p.is_mock ? 'text-chart-3/80' : 'text-accent/80'}`}>
               {p.is_mock
                 ? '⚠ Simulated data — add API key for live measurements'
                 : '✓ Live data — measurements from real API calls'}
