@@ -1,29 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { buildSeedProviders } from './data';
 import { rerank } from './scoring';
 import type { GRProvider } from './data';
 
 const REFRESH_INTERVAL = 60; // seconds
-
-/** Apply ±15% jitter to latency and ±10% jitter to RPS */
-function applyLiveJitter(providers: GRProvider[]): GRProvider[] {
-  return providers.map((p) => {
-    const p50New = Math.max(1, Math.round(p.p50 * (1 + (Math.random() - 0.5) * 0.15)));
-    const p95New = Math.max(p50New + 1, Math.round(p.p95 * (1 + (Math.random() - 0.5) * 0.12)));
-    const p99New = Math.max(p95New + 1, Math.round(p.p99 * (1 + (Math.random() - 0.5) * 0.10)));
-    const rpsNew = Math.max(1, Math.round(p.rps * (1 + (Math.random() - 0.5) * 0.10)));
-
-    // Recompute score components
-    const latencyScore    = Math.max(0, (1 - p50New / 2000)) * 100 * 0.40;
-    const reliabilityScore = p.uptime * 0.35;
-    const throughputScore = Math.min(100, (rpsNew / 200) * 100) * 0.25;
-    const score = Math.round((latencyScore + reliabilityScore + throughputScore) * 10) / 10;
-
-    return { ...p, p50: p50New, p95: p95New, p99: p99New, jitter: p99New - p50New, rps: rpsNew, score };
-  });
-}
 
 /** Try to convert API SolanaProvider format to GRProvider */
 function convertApiProvider(p: Record<string, unknown>): GRProvider | null {
@@ -67,6 +48,7 @@ function convertApiProvider(p: Record<string, unknown>): GRProvider | null {
       free: (pricing.cost_per_million as number) === 0,
       score,
       rank: (p.rank as number) ?? 0,
+      measuredAt: (p.measured_at as string) ?? null,
       capabilities: capFromSeed ?? {
         transactions: (caps.transactions as boolean) ?? false,
         eventLogs: (caps.logs as boolean) ?? false,
@@ -96,7 +78,7 @@ export interface LiveBenchmarkState {
 }
 
 export function useLiveBenchmark(): LiveBenchmarkState {
-  const [providers, setProviders] = useState<GRProvider[]>(() => rerank(buildSeedProviders()));
+  const [providers, setProviders] = useState<GRProvider[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [secsLeft, setSecsLeft] = useState(REFRESH_INTERVAL);
@@ -123,8 +105,7 @@ export function useLiveBenchmark(): LiveBenchmarkState {
         throw new Error('No providers in API response');
       }
     } catch {
-      // Fallback: apply jitter to seed/current data
-      setProviders((prev) => rerank(applyLiveJitter(prev)));
+      // On failure: keep previous data unchanged — don't fake reliability numbers
       setIsLive(false);
       setLastUpdated(new Date());
     } finally {

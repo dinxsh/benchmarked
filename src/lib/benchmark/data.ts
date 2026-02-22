@@ -39,6 +39,7 @@ export interface GRProvider {
   score: number;
   // Rank
   rank: number;
+  measuredAt?: string | null;  // ISO timestamp of last real measurement
   // Capabilities
   capabilities: GRCapabilities;
 }
@@ -52,8 +53,6 @@ const SEED_PROVIDERS_RAW = [
   { name: 'LaserStream', type: 'json-rpc' as ProviderType, p50: 10,  p95: 402, p99: 402, uptime: 100, err: 0, rps: 25, slot: 401.8e6,    cost: 0,    free: true,  website: 'https://laserstream.io' },
   { name: 'Helius',      type: 'json-rpc' as ProviderType, p50: 34,  p95: 419, p99: 419, uptime: 100, err: 0, rps: 24, slot: 401.8e6,    cost: 0,    free: true,  website: 'https://helius.dev' },
   { name: 'GoldRush',    type: 'rest-api' as ProviderType, p50: 11,  p95: 429, p99: 429, uptime: 100, err: 0, rps: 19, slot: null,        cost: 0.5,  free: false, website: 'https://goldrush.dev' },
-  { name: 'Mobula',      type: 'data-api' as ProviderType, p50: 107, p95: 408, p99: 408, uptime: 100, err: 0, rps: 25, slot: null,        cost: 1.0,  free: false, website: 'https://mobula.io' },
-  { name: 'Birdeye',     type: 'data-api' as ProviderType, p50: 498, p95: 585, p99: 585, uptime: 100, err: 0, rps: 16, slot: null,        cost: 2.0,  free: false, website: 'https://birdeye.so' },
 ] as const;
 
 export const CAPABILITIES: Record<string, GRCapabilities> = {
@@ -63,8 +62,6 @@ export const CAPABILITIES: Record<string, GRCapabilities> = {
   LaserStream: { transactions: true,  eventLogs: true,  tokenBalances: false, nftMetadata: false, customIndexing: false, traces: false, historyDepth: 'recent', costPerM: 'Free', rateLimit: '100 req/10s',     capScore: 33  },
   Helius:      { transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: true,  historyDepth: 'full',   costPerM: 'Free', rateLimit: '10 req/s (free)', capScore: 100 },
   GoldRush:    { transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: false, historyDepth: 'full',   costPerM: '$0.5', rateLimit: '50 req/s',        capScore: 83  },
-  Mobula:      { transactions: false, eventLogs: false, tokenBalances: true,  nftMetadata: false, customIndexing: false, traces: false, historyDepth: '30d',    costPerM: '$1',   rateLimit: '60 req/s',        capScore: 17  },
-  Birdeye:     { transactions: true,  eventLogs: false, tokenBalances: true,  nftMetadata: false, customIndexing: false, traces: false, historyDepth: '90d',    costPerM: '$2',   rateLimit: '100 req/s',       capScore: 33  },
 };
 
 /** Build GRProvider[] from raw seed, computing jitter + score + rank */
@@ -87,6 +84,7 @@ export function buildSeedProviders(): GRProvider[] {
     free: r.free,
     score: 0,
     rank: 0,
+    measuredAt: null,
     capabilities: CAPABILITIES[r.name] ?? CAPABILITIES['Ankr'],
   }));
 
@@ -109,23 +107,29 @@ export function buildSeedProviders(): GRProvider[] {
   return sorted;
 }
 
-/** Colour palette — Grafana-inspired neutral dark */
+/** Colour palette — Grafana dark theme accurate values */
 export const GR_COLORS = {
-  gold:         '#f2cc0c',   // warm yellow accent
+  gold:         '#f2cc0c',   // Grafana yellow accent
   goldDim:      '#c09b09',
-  bgBase:       '#111217',   // Grafana page bg
-  bgCard:       '#1b1d24',   // Grafana panel bg
-  bgCardHover:  '#22252e',
-  border:       '#2c3038',   // Grafana border
-  borderBright: '#3a3e4a',
-  textPrimary:  '#d9d9d9',   // Grafana primary text
-  textSecondary:'#8e9baa',   // Grafana secondary text
-  textMuted:    '#4d5463',
+  bgBase:       '#111217',   // Grafana canvas
+  bgCard:       '#181b1f',   // Grafana panel bg
+  bgCardHover:  '#1e2128',
+  border:       '#2d3035',   // Grafana border.medium
+  borderBright: '#3f4147',   // Grafana border.strong
+  textPrimary:  '#d9d9d9',   // Grafana text.primary
+  textSecondary:'#9fa7b3',   // Grafana text.secondary
+  textMuted:    '#6e6e6e',   // Grafana text.disabled
   green:        '#73bf69',   // Grafana success
-  amber:        '#ff9900',   // Grafana warning
+  amber:        '#f5a623',   // Grafana warning
   red:          '#f2495c',   // Grafana error
   blue:         '#5794f2',   // Grafana info
   purple:       '#b877d9',   // Grafana purple
+};
+
+/** Font stacks — Inter UI + Roboto Mono data (Grafana standard) */
+export const GR_FONTS = {
+  ui:   'var(--font-sans)',
+  mono: 'var(--font-roboto-mono)',
 };
 
 export const TYPE_LABELS: Record<ProviderType, string> = {

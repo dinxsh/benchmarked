@@ -200,7 +200,7 @@ export default function Home() {
             fontFamily: GR_FONTS.mono, fontSize: 13,
           }}>
             <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
-            Running benchmarks across 8 Solana providers…
+            Running benchmarks across 6 Solana RPC providers…
           </div>
         )}
 

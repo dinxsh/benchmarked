@@ -201,6 +201,9 @@ export function GRProviderTable({ providers, onSelect }: Props) {
           </div>
           <div style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, marginTop: 3 }}>
             {providers.length} providers · click any row for full details · sortable columns
+            {providers.some(p => p.isMock) && (
+              <span style={{ marginLeft: 8, color: C.amber }}>· some providers show estimated latency (configure API keys for live data)</span>
+            )}
           </div>
         </div>
         <div style={{ fontSize: 10, color: C.textMuted, fontFamily: GR_FONTS.mono }}>
@@ -334,14 +337,14 @@ export function GRProviderTable({ providers, onSelect }: Props) {
                   </td>
                   {/* Uptime */}
                   <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
-                    color: uptimeColor(p.uptime), fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
-                    {p.uptime.toFixed(0)}%
+                    color: p.isMock ? C.textMuted : uptimeColor(p.uptime), fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
+                    {p.isMock ? '—' : `${p.uptime.toFixed(0)}%`}
                   </td>
                   {/* Err% */}
                   <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
-                    color: p.errRate === 0 ? C.green : C.red,
+                    color: p.isMock ? C.textMuted : (p.errRate === 0 ? C.green : C.red),
                     fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
-                    {p.errRate.toFixed(0)}%
+                    {p.isMock ? '—' : `${p.errRate.toFixed(0)}%`}
                   </td>
                   {/* RPS */}
                   <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,

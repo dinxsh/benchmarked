@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 import { SolanaGoldRushAdapter } from '@/lib/adapters/solana-goldrush';
-import { SolanaBirdeyeAdapter } from '@/lib/adapters/solana-birdeye';
-import { SolanaMobulaAdapter } from '@/lib/adapters/solana-mobula';
 import { SolanaLaserStreamAdapter } from '@/lib/adapters/solana-laserteam';
 import { SolanaAlchemyAdapter } from '@/lib/adapters/solana-alchemy';
 import { SolanaHeliusAdapter } from '@/lib/adapters/solana-helius';
@@ -57,8 +55,6 @@ export async function GET(request: Request) {
     new SolanaHeliusAdapter(),
     new SolanaAnkrAdapter(),
     new SolanaQuickNodeAdapter(),
-    new SolanaBirdeyeAdapter(),
-    new SolanaMobulaAdapter(),
     new SolanaLaserStreamAdapter(),
   ];
 
@@ -102,7 +98,8 @@ export async function GET(request: Request) {
           slot_height: metrics.slot_height ?? 0,
         },
         score,
-        is_mock: metrics.is_mock ?? false
+        is_mock: metrics.is_mock ?? false,
+        measured_at: new Date().toISOString(),
       };
     })
   );
