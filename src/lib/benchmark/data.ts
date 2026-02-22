@@ -109,23 +109,23 @@ export function buildSeedProviders(): GRProvider[] {
   return sorted;
 }
 
-/** Colour palette for the benchmark dashboard */
+/** Colour palette — Grafana-inspired neutral dark */
 export const GR_COLORS = {
-  gold:         '#F5C518',
-  goldDim:      '#C49A10',
-  bgBase:       '#080C14',
-  bgCard:       '#0D1423',
-  bgCardHover:  '#111A2E',
-  border:       '#1A2540',
-  borderBright: '#243356',
-  textPrimary:  '#E8EAF2',
-  textSecondary:'#7A8AA0',
-  textMuted:    '#3D4F66',
-  green:        '#10B981',
-  amber:        '#F59E0B',
-  red:          '#EF4444',
-  blue:         '#3B82F6',
-  purple:       '#8B5CF6',
+  gold:         '#f2cc0c',   // warm yellow accent
+  goldDim:      '#c09b09',
+  bgBase:       '#111217',   // Grafana page bg
+  bgCard:       '#1b1d24',   // Grafana panel bg
+  bgCardHover:  '#22252e',
+  border:       '#2c3038',   // Grafana border
+  borderBright: '#3a3e4a',
+  textPrimary:  '#d9d9d9',   // Grafana primary text
+  textSecondary:'#8e9baa',   // Grafana secondary text
+  textMuted:    '#4d5463',
+  green:        '#73bf69',   // Grafana success
+  amber:        '#ff9900',   // Grafana warning
+  red:          '#f2495c',   // Grafana error
+  blue:         '#5794f2',   // Grafana info
+  purple:       '#b877d9',   // Grafana purple
 };
 
 export const TYPE_LABELS: Record<ProviderType, string> = {
@@ -135,7 +135,7 @@ export const TYPE_LABELS: Record<ProviderType, string> = {
 };
 
 export const TYPE_COLORS: Record<ProviderType, { bg: string; text: string; border: string }> = {
-  'json-rpc': { bg: 'rgba(77,158,255,0.12)',  text: '#4D9EFF', border: 'rgba(77,158,255,0.3)'  },
-  'rest-api': { bg: 'rgba(245,197,24,0.12)',  text: '#F5C518', border: 'rgba(245,197,24,0.3)'  },
-  'data-api': { bg: 'rgba(245,166,35,0.12)',  text: '#F5A623', border: 'rgba(245,166,35,0.3)'  },
+  'json-rpc': { bg: 'rgba(87,148,242,0.12)',  text: '#5794f2', border: 'rgba(87,148,242,0.3)'  },
+  'rest-api': { bg: 'rgba(242,204,12,0.12)',  text: '#f2cc0c', border: 'rgba(242,204,12,0.3)'  },
+  'data-api': { bg: 'rgba(255,153,0,0.12)',   text: '#ff9900', border: 'rgba(255,153,0,0.3)'   },
 };
