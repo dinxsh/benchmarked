@@ -42,12 +42,11 @@ export function GRCapabilityMatrix({ providers }: Props) {
               </th>
               {providers.map((p) => {
                 const tc = TYPE_COLORS[p.type];
-                const isGoldRush = p.name === 'GoldRush';
                 return (
                   <th key={p.id} style={{ textAlign: 'center', padding: '12px 8px',
-                    minWidth: 110, background: isGoldRush ? 'rgba(245,197,24,0.06)' : 'transparent' }}>
+                    minWidth: 110, background: 'transparent' }}>
                     <div style={{ fontSize: 13, fontWeight: 800,
-                      color: isGoldRush ? C.gold : C.textPrimary,
+                      color: C.textPrimary,
                       fontFamily: 'JetBrains Mono, monospace', marginBottom: 4 }}>
                       {p.name}
                     </div>
@@ -72,10 +71,9 @@ export function GRCapabilityMatrix({ providers }: Props) {
               </td>
               {providers.map((p) => {
                 const tc = TYPE_COLORS[p.type];
-                const isGoldRush = p.name === 'GoldRush';
                 return (
                   <td key={p.id} style={{ textAlign: 'center', padding: '10px 8px',
-                    background: isGoldRush ? 'rgba(245,197,24,0.04)' : 'transparent' }}>
+                    background: 'transparent' }}>
                     <span style={{ background: tc.bg, color: tc.text, border: `1px solid ${tc.border}`,
                       borderRadius: 4, padding: '3px 8px', fontSize: 11, fontWeight: 700,
                       letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
@@ -97,14 +95,13 @@ export function GRCapabilityMatrix({ providers }: Props) {
                 </td>
                 {providers.map((p) => {
                   const val = p.capabilities[key] as boolean;
-                  const isGoldRush = p.name === 'GoldRush';
                   return (
                     <td key={p.id} style={{ textAlign: 'center', padding: '10px 8px',
-                      background: isGoldRush ? 'rgba(245,197,24,0.04)' : 'transparent' }}>
+                      background: 'transparent' }}>
                       <span style={{
                         display: 'inline-flex', width: 28, height: 28,
                         alignItems: 'center', justifyContent: 'center', borderRadius: 6,
-                        background: val ? 'rgba(0,212,160,0.12)' : 'rgba(255,255,255,0.04)',
+                        background: val ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.04)',
                         color: val ? C.green : C.textMuted, fontSize: 13, fontWeight: 700,
                       }}>
                         {val ? '✓' : '✗'}
@@ -131,12 +128,11 @@ export function GRCapabilityMatrix({ providers }: Props) {
                 </td>
                 {providers.map((p) => {
                   const val = get(p);
-                  const isGoldRush = p.name === 'GoldRush';
                   return (
                     <td key={p.id} style={{ textAlign: 'center', padding: '10px 8px', fontSize: 12, fontWeight: 600,
                       color: colorFn ? colorFn(val) : C.textPrimary,
                       fontFamily: 'JetBrains Mono, monospace',
-                      background: isGoldRush ? 'rgba(245,197,24,0.04)' : 'transparent' }}>
+                      background: 'transparent' }}>
                       {val}
                     </td>
                   );
@@ -155,10 +151,9 @@ export function GRCapabilityMatrix({ providers }: Props) {
               {providers.map((p) => {
                 const pct = p.capabilities.capScore;
                 const color = pct >= 80 ? C.green : pct >= 50 ? C.amber : C.red;
-                const isGoldRush = p.name === 'GoldRush';
                 return (
                   <td key={p.id} style={{ textAlign: 'center', padding: '12px 8px',
-                    background: isGoldRush ? 'rgba(245,197,24,0.06)' : 'transparent' }}>
+                    background: 'transparent' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
                       <div style={{ width: 56, height: 5, background: C.border, borderRadius: 3, overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 3 }} />

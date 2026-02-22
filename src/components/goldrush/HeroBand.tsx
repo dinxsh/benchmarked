@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { Trophy, Check, Dot } from 'lucide-react';
 import type { GRProvider } from '@/lib/benchmark/data';
 import { GR_COLORS, TYPE_LABELS, TYPE_COLORS } from '@/lib/benchmark/data';
 import { computeWinners } from '@/lib/benchmark/scoring';
@@ -36,19 +37,15 @@ function ScoreBar({ score }: { score: number }) {
     </div>
   );
 }
+
 export function HeroBand({ providers }: Props) {
   const winners = useMemo(() => computeWinners(providers), [providers]);
   const hero = winners.overall;
   if (!hero) return null;
 
-  const isGoldRush = hero.name === 'GoldRush';
-  const goldRushProvider = providers.find((p) => p.name === 'GoldRush');
-
-  // Why it's fastest — dynamic bullets
   const byP50 = [...providers].sort((a, b) => a.p50 - b.p50);
   const rank2P50 = byP50[1]?.p50 ?? hero.p50;
   const marginMs = Math.round(rank2P50 - hero.p50);
-  const freeCompetitors = providers.filter((p) => p.free && p.name !== hero.name);
   const cheaperPaid = providers.filter((p) => p.costPerM > 0 && p.costPerM > hero.costPerM && p.name !== hero.name);
 
   const bullets = [
@@ -63,7 +60,7 @@ export function HeroBand({ providers }: Props) {
     <div style={{
       background: C.bgCard,
       border: `1px solid ${C.border}`,
-      borderTop: `2px solid ${C.green}`,
+      borderTop: `2px solid ${C.blue}`,
       borderRadius: 8,
       overflow: 'hidden',
     }}>
@@ -73,20 +70,21 @@ export function HeroBand({ providers }: Props) {
           {/* Badge row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <span style={{
-              background: 'rgba(245,197,24,0.15)', color: C.gold,
-              border: `1px solid rgba(245,197,24,0.3)`, borderRadius: 4,
+              display: 'flex', alignItems: 'center', gap: 5,
+              background: 'rgba(59,130,246,0.15)', color: C.blue,
+              border: `1px solid rgba(59,130,246,0.3)`, borderRadius: 4,
               padding: '3px 10px', fontSize: 10, fontWeight: 800,
               letterSpacing: '0.08em', textTransform: 'uppercase',
               fontFamily: 'JetBrains Mono, monospace',
             }}>
-              🏆 #1 SPEED — LIVE
+              <Trophy size={11} /> #1 SPEED — LIVE
             </span>
             <TypeBadge type={hero.type} />
           </div>
           {/* Provider name */}
           <div style={{ marginBottom: 4 }}>
             <h2 style={{
-              fontSize: 36, fontWeight: 800, color: isGoldRush ? C.gold : C.textPrimary,
+              fontSize: 36, fontWeight: 800, color: C.textPrimary,
               fontFamily: 'JetBrains Mono, monospace', lineHeight: 1.1, margin: 0,
             }}>
               {hero.name}
@@ -104,17 +102,19 @@ export function HeroBand({ providers }: Props) {
             </div>
             {bullets.map((b, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
-                <span style={{ color: C.green, fontSize: 12, lineHeight: 1.5, flexShrink: 0 }}>●</span>
+                <Check size={11} color={C.green} style={{ marginTop: 3, flexShrink: 0 }} />
                 <span style={{ fontSize: 13, color: C.textSecondary, fontFamily: 'JetBrains Mono, monospace' }}>{b}</span>
               </div>
             ))}
           </div>
           {/* Data freshness note */}
           <div style={{ marginTop: 20, paddingTop: 14, borderTop: `1px solid ${C.border}` }}>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
               {['Live measurements', 'Real API calls', '5 samples'].map((note) => (
-                <span key={note} style={{ fontSize: 11, color: C.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>
-                  ● {note}
+                <span key={note} style={{ display: 'flex', alignItems: 'center', gap: 4,
+                  fontSize: 11, color: C.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>
+                  <Dot size={10} />
+                  {note}
                 </span>
               ))}
             </div>

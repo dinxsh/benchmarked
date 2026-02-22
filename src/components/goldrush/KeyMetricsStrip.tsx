@@ -20,14 +20,14 @@ function MetricTile({ label, value, sub, highlight, valueColor }: TileProps) {
     <div style={{
       background: C.bgCard,
       border: `1px solid ${C.border}`,
-      borderLeft: highlight ? `3px solid ${C.gold}` : `1px solid ${C.border}`,
-      borderRadius: 8, padding: '14px 16px', minWidth: 120, flex: 1,
+      borderLeft: highlight ? `3px solid ${C.blue}` : `1px solid ${C.border}`,
+      borderRadius: 8, padding: '12px 14px', minWidth: 120, flex: 1,
     }}>
-      <div style={{ fontSize: 10, color: C.textMuted, fontWeight: 700, letterSpacing: '0.1em',
+      <div style={{ fontSize: 9, color: C.textMuted, fontWeight: 700, letterSpacing: '0.1em',
         textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace', marginBottom: 6 }}>
         {label}
       </div>
-      <div style={{ fontSize: 18, fontWeight: 800, color: valueColor ?? C.textPrimary,
+      <div style={{ fontSize: 20, fontWeight: 800, color: valueColor ?? C.textPrimary,
         fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
         {value}
       </div>
@@ -89,8 +89,8 @@ export function KeyMetricsStrip({ providers }: { providers: GRProvider[] }) {
         label="BEST VALUE"
         value={w.value?.costPerM === 0 ? 'Free' : `$${w.value?.costPerM}/M`}
         sub={w.value?.name}
-        highlight={w.value?.name === 'GoldRush'}
-        valueColor={C.gold}
+        highlight
+        valueColor={C.blue}
       />
       <MetricTile
         label="FREE PROVIDERS"

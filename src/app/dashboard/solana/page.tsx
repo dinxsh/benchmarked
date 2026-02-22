@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { RefreshCw, Loader2 } from 'lucide-react';
+import { RefreshCw, Loader2, Zap } from 'lucide-react';
 import { useLiveBenchmark } from '@/lib/benchmark/simulate';
 import { GR_COLORS } from '@/lib/benchmark/data';
 import type { GRProvider } from '@/lib/benchmark/data';
@@ -34,9 +34,10 @@ function TopNav({
     }}>
       {/* Left: logo + title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ fontSize: 18, fontWeight: 900, color: C.gold,
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 18, fontWeight: 900, color: C.gold,
           fontFamily: 'JetBrains Mono, monospace' }}>
-          ⚡ GoldRush
+          <Zap size={13} style={{ color: C.blue }} />
+          GoldRush
         </span>
         <span style={{ fontSize: 13, color: C.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>
           Solana RPC Benchmark

@@ -22,8 +22,8 @@ interface Props {
 function SortIcon({ active, dir }: { active: boolean; dir: 'asc' | 'desc' }) {
   if (!active) return <ChevronsUpDown size={11} style={{ opacity: 0.3, display: 'inline', marginLeft: 3 }} />;
   return dir === 'asc'
-    ? <ChevronUp size={11} style={{ color: C.gold, display: 'inline', marginLeft: 3 }} />
-    : <ChevronDown size={11} style={{ color: C.gold, display: 'inline', marginLeft: 3 }} />;
+    ? <ChevronUp size={11} style={{ color: C.blue, display: 'inline', marginLeft: 3 }} />
+    : <ChevronDown size={11} style={{ color: C.blue, display: 'inline', marginLeft: 3 }} />;
 }
 
 function latencyColor(ms: number): string {
@@ -73,12 +73,12 @@ function ScoreBar({ score }: { score: number }) {
 }
 
 const BADGE_STYLES: Record<string, { bg: string; color: string; border: string }> = {
-  'Best Overall': { bg: 'rgba(245,166,35,0.12)', color: C.amber, border: 'rgba(245,166,35,0.3)' },
-  'Best Value':   { bg: 'rgba(245,197,24,0.12)', color: C.gold,  border: 'rgba(245,197,24,0.3)' },
-  'Fastest':      { bg: 'rgba(0,212,160,0.10)',  color: C.green, border: 'rgba(0,212,160,0.25)' },
-  'Throughput':   { bg: 'rgba(77,158,255,0.10)', color: C.blue,  border: 'rgba(77,158,255,0.25)' },
-  'Most Stable':  { bg: 'rgba(139,92,246,0.10)', color: C.purple,border: 'rgba(139,92,246,0.25)' },
-  'Free':         { bg: 'rgba(0,212,160,0.08)',  color: C.green, border: 'rgba(0,212,160,0.2)'  },
+  'Best Overall': { bg: 'rgba(245,166,35,0.12)', color: C.amber,  border: 'rgba(245,166,35,0.3)' },
+  'Best Value':   { bg: 'rgba(245,197,24,0.12)', color: C.gold,   border: 'rgba(245,197,24,0.3)' },
+  'Fastest':      { bg: 'rgba(16,185,129,0.10)', color: C.green,  border: 'rgba(16,185,129,0.25)' },
+  'Throughput':   { bg: 'rgba(59,130,246,0.10)', color: C.blue,   border: 'rgba(59,130,246,0.25)' },
+  'Most Stable':  { bg: 'rgba(139,92,246,0.10)', color: C.purple, border: 'rgba(139,92,246,0.25)' },
+  'Free':         { bg: 'rgba(16,185,129,0.08)', color: C.green,  border: 'rgba(16,185,129,0.2)'  },
 };
 
 function DecisionBadge({ text }: { text: string }) {
@@ -103,7 +103,6 @@ export function GRProviderTable({ providers, onSelect }: Props) {
     providers.reduce((best, p) => p.p50 < best.p50 ? p : best, providers[0]),
     [providers]);
 
-  // Compute decision badges
   const decisionMap = useMemo(() => {
     const map: Record<string, string[]> = {};
     const byScore  = [...providers].sort((a, b) => b.score - a.score);
@@ -217,7 +216,7 @@ export function GRProviderTable({ providers, onSelect }: Props) {
             key={btn.key}
             onClick={() => setTypeFilter(btn.key)}
             style={{
-              padding: '5px 14px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              padding: '4px 11px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer',
               fontFamily: 'JetBrains Mono, monospace', border: `1px solid ${typeFilter === btn.key ? C.borderBright : C.border}`,
               background: typeFilter === btn.key ? C.borderBright : 'transparent',
               color: typeFilter === btn.key ? C.textPrimary : C.textMuted,
@@ -259,7 +258,6 @@ export function GRProviderTable({ providers, onSelect }: Props) {
               const isLeader = p.id === leader?.id;
               const badges   = decisionMap[p.id] ?? [];
               const vs       = computeValueScore(p);
-              const isGoldRush = p.name === 'GoldRush';
 
               return (
                 <tr
@@ -267,20 +265,19 @@ export function GRProviderTable({ providers, onSelect }: Props) {
                   onClick={() => onSelect(p)}
                   style={{
                     borderBottom: `1px solid ${C.border}`,
-                    borderLeft: isGoldRush ? `3px solid ${C.gold}` : `3px solid transparent`,
                     cursor: 'pointer',
                     transition: 'background 100ms',
-                    background: isGoldRush ? 'rgba(245,197,24,0.03)' : 'transparent',
+                    background: 'transparent',
                   }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = C.bgCardHover; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = isGoldRush ? 'rgba(245,197,24,0.03)' : 'transparent'; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent'; }}
                 >
                   {/* Rank */}
-                  <td style={{ padding: '12px 10px' }}>
+                  <td style={{ padding: '9px 10px' }}>
                     {p.rank === 1 ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                        width: 28, height: 28, borderRadius: '50%', background: 'rgba(245,197,24,0.15)',
-                        color: C.gold, fontSize: 13, fontWeight: 900, fontFamily: 'JetBrains Mono, monospace' }}>
+                        width: 28, height: 28, borderRadius: '50%', background: 'rgba(59,130,246,0.15)',
+                        color: C.blue, fontSize: 13, fontWeight: 900, fontFamily: 'JetBrains Mono, monospace' }}>
                         1
                       </span>
                     ) : (
@@ -291,14 +288,14 @@ export function GRProviderTable({ providers, onSelect }: Props) {
                     )}
                   </td>
                   {/* Type */}
-                  <td style={{ padding: '12px 10px' }}>
+                  <td style={{ padding: '9px 10px' }}>
                     <TypeBadge type={p.type} />
                   </td>
                   {/* Provider + badges */}
-                  <td style={{ padding: '12px 10px' }}>
+                  <td style={{ padding: '9px 10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 14, fontWeight: 800,
-                        color: isGoldRush ? C.gold : C.textPrimary,
+                        color: C.textPrimary,
                         fontFamily: 'JetBrains Mono, monospace' }}>
                         {p.name}
                       </span>
@@ -306,14 +303,14 @@ export function GRProviderTable({ providers, onSelect }: Props) {
                     </div>
                   </td>
                   {/* P50 */}
-                  <td style={{ padding: '12px 10px', textAlign: 'right' }}>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: latencyColor(p.p50),
+                  <td style={{ padding: '9px 10px', textAlign: 'right' }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: latencyColor(p.p50),
                       fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
                       {Math.round(p.p50)}ms
                     </span>
                   </td>
                   {/* Δ Lead */}
-                  <td style={{ padding: '12px 10px', textAlign: 'right', fontSize: 12,
+                  <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11,
                     fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
                     {isLeader
                       ? <span style={{ color: C.green, fontWeight: 700 }}>—</span>
@@ -321,43 +318,43 @@ export function GRProviderTable({ providers, onSelect }: Props) {
                     }
                   </td>
                   {/* P95 */}
-                  <td style={{ padding: '12px 10px', textAlign: 'right', fontSize: 12, fontWeight: 700,
+                  <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
                     color: p9xColor(p.p95), fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
                     {Math.round(p.p95)}ms
                   </td>
                   {/* P99 */}
-                  <td style={{ padding: '12px 10px', textAlign: 'right', fontSize: 12, fontWeight: 700,
+                  <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
                     color: p9xColor(p.p99), fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
                     {Math.round(p.p99)}ms
                   </td>
                   {/* Jitter */}
-                  <td style={{ padding: '12px 10px', textAlign: 'right', fontSize: 12, fontWeight: 700,
+                  <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
                     color: jitterColor(p.jitter), fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
                     {Math.round(p.jitter)}ms
                   </td>
                   {/* Uptime */}
-                  <td style={{ padding: '12px 10px', textAlign: 'right', fontSize: 12, fontWeight: 700,
+                  <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
                     color: uptimeColor(p.uptime), fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
                     {p.uptime.toFixed(0)}%
                   </td>
                   {/* Err% */}
-                  <td style={{ padding: '12px 10px', textAlign: 'right', fontSize: 12, fontWeight: 700,
+                  <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
                     color: p.errRate === 0 ? C.green : C.red,
                     fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
                     {p.errRate.toFixed(0)}%
                   </td>
                   {/* RPS */}
-                  <td style={{ padding: '12px 10px', textAlign: 'right', fontSize: 12, fontWeight: 700,
+                  <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
                     color: C.textPrimary, fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
                     {Math.round(p.rps)}
                   </td>
                   {/* Slot */}
-                  <td style={{ padding: '12px 10px', textAlign: 'right', fontSize: 11,
+                  <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11,
                     color: C.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>
                     {p.slot ? `${(p.slot / 1e6).toFixed(1)}M` : '—'}
                   </td>
                   {/* Cost/M */}
-                  <td style={{ padding: '12px 10px', textAlign: 'right', fontSize: 12, fontWeight: 800,
+                  <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 800,
                     fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
                     {p.free
                       ? <span style={{ color: C.green }}>Free</span>
@@ -365,7 +362,7 @@ export function GRProviderTable({ providers, onSelect }: Props) {
                     }
                   </td>
                   {/* Value */}
-                  <td style={{ padding: '12px 10px', textAlign: 'right', fontSize: 12, fontWeight: 700,
+                  <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
                     fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
                     {p.free
                       ? <span style={{ color: C.green }}>∞</span>
@@ -373,7 +370,7 @@ export function GRProviderTable({ providers, onSelect }: Props) {
                     }
                   </td>
                   {/* Score */}
-                  <td style={{ padding: '12px 10px' }}>
+                  <td style={{ padding: '9px 10px' }}>
                     <ScoreBar score={p.score} />
                   </td>
                 </tr>

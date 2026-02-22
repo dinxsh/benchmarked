@@ -109,23 +109,23 @@ export function buildSeedProviders(): GRProvider[] {
   return sorted;
 }
 
-/** Colour palette for the GoldRush brand */
+/** Colour palette for the benchmark dashboard */
 export const GR_COLORS = {
-  gold:       '#F5C518',
-  goldDim:    '#C49A10',
-  bgBase:     '#090C10',
-  bgCard:     '#0E1219',
-  bgCardHover:'#131A24',
-  border:     '#1C2333',
-  borderBright:'#2A3A50',
-  textPrimary:'#F0F4F8',
-  textSecondary:'#8899AA',
-  textMuted:  '#4A5568',
-  green:      '#00D4A0',
-  amber:      '#F5A623',
-  red:        '#FF4D4D',
-  blue:       '#4D9EFF',
-  purple:     '#8B5CF6',
+  gold:         '#F5C518',
+  goldDim:      '#C49A10',
+  bgBase:       '#080C14',
+  bgCard:       '#0D1423',
+  bgCardHover:  '#111A2E',
+  border:       '#1A2540',
+  borderBright: '#243356',
+  textPrimary:  '#E8EAF2',
+  textSecondary:'#7A8AA0',
+  textMuted:    '#3D4F66',
+  green:        '#10B981',
+  amber:        '#F59E0B',
+  red:          '#EF4444',
+  blue:         '#3B82F6',
+  purple:       '#8B5CF6',
 };
 
 export const TYPE_LABELS: Record<ProviderType, string> = {
