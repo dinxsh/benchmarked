@@ -8,6 +8,7 @@ import {
   Mulish,
   Noto_Sans_Mono,
   Outfit,
+  Roboto_Mono,
   Space_Mono
 } from 'next/font/google';
 
@@ -65,6 +66,12 @@ const fontSpaceMono = Space_Mono({
   variable: '--font-space-mono'
 });
 
+const fontRobotoMono = Roboto_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-roboto-mono'
+});
+
 export const fontVariables = cn(
   fontSans.variable,
   fontMono.variable,
@@ -75,5 +82,6 @@ export const fontVariables = cn(
   fontDMSans.variable,
   fontFiraCode.variable,
   fontOutfit.variable,
-  fontSpaceMono.variable
+  fontSpaceMono.variable,
+  fontRobotoMono.variable
 );

@@ -1,47 +1,29 @@
 'use client';
 
-import { Zap } from 'lucide-react';
-import { GR_COLORS } from '@/lib/benchmark/data';
+import { BarChart2 } from 'lucide-react';
+import type { GRProvider } from '@/lib/benchmark/data';
+import { GR_COLORS, GR_FONTS } from '@/lib/benchmark/data';
 
 const C = GR_COLORS;
 
-export function CTABand() {
+export function CTABand({ leader }: { leader?: GRProvider }) {
   return (
     <div style={{
       background: C.bgCard, border: `1px solid ${C.border}`,
-      borderTop: `2px solid ${C.blue}`, borderRadius: 8,
+      borderTop: `2px solid ${C.blue}`, borderRadius: 2,
       padding: '28px 36px', textAlign: 'center',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        fontSize: 24, fontWeight: 800, color: C.textPrimary,
-        fontFamily: 'JetBrains Mono, monospace', marginBottom: 8 }}>
-        <Zap size={16} style={{ color: C.blue, flexShrink: 0 }} />
-        GoldRush is the fastest paid Solana RPC.
+        fontSize: 20, fontWeight: 800, color: C.textPrimary,
+        fontFamily: GR_FONTS.mono, marginBottom: 8 }}>
+        <BarChart2 size={16} style={{ color: C.blue, flexShrink: 0 }} />
+        {leader
+          ? `${leader.name} leads — ${Math.round(leader.p50)}ms P50 median latency`
+          : 'Live Solana RPC benchmark — 8 providers, updated every 30s'
+        }
       </div>
-      <div style={{ fontSize: 14, color: C.textSecondary, fontFamily: 'JetBrains Mono, monospace', marginBottom: 28 }}>
-        Proven live, right now — not a marketing claim.
-      </div>
-      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-        <a href="https://goldrush.dev" target="_blank" rel="noopener noreferrer"
-          style={{ padding: '12px 28px', background: C.blue, color: '#fff',
-            borderRadius: 6, fontWeight: 800, fontSize: 14,
-            fontFamily: 'JetBrains Mono, monospace', textDecoration: 'none', display: 'inline-block' }}>
-          Get Free API Key →
-        </a>
-        <a href="https://goldrush.dev/docs" target="_blank" rel="noopener noreferrer"
-          style={{ padding: '12px 28px', background: 'transparent',
-            border: `1px solid ${C.blue}`, color: C.blue,
-            borderRadius: 6, fontWeight: 700, fontSize: 14,
-            fontFamily: 'JetBrains Mono, monospace', textDecoration: 'none', display: 'inline-block' }}>
-          View Docs →
-        </a>
-        <a href="mailto:sales@goldrush.dev"
-          style={{ padding: '12px 28px', background: 'transparent',
-            border: `1px solid ${C.border}`, color: C.textSecondary,
-            borderRadius: 6, fontWeight: 700, fontSize: 14,
-            fontFamily: 'JetBrains Mono, monospace', textDecoration: 'none', display: 'inline-block' }}>
-          Talk to Sales →
-        </a>
+      <div style={{ fontSize: 13, color: C.textSecondary, fontFamily: GR_FONTS.mono }}>
+        Score = Latency 40% + Reliability 35% + Throughput 25% · Jitter = P99 − P50 · 5 samples per provider
       </div>
     </div>
   );

@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { Zap, Shield, TrendingUp, DollarSign } from 'lucide-react';
 import type { GRProvider } from '@/lib/benchmark/data';
-import { GR_COLORS } from '@/lib/benchmark/data';
+import { GR_COLORS, GR_FONTS } from '@/lib/benchmark/data';
 import { computeWinners } from '@/lib/benchmark/scoring';
 
 const C = GR_COLORS;
@@ -22,7 +22,7 @@ function WinnerCard({ icon, label, provider, value, accent }: WinnerCardProps) {
       background: C.bgCard,
       border: `1px solid ${C.border}`,
       borderLeft: `2px solid ${accent}`,
-      borderRadius: 8,
+      borderRadius: 2,
       padding: '14px 16px',
       flex: 1,
       transition: 'border-color 200ms',
@@ -37,15 +37,15 @@ function WinnerCard({ icon, label, provider, value, accent }: WinnerCardProps) {
           {icon}
         </div>
         <div style={{ fontSize: 9, color: C.textMuted, fontWeight: 700, letterSpacing: '0.08em',
-          textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
+          textTransform: 'uppercase', fontFamily: GR_FONTS.mono }}>
           {label}
         </div>
       </div>
       <div style={{ fontSize: 22, fontWeight: 800, color: C.textPrimary,
-        fontFamily: 'JetBrains Mono, monospace', lineHeight: 1.1 }}>
+        fontFamily: GR_FONTS.mono, lineHeight: 1.1 }}>
         {value}
       </div>
-      <div style={{ fontSize: 12, color: C.textSecondary, fontFamily: 'JetBrains Mono, monospace', marginTop: 4 }}>
+      <div style={{ fontSize: 12, color: C.textSecondary, fontFamily: GR_FONTS.mono, marginTop: 4 }}>
         {provider?.name ?? '—'}
       </div>
     </div>

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { RefreshCw, Loader2, Activity } from 'lucide-react';
 import { useLiveBenchmark } from '@/lib/benchmark/simulate';
-import { GR_COLORS } from '@/lib/benchmark/data';
+import { GR_COLORS, GR_FONTS } from '@/lib/benchmark/data';
 import type { GRProvider } from '@/lib/benchmark/data';
 
 import { HeroBand }           from '@/components/goldrush/HeroBand';
@@ -36,14 +36,14 @@ function TopNav({
         <Activity size={16} style={{ color: C.blue, flexShrink: 0 }} />
         <span style={{
           fontSize: 15, fontWeight: 700, color: C.textPrimary,
-          fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.01em',
+          fontFamily: GR_FONTS.ui, letterSpacing: '-0.01em',
         }}>
           Solana RPC Benchmark
         </span>
         {providerCount > 0 && (
           <span style={{
             fontSize: 11, color: C.textMuted,
-            fontFamily: 'JetBrains Mono, monospace',
+            fontFamily: GR_FONTS.mono,
             background: C.bgCard, border: `1px solid ${C.border}`,
             borderRadius: 3, padding: '2px 7px',
           }}>
@@ -61,18 +61,18 @@ function TopNav({
           }} />
           <span style={{
             fontSize: 11, color: C.green,
-            fontFamily: 'JetBrains Mono, monospace', fontWeight: 700,
+            fontFamily: GR_FONTS.mono, fontWeight: 700,
           }}>
             LIVE
           </span>
           {!isLive && (
-            <span style={{ fontSize: 11, color: C.amber, fontFamily: 'JetBrains Mono, monospace' }}>
+            <span style={{ fontSize: 11, color: C.amber, fontFamily: GR_FONTS.mono }}>
               &nbsp;(sim)
             </span>
           )}
         </span>
 
-        <span style={{ fontSize: 11, color: C.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>
+        <span style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono }}>
           next in {secsLeft}s
         </span>
 
@@ -86,7 +86,7 @@ function TopNav({
             border: `1px solid ${C.borderBright}`, background: 'transparent',
             color: loading ? C.textMuted : C.textPrimary,
             fontSize: 12, fontWeight: 600,
-            fontFamily: 'Inter, system-ui, sans-serif',
+            fontFamily: GR_FONTS.ui,
             transition: 'border-color 150ms, color 150ms',
           }}
           onMouseEnter={(e) => {
@@ -132,7 +132,7 @@ function SectionLabel({ label }: { label: string }) {
       <span style={{
         fontSize: 10, fontWeight: 700, letterSpacing: '0.1em',
         textTransform: 'uppercase', color: C.textMuted,
-        fontFamily: 'Inter, system-ui, sans-serif',
+        fontFamily: GR_FONTS.ui,
       }}>
         {label}
       </span>
@@ -161,7 +161,7 @@ export default function Home() {
       minHeight: '100vh',
       background: C.bgBase,
       color: C.textPrimary,
-      fontFamily: 'Inter, system-ui, sans-serif',
+      fontFamily: GR_FONTS.ui,
     }}>
       {/* Sticky nav on scroll */}
       <StickyNav
@@ -186,7 +186,7 @@ export default function Home() {
             marginBottom: 20, padding: '10px 16px',
             background: 'rgba(242,73,92,0.08)', border: `1px solid rgba(242,73,92,0.25)`,
             borderRadius: 4, fontSize: 12, color: C.red,
-            fontFamily: 'JetBrains Mono, monospace',
+            fontFamily: GR_FONTS.mono,
           }}>
             {error} — showing simulated data
           </div>
@@ -197,7 +197,7 @@ export default function Home() {
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             height: 320, gap: 10, color: C.textMuted,
-            fontFamily: 'JetBrains Mono, monospace', fontSize: 13,
+            fontFamily: GR_FONTS.mono, fontSize: 13,
           }}>
             <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
             Running benchmarks across 8 Solana providers…
@@ -246,7 +246,7 @@ export default function Home() {
               paddingTop: 16, paddingBottom: 4,
               textAlign: 'center',
               fontSize: 11, color: C.textMuted,
-              fontFamily: 'JetBrains Mono, monospace',
+              fontFamily: GR_FONTS.mono,
               lineHeight: 1.8,
             }}>
               Score = Latency 40% + Reliability 35% + Throughput 25%

@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import type { GRProvider } from '@/lib/benchmark/data';
-import { GR_COLORS, TYPE_LABELS, TYPE_COLORS } from '@/lib/benchmark/data';
+import { GR_COLORS, GR_FONTS, TYPE_LABELS, TYPE_COLORS } from '@/lib/benchmark/data';
 import { computeValueScore, computeDelta } from '@/lib/benchmark/scoring';
 
 const C = GR_COLORS;
@@ -49,7 +49,7 @@ function TypeBadge({ type }: { type: GRProvider['type'] }) {
     <span style={{
       background: tc.bg, color: tc.text, border: `1px solid ${tc.border}`,
       borderRadius: 4, padding: '2px 7px', fontSize: 10, fontWeight: 700,
-      letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace',
+      letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: GR_FONTS.mono,
       whiteSpace: 'nowrap',
     }}>
       {TYPE_LABELS[type]}
@@ -65,7 +65,7 @@ function ScoreBar({ score }: { score: number }) {
         <div style={{ height: '100%', width: `${score}%`, background: color, borderRadius: 3 }} />
       </div>
       <span style={{ fontSize: 12, fontWeight: 800, color: C.amber,
-        fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums', width: 36, textAlign: 'right' }}>
+        fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums', width: 36, textAlign: 'right' }}>
         {score.toFixed(1)}
       </span>
     </div>
@@ -87,7 +87,7 @@ function DecisionBadge({ text }: { text: string }) {
     <span style={{
       background: s.bg, color: s.color, border: `1px solid ${s.border}`,
       borderRadius: 4, padding: '1px 7px', fontSize: 10, fontWeight: 700,
-      letterSpacing: '0.04em', fontFamily: 'JetBrains Mono, monospace', whiteSpace: 'nowrap',
+      letterSpacing: '0.04em', fontFamily: GR_FONTS.mono, whiteSpace: 'nowrap',
     }}>
       {text}
     </span>
@@ -164,7 +164,7 @@ export function GRProviderTable({ providers, onSelect }: Props) {
   const thStyle = (active: boolean): React.CSSProperties => ({
     padding: '11px 10px', textAlign: 'right' as const,
     fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const,
-    fontFamily: 'JetBrains Mono, monospace', cursor: 'pointer', userSelect: 'none' as const,
+    fontFamily: GR_FONTS.mono, cursor: 'pointer', userSelect: 'none' as const,
     whiteSpace: 'nowrap' as const, borderBottom: `1px solid ${C.border}`,
     color: active ? C.textPrimary : C.textMuted,
     transition: 'color 150ms',
@@ -191,19 +191,19 @@ export function GRProviderTable({ providers, onSelect }: Props) {
   ];
 
   return (
-    <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 8, overflow: 'hidden' }}>
+    <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 2, overflow: 'hidden' }}>
       {/* Header */}
       <div style={{ padding: '18px 20px', borderBottom: `1px solid ${C.border}`,
         display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary, fontFamily: 'JetBrains Mono, monospace' }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary, fontFamily: GR_FONTS.mono }}>
             Full Provider Comparison
           </div>
-          <div style={{ fontSize: 11, color: C.textMuted, fontFamily: 'JetBrains Mono, monospace', marginTop: 3 }}>
+          <div style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, marginTop: 3 }}>
             {providers.length} providers · click any row for full details · sortable columns
           </div>
         </div>
-        <div style={{ fontSize: 10, color: C.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>
+        <div style={{ fontSize: 10, color: C.textMuted, fontFamily: GR_FONTS.mono }}>
           Jitter = P99−P50 · Value = score÷($/M)
         </div>
       </div>
@@ -217,7 +217,7 @@ export function GRProviderTable({ providers, onSelect }: Props) {
             onClick={() => setTypeFilter(btn.key)}
             style={{
               padding: '4px 11px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-              fontFamily: 'JetBrains Mono, monospace', border: `1px solid ${typeFilter === btn.key ? C.borderBright : C.border}`,
+              fontFamily: GR_FONTS.mono, border: `1px solid ${typeFilter === btn.key ? C.borderBright : C.border}`,
               background: typeFilter === btn.key ? C.borderBright : 'transparent',
               color: typeFilter === btn.key ? C.textPrimary : C.textMuted,
               transition: 'all 150ms',
@@ -277,12 +277,12 @@ export function GRProviderTable({ providers, onSelect }: Props) {
                     {p.rank === 1 ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                         width: 28, height: 28, borderRadius: '50%', background: 'rgba(59,130,246,0.15)',
-                        color: C.blue, fontSize: 13, fontWeight: 900, fontFamily: 'JetBrains Mono, monospace' }}>
+                        color: C.blue, fontSize: 13, fontWeight: 900, fontFamily: GR_FONTS.mono }}>
                         1
                       </span>
                     ) : (
                       <span style={{ fontSize: 13, fontWeight: 600, color: C.textMuted,
-                        fontFamily: 'JetBrains Mono, monospace', paddingLeft: 6 }}>
+                        fontFamily: GR_FONTS.mono, paddingLeft: 6 }}>
                         {p.rank}
                       </span>
                     )}
@@ -296,7 +296,7 @@ export function GRProviderTable({ providers, onSelect }: Props) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 14, fontWeight: 800,
                         color: C.textPrimary,
-                        fontFamily: 'JetBrains Mono, monospace' }}>
+                        fontFamily: GR_FONTS.mono }}>
                         {p.name}
                       </span>
                       {badges.map((b) => <DecisionBadge key={b} text={b} />)}
@@ -305,13 +305,13 @@ export function GRProviderTable({ providers, onSelect }: Props) {
                   {/* P50 */}
                   <td style={{ padding: '9px 10px', textAlign: 'right' }}>
                     <span style={{ fontSize: 12, fontWeight: 800, color: latencyColor(p.p50),
-                      fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
+                      fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
                       {Math.round(p.p50)}ms
                     </span>
                   </td>
                   {/* Δ Lead */}
                   <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11,
-                    fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
+                    fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
                     {isLeader
                       ? <span style={{ color: C.green, fontWeight: 700 }}>—</span>
                       : <span style={{ color: C.textMuted }}>+{Math.round(delta)}ms</span>
@@ -319,43 +319,43 @@ export function GRProviderTable({ providers, onSelect }: Props) {
                   </td>
                   {/* P95 */}
                   <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
-                    color: p9xColor(p.p95), fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
+                    color: p9xColor(p.p95), fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
                     {Math.round(p.p95)}ms
                   </td>
                   {/* P99 */}
                   <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
-                    color: p9xColor(p.p99), fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
+                    color: p9xColor(p.p99), fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
                     {Math.round(p.p99)}ms
                   </td>
                   {/* Jitter */}
                   <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
-                    color: jitterColor(p.jitter), fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
+                    color: jitterColor(p.jitter), fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
                     {Math.round(p.jitter)}ms
                   </td>
                   {/* Uptime */}
                   <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
-                    color: uptimeColor(p.uptime), fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
+                    color: uptimeColor(p.uptime), fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
                     {p.uptime.toFixed(0)}%
                   </td>
                   {/* Err% */}
                   <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
                     color: p.errRate === 0 ? C.green : C.red,
-                    fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
+                    fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
                     {p.errRate.toFixed(0)}%
                   </td>
                   {/* RPS */}
                   <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
-                    color: C.textPrimary, fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
+                    color: C.textPrimary, fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
                     {Math.round(p.rps)}
                   </td>
                   {/* Slot */}
                   <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11,
-                    color: C.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>
+                    color: C.textMuted, fontFamily: GR_FONTS.mono }}>
                     {p.slot ? `${(p.slot / 1e6).toFixed(1)}M` : '—'}
                   </td>
                   {/* Cost/M */}
                   <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 800,
-                    fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
+                    fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
                     {p.free
                       ? <span style={{ color: C.green }}>Free</span>
                       : <span style={{ color: C.textPrimary }}>${p.costPerM}</span>
@@ -363,7 +363,7 @@ export function GRProviderTable({ providers, onSelect }: Props) {
                   </td>
                   {/* Value */}
                   <td style={{ padding: '9px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700,
-                    fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
+                    fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
                     {p.free
                       ? <span style={{ color: C.green }}>∞</span>
                       : <span style={{ color: C.textSecondary }}>{Math.round(vs)}</span>
@@ -389,12 +389,12 @@ export function GRProviderTable({ providers, onSelect }: Props) {
           { color: C.red,   label: 'Poor' },
         ].map(({ color, label }) => (
           <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 5,
-            fontSize: 11, color: C.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>
+            fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, display: 'inline-block' }} />
             {label}
           </span>
         ))}
-        <span style={{ marginLeft: 'auto', fontSize: 10, color: C.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 10, color: C.textMuted, fontFamily: GR_FONTS.mono }}>
           REST and Data API measured differently from JSON-RPC
         </span>
       </div>

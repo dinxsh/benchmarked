@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Zap, Shield, DollarSign, BarChart2 } from 'lucide-react';
 import type { GRProvider } from '@/lib/benchmark/data';
-import { GR_COLORS } from '@/lib/benchmark/data';
+import { GR_COLORS, GR_FONTS } from '@/lib/benchmark/data';
 import { GRLatencyChart } from './charts/GRLatencyChart';
 import { GRThroughputChart } from './charts/GRThroughputChart';
 import { GRUptimeList } from './charts/GRUptimeList';
@@ -33,7 +33,7 @@ function ChartCard({
     <div style={{
       background: C.bgCard, border: `1px solid ${C.border}`,
       borderTop: `2px solid ${accentColor ?? C.border}`,
-      borderRadius: 8, padding: '20px', height: '100%',
+      borderRadius: 2, padding: '20px', height: '100%',
     }}>
       {children}
     </div>
@@ -45,7 +45,7 @@ export function BenchmarkTabs({ providers }: { providers: GRProvider[] }) {
   const current = TABS.find((t) => t.key === activeTab)!;
 
   return (
-    <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 8, overflow: 'hidden' }}>
+    <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 2, overflow: 'hidden' }}>
       {/* Tab header */}
       <div style={{ borderBottom: `1px solid ${C.border}`, padding: '0 20px',
         display: 'flex', gap: 4, alignItems: 'center' }}>
@@ -60,7 +60,7 @@ export function BenchmarkTabs({ providers }: { providers: GRProvider[] }) {
                 border: 'none', borderBottom: active ? `2px solid ${tab.accentColor}` : '2px solid transparent',
                 fontSize: 12, fontWeight: active ? 800 : 600,
                 color: active ? C.textPrimary : C.textMuted,
-                fontFamily: 'JetBrains Mono, monospace',
+                fontFamily: GR_FONTS.mono,
                 marginBottom: -1,
                 transition: 'color 150ms, border-color 150ms',
                 display: 'flex', alignItems: 'center', gap: 6,
@@ -123,12 +123,12 @@ export function BenchmarkTabs({ providers }: { providers: GRProvider[] }) {
       {/* Section label */}
       <div style={{ padding: '8px 20px', borderTop: `1px solid ${C.border}`,
         display: 'flex', gap: 8, alignItems: 'center' }}>
-        <span style={{ fontSize: 10, color: C.textMuted, fontFamily: 'JetBrains Mono, monospace',
+        <span style={{ fontSize: 10, color: C.textMuted, fontFamily: GR_FONTS.mono,
           letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           Benchmark Analysis
         </span>
         <div style={{ flex: 1, height: 1, background: C.border }} />
-        <span style={{ fontSize: 10, color: current.accentColor, fontFamily: 'JetBrains Mono, monospace',
+        <span style={{ fontSize: 10, color: current.accentColor, fontFamily: GR_FONTS.mono,
           fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
           display: 'flex', alignItems: 'center', gap: 4 }}>
           {current.icon} {current.label}

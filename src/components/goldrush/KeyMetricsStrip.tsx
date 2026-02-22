@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import type { GRProvider } from '@/lib/benchmark/data';
-import { GR_COLORS } from '@/lib/benchmark/data';
+import { GR_COLORS, GR_FONTS } from '@/lib/benchmark/data';
 import { computeWinners } from '@/lib/benchmark/scoring';
 
 const C = GR_COLORS;
@@ -21,18 +21,18 @@ function MetricTile({ label, value, sub, highlight, valueColor }: TileProps) {
       background: C.bgCard,
       border: `1px solid ${C.border}`,
       borderLeft: highlight ? `3px solid ${C.blue}` : `1px solid ${C.border}`,
-      borderRadius: 8, padding: '12px 14px', minWidth: 120, flex: 1,
+      borderRadius: 2, padding: '12px 14px', minWidth: 120, flex: 1,
     }}>
       <div style={{ fontSize: 9, color: C.textMuted, fontWeight: 700, letterSpacing: '0.1em',
-        textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace', marginBottom: 6 }}>
+        textTransform: 'uppercase', fontFamily: GR_FONTS.mono, marginBottom: 6 }}>
         {label}
       </div>
       <div style={{ fontSize: 20, fontWeight: 800, color: valueColor ?? C.textPrimary,
-        fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+        fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
         {value}
       </div>
       {sub && (
-        <div style={{ fontSize: 11, color: C.textMuted, fontFamily: 'JetBrains Mono, monospace', marginTop: 4 }}>
+        <div style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, marginTop: 4 }}>
           {sub}
         </div>
       )}

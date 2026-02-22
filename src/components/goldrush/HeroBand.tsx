@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { Trophy, Check, Dot } from 'lucide-react';
 import type { GRProvider } from '@/lib/benchmark/data';
-import { GR_COLORS, TYPE_LABELS, TYPE_COLORS } from '@/lib/benchmark/data';
+import { GR_COLORS, GR_FONTS, TYPE_LABELS, TYPE_COLORS } from '@/lib/benchmark/data';
 import { computeWinners } from '@/lib/benchmark/scoring';
 
 const C = GR_COLORS;
@@ -18,7 +18,7 @@ function TypeBadge({ type }: { type: GRProvider['type'] }) {
     <span style={{
       background: tc.bg, color: tc.text, border: `1px solid ${tc.border}`,
       borderRadius: 4, padding: '2px 8px', fontSize: 11, fontWeight: 700,
-      letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace',
+      letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: GR_FONTS.mono,
     }}>
       {TYPE_LABELS[type]}
     </span>
@@ -61,7 +61,7 @@ export function HeroBand({ providers }: Props) {
       background: C.bgCard,
       border: `1px solid ${C.border}`,
       borderTop: `2px solid ${C.blue}`,
-      borderRadius: 8,
+      borderRadius: 2,
       overflow: 'hidden',
     }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
@@ -75,7 +75,7 @@ export function HeroBand({ providers }: Props) {
               border: `1px solid rgba(59,130,246,0.3)`, borderRadius: 4,
               padding: '3px 10px', fontSize: 10, fontWeight: 800,
               letterSpacing: '0.08em', textTransform: 'uppercase',
-              fontFamily: 'JetBrains Mono, monospace',
+              fontFamily: GR_FONTS.mono,
             }}>
               <Trophy size={11} /> #1 SPEED — LIVE
             </span>
@@ -85,25 +85,25 @@ export function HeroBand({ providers }: Props) {
           <div style={{ marginBottom: 4 }}>
             <h2 style={{
               fontSize: 36, fontWeight: 800, color: C.textPrimary,
-              fontFamily: 'JetBrains Mono, monospace', lineHeight: 1.1, margin: 0,
+              fontFamily: GR_FONTS.mono, lineHeight: 1.1, margin: 0,
             }}>
               {hero.name}
             </h2>
             <a href={hero.website} target="_blank" rel="noopener noreferrer"
-              style={{ fontSize: 12, color: C.textMuted, textDecoration: 'none', fontFamily: 'JetBrains Mono, monospace' }}>
+              style={{ fontSize: 12, color: C.textMuted, textDecoration: 'none', fontFamily: GR_FONTS.mono }}>
               {hero.website.replace(/^https?:\/\//, '')}
             </a>
           </div>
           {/* Why bullets */}
           <div style={{ marginTop: 20 }}>
             <div style={{ fontSize: 10, color: C.textMuted, fontWeight: 700, letterSpacing: '0.08em',
-              textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace', marginBottom: 8 }}>
+              textTransform: 'uppercase', fontFamily: GR_FONTS.mono, marginBottom: 8 }}>
               WHY IT&apos;S FASTEST
             </div>
             {bullets.map((b, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
                 <Check size={11} color={C.green} style={{ marginTop: 3, flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: C.textSecondary, fontFamily: 'JetBrains Mono, monospace' }}>{b}</span>
+                <span style={{ fontSize: 13, color: C.textSecondary, fontFamily: GR_FONTS.mono }}>{b}</span>
               </div>
             ))}
           </div>
@@ -112,7 +112,7 @@ export function HeroBand({ providers }: Props) {
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
               {['Live measurements', 'Real API calls', '5 samples'].map((note) => (
                 <span key={note} style={{ display: 'flex', alignItems: 'center', gap: 4,
-                  fontSize: 11, color: C.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>
+                  fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono }}>
                   <Dot size={10} />
                   {note}
                 </span>
@@ -126,13 +126,13 @@ export function HeroBand({ providers }: Props) {
           <div>
             <div style={{
               fontSize: 72, fontWeight: 900, color: C.gold,
-              fontFamily: 'JetBrains Mono, monospace', lineHeight: 1,
+              fontFamily: GR_FONTS.mono, lineHeight: 1,
               fontVariantNumeric: 'tabular-nums',
             }}>
               {Math.round(hero.p50)}
             </div>
             <div style={{ fontSize: 12, color: C.textMuted, fontWeight: 700, letterSpacing: '0.1em',
-              textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace', marginTop: 4 }}>
+              textTransform: 'uppercase', fontFamily: GR_FONTS.mono, marginTop: 4 }}>
               ms P50 MEDIAN LATENCY
             </div>
           </div>
@@ -140,11 +140,11 @@ export function HeroBand({ providers }: Props) {
           <div style={{ marginTop: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <span style={{ fontSize: 11, color: C.textMuted, fontWeight: 600, letterSpacing: '0.08em',
-                textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
+                textTransform: 'uppercase', fontFamily: GR_FONTS.mono }}>
                 Composite score
               </span>
               <span style={{ fontSize: 14, color: C.amber, fontWeight: 800,
-                fontFamily: 'JetBrains Mono, monospace' }}>
+                fontFamily: GR_FONTS.mono }}>
                 {hero.score.toFixed(1)}/100
               </span>
             </div>
@@ -152,7 +152,7 @@ export function HeroBand({ providers }: Props) {
             <div style={{ display: 'flex', gap: 12, marginTop: 6 }}>
               {[['Latency', '40%', C.blue], ['Reliability', '35%', C.green], ['Throughput', '25%', C.purple]].map(([label, pct, color]) => (
                 <span key={label as string} style={{ fontSize: 10, color: color as string,
-                  fontFamily: 'JetBrains Mono, monospace' }}>
+                  fontFamily: GR_FONTS.mono }}>
                   {label} {pct}
                 </span>
               ))}
@@ -166,16 +166,16 @@ export function HeroBand({ providers }: Props) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: 10, color: C.textMuted, fontWeight: 700, letterSpacing: '0.08em',
-                  textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
+                  textTransform: 'uppercase', fontFamily: GR_FONTS.mono }}>
                   JITTER (P99–P50)
                 </div>
                 <div style={{ fontSize: 10, color: C.textMuted, marginTop: 2,
-                  fontFamily: 'JetBrains Mono, monospace' }}>
+                  fontFamily: GR_FONTS.mono }}>
                   response consistency
                 </div>
               </div>
               <span style={{ fontSize: 20, fontWeight: 800, color: hero.jitter > 300 ? C.amber : C.green,
-                fontFamily: 'JetBrains Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
+                fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
                 {Math.round(hero.jitter)}ms
               </span>
             </div>
