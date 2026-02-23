@@ -8,7 +8,7 @@
 [![Recharts](https://img.shields.io/badge/Recharts-2.15-22b5bf?style=flat-square)](https://recharts.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-**Live Solana RPC benchmark — real measurements, no simulated data**
+**Live Solana data API benchmark — real measurements, no simulated data**
 
 [View Demo](https://try-benchmarked.vercel.app) · [Report Bug](https://github.com/dinxsh/benchmarked/issues) · [Request Feature](https://github.com/dinxsh/benchmarked/issues)
 
@@ -18,9 +18,9 @@
 
 ## What it does
 
-Benchmarked fires real HTTP requests to six Solana RPC/API providers on every run and ranks them by a weighted composite score. Every number on the dashboard is a live measurement — nothing is simulated or cached.
+Benchmarked fires real HTTP requests to two Solana data API providers on every run and ranks them by a weighted composite score. Every number on the dashboard is a live measurement — nothing is simulated or cached.
 
-**Providers benchmarked:** Alchemy · QuickNode · Helius · Ankr · LaserStream · GoldRush
+**Providers benchmarked:** Helius · GoldRush
 
 ---
 
@@ -60,8 +60,8 @@ The root page (`/`) is the entire product. It renders:
 
 Each run fires **5 sequential requests** per provider (100 ms gap, `performance.now()` timing):
 
-- **JSON-RPC providers** — `POST getSlot` · 5 s timeout
-- **GoldRush REST** — `GET /v1/solana-mainnet/address/{wallet}/balances_v2/` · 8 s timeout
+- **Helius** — `GET /v0/addresses/{wallet}/balances` · 8 s timeout
+- **GoldRush** — `GET /v1/solana-mainnet/address/{wallet}/balances_v2/` · 8 s timeout
 
 Throughput uses a separate **concurrent burst** (8–10 parallel requests) measured wall-clock.
 
@@ -106,21 +106,8 @@ Create `.env.local` with your provider keys:
 # GoldRush (Covalent)
 GOLDRUSH_API_KEY=your_key_here
 
-# Alchemy — either a full endpoint URL or just the key
-ALCHEMY_SOLANA_ENDPOINT=https://solana-mainnet.g.alchemy.com/v2/your_key
-# ALCHEMY_API_KEY=your_key_here   (alternative)
-
 # Helius
 HELIUS_API_KEY=your_key_here
-
-# QuickNode — full endpoint URL
-QUICKNODE_SOLANA_ENDPOINT=https://your-endpoint.quiknode.pro/your_key/
-
-# LaserStream
-LASERSTREAM_API_KEY=your_key_here
-
-# Ankr — public endpoint works without a key
-# ANKR_API_KEY=your_key_here
 ```
 
 Providers with missing keys are excluded from the run. At least one key is required.

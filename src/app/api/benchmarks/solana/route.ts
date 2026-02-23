@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server';
 import { SolanaGoldRushAdapter } from '@/lib/adapters/solana-goldrush';
 import { SolanaLaserStreamAdapter } from '@/lib/adapters/solana-laserteam';
-import { SolanaAlchemyAdapter } from '@/lib/adapters/solana-alchemy';
-import { SolanaHeliusAdapter } from '@/lib/adapters/solana-helius';
-import { SolanaAnkrAdapter } from '@/lib/adapters/solana-ankr';
-import { SolanaQuickNodeAdapter } from '@/lib/adapters/solana-quicknode';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,10 +47,6 @@ export async function GET(request: Request) {
 
   const adapters = [
     new SolanaGoldRushAdapter(),
-    new SolanaAlchemyAdapter(),
-    new SolanaHeliusAdapter(),
-    new SolanaAnkrAdapter(),
-    new SolanaQuickNodeAdapter(),
     new SolanaLaserStreamAdapter(),
   ];
 

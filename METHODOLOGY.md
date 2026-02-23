@@ -8,10 +8,10 @@ How every number on the dashboard is measured, derived, and displayed.
 
 Each benchmark run fires **5 sequential requests** per provider with a **100 ms gap** between calls. All timing uses `performance.now()` measured server-side inside the Next.js API route — client network latency is excluded.
 
-| Provider type | Benchmark endpoint | Timeout |
+| Provider | Benchmark endpoint | Timeout |
 |---|---|---|
-| JSON-RPC (Alchemy, QuickNode, Ankr, LaserStream, Helius) | `POST getSlot` | 5 s |
-| REST API (GoldRush) | `GET /v1/solana-mainnet/address/{wallet}/balances_v2/` | 8 s |
+| Helius | `GET /v0/addresses/{wallet}/balances` | 8 s |
+| GoldRush | `GET /v1/solana-mainnet/address/{wallet}/balances_v2/` | 8 s |
 
 The clock starts immediately before `fetch()` and stops after the full response body is consumed (`response.text()`). This measures **total round-trip time** including DNS (cached after first call), TCP, TLS, server processing, and body transfer.
 
@@ -74,8 +74,7 @@ The direct inverse of uptime. Shown in the provider table and the Uptime & Error
 Throughput is measured **separately** from latency samples using a concurrent burst:
 
 ```
-CONCURRENT = 10  (JSON-RPC providers)
-CONCURRENT =  8  (GoldRush REST)
+CONCURRENT = 8  (both providers)
 
 rps = floor(CONCURRENT / elapsed_wall_time_seconds)
 ```
@@ -86,7 +85,7 @@ All concurrent requests fire simultaneously via `Promise.allSettled`. Elapsed ti
 
 ## 5. Slot Height
 
-For JSON-RPC providers, `getSlot` returns the current confirmed slot number. This is captured during the measurement call and surfaced in tooltips to indicate how synchronized the provider's view of the chain is. REST providers (GoldRush) return `0` since the balances endpoint does not expose slot height.
+Both providers use data API endpoints (token balance queries), not JSON-RPC `getSlot`. Slot height is always `0` — this field is not applicable to data API comparisons.
 
 ---
 
@@ -158,15 +157,15 @@ Speed and Throughput are **relative to the current cohort** — they shift if a 
 
 Providers are scored on 6 binary feature flags, each worth ~16.67 points:
 
-| Feature | Alchemy | QuickNode | Helius | GoldRush | Ankr | LaserStream |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| Transactions | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Event Logs | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Token Balances | ✓ | ✓ | ✓ | ✓ | — | — |
-| NFT Metadata | ✓ | ✓ | ✓ | ✓ | — | — |
-| Custom Indexing | ✓ | ✓ | ✓ | ✓ | — | — |
-| Traces | ✓ | ✓ | ✓ | — | — | — |
-| **capScore** | **100** | **100** | **100** | **83** | **33** | **33** |
+| Feature | Helius | GoldRush |
+|---|:---:|:---:|
+| Transactions | ✓ | ✓ |
+| Event Logs | ✓ | ✓ |
+| Token Balances | ✓ | ✓ |
+| NFT Metadata | ✓ | ✓ |
+| Custom Indexing | ✓ | ✓ |
+| Traces | ✓ | — |
+| **capScore** | **100** | **83** |
 
 These are **static** — not measured at runtime. They reflect documented provider capabilities stored in `src/lib/benchmark/data.ts`.
 
@@ -192,4 +191,4 @@ These are **static** — not measured at runtime. They reflect documented provid
 - **Sequential latency samples** — the 5 latency samples are sequential (not concurrent), so they do not reflect sustained-load behavior. The separate throughput burst captures concurrent behavior.
 - **Throughput burst duration** — `CONCURRENT / elapsed` measures one burst of 8–10 requests, not a sustained stream. Real sustained RPS under production load would differ.
 - **No warm-up call** — there is no explicit warm-up request before timed samples. The first call may include connection setup overhead absent from subsequent calls.
-- **Endpoint type asymmetry** — JSON-RPC providers use `getSlot` (tiny payload, ~50 bytes). GoldRush uses `balances_v2` (full token list, kilobytes). Response payload size differs between types, so raw latency comparison across types is directional rather than apples-to-apples.
+- **Payload size difference** — Helius `/balances` and GoldRush `/balances_v2` return different response shapes for the same wallet. Response sizes may differ slightly between providers, so raw latency comparison is directional.
