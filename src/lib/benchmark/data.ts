@@ -44,8 +44,10 @@ export interface GRProvider {
 }
 
 export const CAPABILITIES: Record<string, GRCapabilities> = {
-  Helius:   { transactions: true, eventLogs: true, tokenBalances: true, nftMetadata: true, customIndexing: true, traces: true,  historyDepth: 'full', costPerM: 'Free', rateLimit: '10 req/s (free)', capScore: 100 },
-  GoldRush: { transactions: true, eventLogs: true, tokenBalances: true, nftMetadata: true, customIndexing: true, traces: false, historyDepth: 'full', costPerM: '$0.5', rateLimit: '50 req/s',        capScore: 83  },
+  Alchemy:  { transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: true,  historyDepth: 'full',   costPerM: '$1.5', rateLimit: '300 req/s',       capScore: 100 },
+  QuickNode:{ transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: true,  historyDepth: 'full',   costPerM: 'Free', rateLimit: '25 req/s (free)', capScore: 100 },
+  Ankr:     { transactions: true,  eventLogs: true,  tokenBalances: false, nftMetadata: false, customIndexing: false, traces: false, historyDepth: 'recent', costPerM: 'Free', rateLimit: '30 req/s',        capScore: 33  },
+  GoldRush: { transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: false, historyDepth: 'full',   costPerM: '$0.5', rateLimit: '50 req/s',        capScore: 83  },
 };
 
 /** Colour palette — Grafana dark theme accurate values */
