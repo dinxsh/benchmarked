@@ -79,7 +79,7 @@ score = latency_component × 0.40
 | Reliability | `uptime_percent` (0–100) |
 | Throughput | `min(100, (rps / 200) × 100)` |
 
-See full methodology in the [API source](src/app/api/benchmarks/solana/route.ts) and [scoring lib](src/lib/benchmark/scoring.ts).
+See [METHODOLOGY.md](METHODOLOGY.md) for the full breakdown, or the source in [route.ts](src/app/api/benchmarks/solana/route.ts) and [scoring.ts](src/lib/benchmark/scoring.ts).
 
 ---
 
