@@ -81,7 +81,7 @@ export function useLiveBenchmark(): LiveBenchmarkState {
     setError(null);
     try {
       const url = force ? '/api/benchmarks/solana?run=true' : '/api/benchmarks/solana';
-      const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+      const res = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(90_000) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       const converted = (json.providers as Record<string, unknown>[])

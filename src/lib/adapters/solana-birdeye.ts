@@ -50,7 +50,8 @@ export class SolanaBirdeyeAdapter extends BaseAdapter {
     const response = await fetch(this.endpoint, {
       method: 'GET',
       headers,
-      signal: AbortSignal.timeout(5000)
+      cache: 'no-store',
+      signal: AbortSignal.timeout(8000),
     });
     if (response.status >= 500) throw new Error(`HTTP ${response.status}`);
     await response.text();
@@ -63,7 +64,8 @@ export class SolanaBirdeyeAdapter extends BaseAdapter {
     const response = await fetch(this.endpoint, {
       method: 'GET',
       headers,
-      signal: AbortSignal.timeout(5000)
+      cache: 'no-store',
+      signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();

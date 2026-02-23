@@ -18,9 +18,9 @@
 
 ## What it does
 
-Benchmarked fires real HTTP requests to seven Solana providers on every run and ranks them by a weighted composite score. Every number on the dashboard is a live measurement — nothing is simulated or cached.
+Benchmarked fires real HTTP requests to three Solana data API providers on every run and ranks them by a weighted composite score. Every number on the dashboard is a live measurement — nothing is simulated or cached.
 
-**Providers benchmarked:** Alchemy · QuickNode · Ankr · LaserStream · GoldRush · Birdeye · Mobula
+**Providers benchmarked:** GoldRush · Birdeye · Mobula
 
 ---
 
@@ -60,8 +60,11 @@ The root page (`/`) is the entire product. It renders:
 
 Each run fires **5 sequential requests** per provider (100 ms gap, `performance.now()` timing):
 
-- **JSON-RPC providers** (Alchemy, QuickNode, Ankr) — `POST getSlot` · 5 s timeout
-- **GoldRush REST** — `GET /v1/solana-mainnet/address/{wallet}/balances_v2/` · 8 s timeout
+- **GoldRush** — `GET /v1/solana-mainnet/address/{wallet}/balances_v2/` · 8 s timeout
+- **Birdeye** — `GET /defi/price?address={sol}` · 8 s timeout
+- **Mobula** — `GET /api/1/market/data?asset=solana` · 8 s timeout
+
+All fetches use `cache: 'no-store'` to ensure every sample is a real network round-trip.
 
 Throughput uses a separate **concurrent burst** (8–10 parallel requests) measured wall-clock.
 
@@ -105,20 +108,6 @@ Create `.env.local` with your provider keys:
 ```env
 # GoldRush (Covalent)
 GOLDRUSH_API_KEY=your_key_here
-
-# Alchemy — either a full endpoint URL or just the key
-ALCHEMY_SOLANA_ENDPOINT=https://solana-mainnet.g.alchemy.com/v2/your_key
-# ALCHEMY_API_KEY=your_key_here   (alternative)
-
-# QuickNode — full endpoint URL
-QUICKNODE_SOLANA_ENDPOINT=https://your-endpoint.quiknode.pro/your_key/
-
-# Ankr — public endpoint works without a key
-# ANKR_API_KEY=your_key_here
-
-# LaserStream — falls back to public Solana RPC if not set
-# LASERSTREAM_API_KEY=your_key_here
-# LASERSTREAM_ENDPOINT=https://mainnet.laserstream.io/your_key
 
 # Birdeye — works without a key (rate limited)
 # BIRDEYE_API_KEY=your_key_here

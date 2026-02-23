@@ -63,7 +63,8 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
     const response = await fetch(this.grEndpoint, {
       method: 'GET',
       headers: this.authHeaders,
-      signal: AbortSignal.timeout(8000)
+      cache: 'no-store',
+      signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) throw new Error(`GoldRush HTTP ${response.status}`);
     await response.text();
@@ -75,7 +76,8 @@ export class SolanaGoldRushAdapter extends BaseAdapter {
     const response = await fetch(this.grEndpoint, {
       method: 'GET',
       headers: this.authHeaders,
-      signal: AbortSignal.timeout(8000)
+      cache: 'no-store',
+      signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) throw new Error(`GoldRush HTTP ${response.status}`);
     const data = await response.json();
