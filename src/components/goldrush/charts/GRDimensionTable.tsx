@@ -7,15 +7,30 @@ import { computeRadarDimensions } from '@/lib/benchmark/scoring';
 
 const C = GR_COLORS;
 
+const DIM_COLORS: Record<string, string> = {
+  Speed: C.blue, Uptime: C.green, Throughput: C.purple, Reliability: C.green, Coverage: C.amber,
+};
+
+const RANK_COLORS = ['#f2cc0c', '#9fa7b3', '#f5a623', C.border, C.border, C.border];
+
+function rankBorder(rank: number): string {
+  return RANK_COLORS[rank - 1] ?? C.border;
+}
+
+function scoreColor(v: number): string {
+  if (v >= 80) return C.green;
+  if (v >= 60) return C.amber;
+  return C.red;
+}
+
 function MiniBar({ value, color }: { value: number; color: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <div style={{ flex: 1, height: 5, background: C.border, borderRadius: 2, overflow: 'hidden', minWidth: 40 }}>
-        <div style={{ height: '100%', width: `${value}%`, background: color, borderRadius: 2 }} />
+      <div style={{ flex: 1, height: 7, background: C.border, borderRadius: 3, overflow: 'hidden', minWidth: 44 }}>
+        <div style={{ height: '100%', width: `${value}%`, background: color, borderRadius: 3, transition: 'width 500ms ease' }} />
       </div>
-      <span style={{ fontSize: 11, color: C.textSecondary, fontFamily: GR_FONTS.mono,
-        fontVariantNumeric: 'tabular-nums', width: 26, textAlign: 'right' }}>
-        {Math.round(value)}
+      <span style={{ fontSize: 11, color: C.textSecondary, fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums', width: 30, textAlign: 'right' }}>
+        {value.toFixed(1)}
       </span>
     </div>
   );
@@ -23,14 +38,19 @@ function MiniBar({ value, color }: { value: number; color: string }) {
 
 export function GRDimensionTable({ providers }: { providers: GRProvider[] }) {
   const rows = useMemo(() => {
-    return [...providers].sort((a, b) => b.score - a.score).map((p) => ({
-      provider: p, dims: computeRadarDimensions(p, providers),
+    return [...providers].sort((a, b) => b.score - a.score).map((p, i) => ({
+      rank: i + 1,
+      provider: p,
+      dims: computeRadarDimensions(p, providers),
     }));
   }, [providers]);
 
-  const headers = ['Speed', 'Uptime', 'Throughput', 'Reliability', 'Coverage'];
-  const dimColors: Record<string, string> = {
-    Speed: C.blue, Uptime: C.green, Throughput: C.purple, Reliability: C.green, Coverage: C.amber,
+  const headers = ['Speed', 'Uptime', 'Throughput', 'Reliability', 'Coverage'] as const;
+
+  const thBase: React.CSSProperties = {
+    padding: '9px 10px', fontSize: 10, fontFamily: GR_FONTS.mono,
+    fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+    whiteSpace: 'nowrap', borderBottom: `1px solid ${C.border}`,
   };
 
   return (
@@ -40,53 +60,64 @@ export function GRDimensionTable({ providers }: { providers: GRProvider[] }) {
           Dimension Comparison
         </div>
         <div style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, marginTop: 2 }}>
-          All dimensions normalized 0–100
+          All dimensions normalized 0–100 · sorted by composite score · gold/silver/bronze borders
         </div>
       </div>
+
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ borderBottom: `2px solid ${C.border}` }}>
-              <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: 10, color: C.textMuted,
-                fontFamily: GR_FONTS.mono, fontWeight: 700, letterSpacing: '0.08em',
-                textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-                Provider
-              </th>
+            <tr style={{ background: C.bgBase }}>
+              <th style={{ ...thBase, textAlign: 'center', color: C.textMuted, width: 36 }}>#</th>
+              <th style={{ ...thBase, textAlign: 'left', color: C.textMuted, minWidth: 90 }}>Provider</th>
               {headers.map((h) => (
-                <th key={h} style={{ textAlign: 'left', padding: '8px 12px', fontSize: 10, color: dimColors[h],
-                  fontFamily: GR_FONTS.mono, fontWeight: 700, letterSpacing: '0.08em',
-                  textTransform: 'uppercase', minWidth: 110, whiteSpace: 'nowrap' }}>
-                  {h}
-                </th>
+                <th key={h} style={{ ...thBase, textAlign: 'left', color: DIM_COLORS[h], minWidth: 120 }}>{h}</th>
               ))}
-              <th style={{ textAlign: 'right', padding: '8px 12px', fontSize: 10, color: C.amber,
-                fontFamily: GR_FONTS.mono, fontWeight: 700, letterSpacing: '0.08em',
-                textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-                Total
-              </th>
+              <th style={{ ...thBase, textAlign: 'right', color: C.amber, width: 64 }}>Score</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map(({ provider: p, dims }) => (
-              <tr key={p.id} style={{
-                borderBottom: `1px solid ${C.border}`,
-                background: 'transparent',
-                borderLeft: '3px solid transparent',
-                transition: 'background 150ms',
-              }}>
-                <td style={{ padding: '10px 12px', fontSize: 12, fontWeight: 600,
-                  color: C.textPrimary, fontFamily: GR_FONTS.mono,
-                  whiteSpace: 'nowrap' }}>
+            {rows.map(({ rank, provider: p, dims }) => (
+              <tr
+                key={p.id}
+                style={{
+                  borderBottom: `1px solid ${C.border}`,
+                  borderLeft: `3px solid ${rankBorder(rank)}`,
+                  background: 'transparent',
+                  transition: 'background 120ms',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLTableRowElement).style.background = C.bgCardHover;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLTableRowElement).style.background = 'transparent';
+                }}
+              >
+                {/* Rank */}
+                <td style={{ padding: '9px 10px', textAlign: 'center' }}>
+                  <span style={{
+                    fontSize: 11, fontWeight: rank <= 3 ? 800 : 400,
+                    color: rankBorder(rank),
+                    fontFamily: GR_FONTS.mono,
+                  }}>
+                    {rank}
+                  </span>
+                </td>
+                {/* Name */}
+                <td style={{ padding: '9px 10px', fontSize: 12, fontWeight: 700, color: C.textPrimary, fontFamily: GR_FONTS.mono, whiteSpace: 'nowrap' }}>
                   {p.name}
                 </td>
+                {/* Dimension bars */}
                 {headers.map((h) => (
-                  <td key={h} style={{ padding: '10px 12px' }}>
-                    <MiniBar value={dims[h as keyof typeof dims]} color={dimColors[h]} />
+                  <td key={h} style={{ padding: '9px 10px' }}>
+                    <MiniBar value={dims[h]} color={DIM_COLORS[h]} />
                   </td>
                 ))}
-                <td style={{ padding: '10px 12px', textAlign: 'right', fontSize: 13, fontWeight: 800,
-                  color: C.amber, fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
-                  {p.score.toFixed(1)}
+                {/* Total score */}
+                <td style={{ padding: '9px 10px', textAlign: 'right', fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums' }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: scoreColor(p.score) }}>
+                    {p.score.toFixed(1)}
+                  </span>
                 </td>
               </tr>
             ))}
