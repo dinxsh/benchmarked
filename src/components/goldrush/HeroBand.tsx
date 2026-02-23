@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { Trophy, Check, Dot } from 'lucide-react';
+import { motion } from 'motion/react';
 import type { GRProvider } from '@/lib/benchmark/data';
 import { GR_COLORS, GR_FONTS, TYPE_LABELS, TYPE_COLORS } from '@/lib/benchmark/data';
 import { computeWinners } from '@/lib/benchmark/scoring';
@@ -29,11 +30,15 @@ function ScoreBar({ score }: { score: number }) {
   const pct = Math.min(100, score);
   return (
     <div style={{ width: '100%', height: 6, background: C.border, borderRadius: 3, overflow: 'hidden' }}>
-      <div style={{
-        height: '100%', width: `${pct}%`, borderRadius: 3,
-        background: `linear-gradient(90deg, ${C.gold} 0%, ${C.amber} 100%)`,
-        transition: 'width 600ms ease',
-      }} />
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: `${pct}%` }}
+        transition={{ duration: 0.8, ease: 'easeOut', delay: 0.4 }}
+        style={{
+          height: '100%', borderRadius: 3,
+          background: `linear-gradient(90deg, ${C.gold} 0%, ${C.amber} 100%)`,
+        }}
+      />
     </div>
   );
 }
@@ -57,13 +62,18 @@ export function HeroBand({ providers }: Props) {
   ];
 
   return (
-    <div style={{
-      background: C.bgCard,
-      border: `1px solid ${C.border}`,
-      borderTop: `2px solid ${C.blue}`,
-      borderRadius: 2,
-      overflow: 'hidden',
-    }}>
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      style={{
+        background: C.bgCard,
+        border: `1px solid ${C.border}`,
+        borderTop: `2px solid ${C.blue}`,
+        borderRadius: 2,
+        overflow: 'hidden',
+      }}
+    >
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
         {/* Left panel */}
         <div style={{ padding: '28px 32px', borderRight: `1px solid ${C.border}` }}>
@@ -182,6 +192,6 @@ export function HeroBand({ providers }: Props) {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

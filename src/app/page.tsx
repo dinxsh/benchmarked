@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { RefreshCw, Loader2, Activity } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useLiveBenchmark } from '@/lib/benchmark/simulate';
 import { GR_COLORS, GR_FONTS } from '@/lib/benchmark/data';
 import type { GRProvider } from '@/lib/benchmark/data';
@@ -114,19 +115,24 @@ function Section({ id, children }: { id: string; children: React.ReactNode }) {
 
 // ─── Divider label ────────────────────────────────────────────────────────────
 
-function SectionLabel({ label }: { label: string }) {
+function SectionLabel({ label, subtitle }: { label: string; subtitle?: string }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12,
-    }}>
-      <span style={{
-        fontSize: 10, fontWeight: 700, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: C.textMuted,
-        fontFamily: GR_FONTS.ui,
-      }}>
-        {label}
-      </span>
-      <div style={{ flex: 1, height: 1, background: C.border }} />
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: subtitle ? 4 : 0 }}>
+        <span style={{
+          fontSize: 10, fontWeight: 700, letterSpacing: '0.1em',
+          textTransform: 'uppercase', color: C.textMuted,
+          fontFamily: GR_FONTS.ui,
+        }}>
+          {label}
+        </span>
+        <div style={{ flex: 1, height: 1, background: C.border }} />
+      </div>
+      {subtitle && (
+        <p style={{ fontSize: 11, color: C.textSecondary, fontFamily: GR_FONTS.mono, margin: 0 }}>
+          {subtitle}
+        </p>
+      )}
     </div>
   );
 }
@@ -177,74 +183,115 @@ export default function Home() {
           </div>
         )}
 
-        {/* Initial loading skeleton */}
-        {loading && providers.length === 0 && (
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            height: 320, gap: 10, color: C.textMuted,
-            fontFamily: GR_FONTS.mono, fontSize: 13,
-          }}>
-            <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
-            Running benchmarks across 6 Solana RPC providers…
-          </div>
-        )}
+        {/* Loading ↔ content cross-fade */}
+        <AnimatePresence mode="wait">
+          {loading && providers.length === 0 && (
+            <motion.div key="loading"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                height: 320, gap: 10, color: C.textMuted,
+                fontFamily: GR_FONTS.mono, fontSize: 13,
+              }}
+            >
+              <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+              Firing fresh requests to 3 data API providers…
+            </motion.div>
+          )}
 
-        {providers.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+          {providers.length > 0 && (
+            <motion.div key="content"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              style={{ display: 'flex', flexDirection: 'column', gap: 28 }}
+            >
 
-            {/* ── Hero: #1 ranked provider ── */}
-            <Section id="hero">
-              <HeroBand providers={providers} />
-            </Section>
+              {/* ── Hero: #1 ranked provider ── */}
+              <motion.div
+                initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, ease: 'easeOut', delay: 0 }}
+              >
+                <Section id="hero">
+                  <HeroBand providers={providers} />
+                </Section>
+              </motion.div>
 
-            {/* ── Category winners ── */}
-            <Section id="winners">
-              <SectionLabel label="Category Leaders" />
-              <WinnerCards providers={providers} />
-            </Section>
+              {/* ── Category winners ── */}
+              <motion.div
+                initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, ease: 'easeOut', delay: 0.08 }}
+              >
+                <Section id="winners">
+                  <SectionLabel label="Category Leaders" subtitle="After 5 fresh samples per provider, these stood out" />
+                  <WinnerCards providers={providers} />
+                </Section>
+              </motion.div>
 
-            {/* ── KPI strip ── */}
-            <Section id="metrics">
-              <SectionLabel label="Key Metrics" />
-              <KeyMetricsStrip providers={providers} />
-            </Section>
+              {/* ── KPI strip ── */}
+              <motion.div
+                initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, ease: 'easeOut', delay: 0.16 }}
+              >
+                <Section id="metrics">
+                  <SectionLabel label="Key Metrics" subtitle="All numbers measured live — nothing is cached or simulated" />
+                  <KeyMetricsStrip providers={providers} />
+                </Section>
+              </motion.div>
 
-            {/* ── Chart analysis kanban ── */}
-            <Section id="analysis">
-              <SectionLabel label="Benchmark Analysis" />
-              <BenchmarkKanban providers={providers} />
-            </Section>
+              {/* ── Chart analysis kanban ── */}
+              <motion.div
+                initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.45, ease: 'easeOut' }}
+              >
+                <Section id="analysis">
+                  <SectionLabel label="Benchmark Analysis" subtitle="Eight charts, one benchmark run — every point is a real HTTP response" />
+                  <BenchmarkKanban providers={providers} />
+                </Section>
+              </motion.div>
 
-            {/* ── Full comparison table ── */}
-            <Section id="table">
-              <GRProviderTable providers={providers} onSelect={handleSelectProvider} />
-            </Section>
+              {/* ── Full comparison table ── */}
+              <motion.div
+                initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.45, ease: 'easeOut' }}
+              >
+                <Section id="table">
+                  <GRProviderTable providers={providers} onSelect={handleSelectProvider} />
+                </Section>
+              </motion.div>
 
-            {/* ── Feature capability matrix ── */}
-            <Section id="capabilities">
-              <GRCapabilityMatrix providers={providers} />
-            </Section>
+              {/* ── Feature capability matrix ── */}
+              <motion.div
+                initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.45, ease: 'easeOut' }}
+              >
+                <Section id="capabilities">
+                  <GRCapabilityMatrix providers={providers} />
+                </Section>
+              </motion.div>
 
-            {/* ── Footer / methodology ── */}
-            <footer style={{
-              borderTop: `1px solid ${C.border}`,
-              paddingTop: 16, paddingBottom: 4,
-              textAlign: 'center',
-              fontSize: 11, color: C.textMuted,
-              fontFamily: GR_FONTS.mono,
-              lineHeight: 1.8,
-            }}>
-              Score = Latency 40% + Reliability 35% + Throughput 25%
-              {' · '}Jitter = P99 − P50
-              {' · '}Value = score ÷ ($/M req)
-              <br />
-              JSON-RPC via <code style={{ background: C.bgCard, padding: '1px 5px', borderRadius: 3 }}>getSlot</code>
-              {' · '}REST / Data API via primary endpoint
-              {' · '}5 samples per provider · no server-side caching
-            </footer>
+              {/* ── Footer / methodology ── */}
+              <footer style={{
+                borderTop: `1px solid ${C.border}`,
+                paddingTop: 16, paddingBottom: 4,
+                textAlign: 'center',
+                fontSize: 11, color: C.textMuted,
+                fontFamily: GR_FONTS.mono,
+                lineHeight: 1.8,
+              }}>
+                Score = Latency 40% + Reliability 35% + Throughput 25%
+                {' · '}Jitter = P99 − P50
+                {' · '}Value = score ÷ ($/M req)
+                <br />
+                Data API endpoints · 5 samples · 100ms gap · cache: no-store · no simulated data
+              </footer>
 
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Provider detail drawer */}

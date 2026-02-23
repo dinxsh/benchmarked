@@ -1,11 +1,18 @@
 'use client';
 
 import { useMemo } from 'react';
+import { motion } from 'motion/react';
 import type { GRProvider } from '@/lib/benchmark/data';
 import { GR_COLORS, GR_FONTS } from '@/lib/benchmark/data';
 import { computeWinners } from '@/lib/benchmark/scoring';
 
 const C = GR_COLORS;
+
+const stripVariants = { animate: { transition: { staggerChildren: 0.06 } } };
+const tileVariants = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+};
 
 interface TileProps {
   label: string;
@@ -17,12 +24,15 @@ interface TileProps {
 
 function MetricTile({ label, value, sub, highlight, valueColor }: TileProps) {
   return (
-    <div style={{
-      background: C.bgCard,
-      border: `1px solid ${C.border}`,
-      borderLeft: highlight ? `3px solid ${C.blue}` : `1px solid ${C.border}`,
-      borderRadius: 2, padding: '12px 14px', minWidth: 120, flex: 1,
-    }}>
+    <motion.div
+      variants={tileVariants}
+      style={{
+        background: C.bgCard,
+        border: `1px solid ${C.border}`,
+        borderLeft: highlight ? `3px solid ${C.blue}` : `1px solid ${C.border}`,
+        borderRadius: 2, padding: '12px 14px', minWidth: 120, flex: 1,
+      }}
+    >
       <div style={{ fontSize: 9, color: C.textMuted, fontWeight: 700, letterSpacing: '0.1em',
         textTransform: 'uppercase', fontFamily: GR_FONTS.mono, marginBottom: 6 }}>
         {label}
@@ -36,7 +46,7 @@ function MetricTile({ label, value, sub, highlight, valueColor }: TileProps) {
           {sub}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -48,7 +58,12 @@ export function KeyMetricsStrip({ providers }: { providers: GRProvider[] }) {
   const byScore  = [...providers].sort((a, b) => b.score - a.score);
 
   return (
-    <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 2 }}>
+    <motion.div
+      variants={stripVariants}
+      initial="initial"
+      animate="animate"
+      style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 2 }}
+    >
       <MetricTile
         label="FASTEST P50"
         value={`${Math.round(w.speed?.p50 ?? 0)}ms`}
@@ -98,6 +113,6 @@ export function KeyMetricsStrip({ providers }: { providers: GRProvider[] }) {
         sub={freeProviders.map((p) => p.name).join(' · ')}
         valueColor={C.green}
       />
-    </div>
+    </motion.div>
   );
 }

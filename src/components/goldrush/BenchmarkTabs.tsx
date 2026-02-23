@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'motion/react';
 import type { GRProvider } from '@/lib/benchmark/data';
 import { GR_COLORS } from '@/lib/benchmark/data';
 import { GRLatencyChart } from './charts/GRLatencyChart';
@@ -19,16 +20,22 @@ function Card({
   children: React.ReactNode; accentColor: string; gridArea: string;
 }) {
   return (
-    <div style={{
-      gridArea,
-      background: C.bgCard,
-      border: `1px solid ${C.border}`,
-      borderTop: `2px solid ${accentColor}`,
-      borderRadius: 2,
-      padding: '20px',
-    }}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      style={{
+        gridArea,
+        background: C.bgCard,
+        border: `1px solid ${C.border}`,
+        borderTop: `2px solid ${accentColor}`,
+        borderRadius: 2,
+        padding: '20px',
+      }}
+    >
       {children}
-    </div>
+    </motion.div>
   );
 }
 
