@@ -3,6 +3,9 @@ import { SolanaGoldRushAdapter } from '@/lib/adapters/solana-goldrush';
 import { SolanaAlchemyAdapter } from '@/lib/adapters/solana-alchemy';
 import { SolanaAnkrAdapter } from '@/lib/adapters/solana-ankr';
 import { SolanaQuickNodeAdapter } from '@/lib/adapters/solana-quicknode';
+import { SolanaLaserStreamAdapter } from '@/lib/adapters/solana-laserteam';
+import { SolanaBirdeyeAdapter } from '@/lib/adapters/solana-birdeye';
+import { SolanaMobulaAdapter } from '@/lib/adapters/solana-mobula';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,6 +55,9 @@ export async function GET(request: Request) {
     new SolanaAlchemyAdapter(),
     new SolanaAnkrAdapter(),
     new SolanaQuickNodeAdapter(),
+    new SolanaLaserStreamAdapter(),
+    new SolanaBirdeyeAdapter(),
+    new SolanaMobulaAdapter(),
   ];
 
   // Single provider detail

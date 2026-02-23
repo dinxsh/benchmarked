@@ -44,10 +44,13 @@ export interface GRProvider {
 }
 
 export const CAPABILITIES: Record<string, GRCapabilities> = {
-  Alchemy:  { transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: true,  historyDepth: 'full',   costPerM: '$1.5', rateLimit: '300 req/s',       capScore: 100 },
-  QuickNode:{ transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: true,  historyDepth: 'full',   costPerM: 'Free', rateLimit: '25 req/s (free)', capScore: 100 },
-  Ankr:     { transactions: true,  eventLogs: true,  tokenBalances: false, nftMetadata: false, customIndexing: false, traces: false, historyDepth: 'recent', costPerM: 'Free', rateLimit: '30 req/s',        capScore: 33  },
-  GoldRush: { transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: false, historyDepth: 'full',   costPerM: '$0.5', rateLimit: '50 req/s',        capScore: 83  },
+  Alchemy:     { transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: true,  historyDepth: 'full',   costPerM: '$1.5', rateLimit: '300 req/s',       capScore: 100 },
+  QuickNode:   { transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: true,  historyDepth: 'full',   costPerM: 'Free', rateLimit: '25 req/s (free)', capScore: 100 },
+  Ankr:        { transactions: true,  eventLogs: true,  tokenBalances: false, nftMetadata: false, customIndexing: false, traces: false, historyDepth: 'recent', costPerM: 'Free', rateLimit: '30 req/s',        capScore: 33  },
+  LaserStream: { transactions: true,  eventLogs: true,  tokenBalances: false, nftMetadata: false, customIndexing: false, traces: false, historyDepth: 'recent', costPerM: 'Free', rateLimit: '100 req/10s',     capScore: 33  },
+  GoldRush:    { transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: false, historyDepth: 'full',   costPerM: '$0.5', rateLimit: '50 req/s',        capScore: 83  },
+  Birdeye:     { transactions: true,  eventLogs: false, tokenBalances: true,  nftMetadata: false, customIndexing: false, traces: false, historyDepth: '90d',    costPerM: '$2.0', rateLimit: '100 req/s',       capScore: 33  },
+  Mobula:      { transactions: false, eventLogs: false, tokenBalances: true,  nftMetadata: false, customIndexing: false, traces: false, historyDepth: '30d',    costPerM: '$1.0', rateLimit: '60 req/s',        capScore: 17  },
 };
 
 /** Colour palette — Grafana dark theme accurate values */

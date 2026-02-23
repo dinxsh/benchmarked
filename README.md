@@ -18,9 +18,9 @@
 
 ## What it does
 
-Benchmarked fires real HTTP requests to four Solana providers on every run and ranks them by a weighted composite score. Every number on the dashboard is a live measurement — nothing is simulated or cached.
+Benchmarked fires real HTTP requests to seven Solana providers on every run and ranks them by a weighted composite score. Every number on the dashboard is a live measurement — nothing is simulated or cached.
 
-**Providers benchmarked:** Alchemy · QuickNode · Ankr · GoldRush
+**Providers benchmarked:** Alchemy · QuickNode · Ankr · LaserStream · GoldRush · Birdeye · Mobula
 
 ---
 
@@ -115,6 +115,16 @@ QUICKNODE_SOLANA_ENDPOINT=https://your-endpoint.quiknode.pro/your_key/
 
 # Ankr — public endpoint works without a key
 # ANKR_API_KEY=your_key_here
+
+# LaserStream — falls back to public Solana RPC if not set
+# LASERSTREAM_API_KEY=your_key_here
+# LASERSTREAM_ENDPOINT=https://mainnet.laserstream.io/your_key
+
+# Birdeye — works without a key (rate limited)
+# BIRDEYE_API_KEY=your_key_here
+
+# Mobula — works without a key (rate limited)
+# MOBULA_API_KEY=your_key_here
 ```
 
 Providers with missing keys are excluded from the run. At least one key is required.

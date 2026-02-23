@@ -10,8 +10,10 @@ Each benchmark run fires **5 sequential requests** per provider with a **100 ms 
 
 | Provider type | Benchmark endpoint | Timeout |
 |---|---|---|
-| JSON-RPC (Alchemy, QuickNode, Ankr) | `POST getSlot` | 5 s |
+| JSON-RPC (Alchemy, QuickNode, Ankr, LaserStream) | `POST getSlot` | 5–8 s |
 | REST API (GoldRush) | `GET /v1/solana-mainnet/address/{wallet}/balances_v2/` | 8 s |
+| Data API (Birdeye) | `GET /defi/price?address={sol}` | 5 s |
+| Data API (Mobula) | `GET /api/1/market/data?asset=solana` | 5 s |
 
 The clock starts immediately before `fetch()` and stops after the full response body is consumed (`response.text()`). This measures **total round-trip time** including DNS (cached after first call), TCP, TLS, server processing, and body transfer.
 
@@ -158,15 +160,15 @@ Speed and Throughput are **relative to the current cohort** — they shift if a 
 
 Providers are scored on 6 binary feature flags, each worth ~16.67 points:
 
-| Feature | Alchemy | QuickNode | Ankr | GoldRush |
-|---|:---:|:---:|:---:|:---:|
-| Transactions | ✓ | ✓ | ✓ | ✓ |
-| Event Logs | ✓ | ✓ | ✓ | ✓ |
-| Token Balances | ✓ | ✓ | — | ✓ |
-| NFT Metadata | ✓ | ✓ | — | ✓ |
-| Custom Indexing | ✓ | ✓ | — | ✓ |
-| Traces | ✓ | ✓ | — | — |
-| **capScore** | **100** | **100** | **33** | **83** |
+| Feature | Alchemy | QuickNode | Ankr | LaserStream | GoldRush | Birdeye | Mobula |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Transactions | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — |
+| Event Logs | ✓ | ✓ | ✓ | ✓ | ✓ | — | — |
+| Token Balances | ✓ | ✓ | — | — | ✓ | ✓ | ✓ |
+| NFT Metadata | ✓ | ✓ | — | — | ✓ | — | — |
+| Custom Indexing | ✓ | ✓ | — | — | ✓ | — | — |
+| Traces | ✓ | ✓ | — | — | — | — | — |
+| **capScore** | **100** | **100** | **33** | **33** | **83** | **33** | **17** |
 
 These are **static** — not measured at runtime. They reflect documented provider capabilities stored in `src/lib/benchmark/data.ts`.
 
