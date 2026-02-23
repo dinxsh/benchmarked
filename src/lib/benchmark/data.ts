@@ -20,7 +20,6 @@ export interface GRProvider {
   name: string;
   type: ProviderType;
   website: string;
-  isMock: boolean;
   // Latency
   p50: number;
   p95: number;
@@ -44,17 +43,6 @@ export interface GRProvider {
   capabilities: GRCapabilities;
 }
 
-// ─── Seed data ────────────────────────────────────────────────────────────────
-
-const SEED_PROVIDERS_RAW = [
-  { name: 'Alchemy',     type: 'json-rpc' as ProviderType, p50: 7,   p95: 202, p99: 202, uptime: 100, err: 0, rps: 48, slot: null,       cost: 1.5,  free: false, website: 'https://alchemy.com' },
-  { name: 'QuickNode',   type: 'json-rpc' as ProviderType, p50: 8,   p95: 352, p99: 352, uptime: 100, err: 0, rps: 26, slot: 401.8e6,    cost: 0,    free: true,  website: 'https://quicknode.com' },
-  { name: 'Ankr',        type: 'json-rpc' as ProviderType, p50: 9,   p95: 397, p99: 397, uptime: 100, err: 0, rps: 25, slot: null,        cost: 0,    free: true,  website: 'https://ankr.com' },
-  { name: 'LaserStream', type: 'json-rpc' as ProviderType, p50: 10,  p95: 402, p99: 402, uptime: 100, err: 0, rps: 25, slot: 401.8e6,    cost: 0,    free: true,  website: 'https://laserstream.io' },
-  { name: 'Helius',      type: 'json-rpc' as ProviderType, p50: 34,  p95: 419, p99: 419, uptime: 100, err: 0, rps: 24, slot: 401.8e6,    cost: 0,    free: true,  website: 'https://helius.dev' },
-  { name: 'GoldRush',    type: 'rest-api' as ProviderType, p50: 11,  p95: 429, p99: 429, uptime: 100, err: 0, rps: 19, slot: null,        cost: 0.5,  free: false, website: 'https://goldrush.dev' },
-] as const;
-
 export const CAPABILITIES: Record<string, GRCapabilities> = {
   Alchemy:     { transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: true,  historyDepth: 'full',   costPerM: '$1.5', rateLimit: '300 req/s',       capScore: 100 },
   QuickNode:   { transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: true,  historyDepth: 'full',   costPerM: 'Free', rateLimit: '25 req/s (free)', capScore: 100 },
@@ -63,49 +51,6 @@ export const CAPABILITIES: Record<string, GRCapabilities> = {
   Helius:      { transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: true,  historyDepth: 'full',   costPerM: 'Free', rateLimit: '10 req/s (free)', capScore: 100 },
   GoldRush:    { transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: false, historyDepth: 'full',   costPerM: '$0.5', rateLimit: '50 req/s',        capScore: 83  },
 };
-
-/** Build GRProvider[] from raw seed, computing jitter + score + rank */
-export function buildSeedProviders(): GRProvider[] {
-  const raw = SEED_PROVIDERS_RAW.map((r) => ({
-    id: r.name.toLowerCase().replace(/\s+/g, '-'),
-    name: r.name,
-    type: r.type,
-    website: r.website,
-    isMock: true,
-    p50: r.p50,
-    p95: r.p95,
-    p99: r.p99,
-    jitter: r.p99 - r.p50,
-    uptime: r.uptime,
-    errRate: r.err,
-    rps: r.rps,
-    slot: r.slot ?? null,
-    costPerM: r.cost,
-    free: r.free,
-    score: 0,
-    rank: 0,
-    measuredAt: null,
-    capabilities: CAPABILITIES[r.name] ?? CAPABILITIES['Ankr'],
-  }));
-
-  // Compute scores
-  const maxRps = Math.max(...raw.map((p) => p.rps), 1);
-  const maxLatency = 2000;
-  const maxRpsNorm = 200;
-
-  for (const p of raw) {
-    const latencyScore    = Math.max(0, (1 - p.p50 / maxLatency)) * 100 * 0.40;
-    const reliabilityScore = p.uptime * 0.35;
-    const throughputScore = Math.min(100, (p.rps / maxRpsNorm) * 100) * 0.25;
-    p.score = Math.round((latencyScore + reliabilityScore + throughputScore) * 10) / 10;
-  }
-
-  // Rank by score descending
-  const sorted = [...raw].sort((a, b) => b.score - a.score);
-  sorted.forEach((p, i) => { p.rank = i + 1; });
-
-  return sorted;
-}
 
 /** Colour palette — Grafana dark theme accurate values */
 export const GR_COLORS = {

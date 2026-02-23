@@ -1,10 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { rerank } from './scoring';
 import type { GRProvider } from './data';
-
-const REFRESH_INTERVAL = 60; // seconds
 
 /** Try to convert API SolanaProvider format to GRProvider */
 function convertApiProvider(p: Record<string, unknown>): GRProvider | null {
@@ -35,7 +33,6 @@ function convertApiProvider(p: Record<string, unknown>): GRProvider | null {
       name,
       type: (p.provider_type as GRProvider['type']) ?? 'json-rpc',
       website: (p.website_url as string) ?? '',
-      isMock: (p.is_mock as boolean) ?? false,
       p50,
       p95,
       p99,
@@ -71,9 +68,6 @@ export interface LiveBenchmarkState {
   providers: GRProvider[];
   loading: boolean;
   error: string | null;
-  secsLeft: number;
-  lastUpdated: Date | null;
-  isLive: boolean; // true = from API, false = from seed simulation
   triggerRefresh: () => void;
 }
 
@@ -81,10 +75,6 @@ export function useLiveBenchmark(): LiveBenchmarkState {
   const [providers, setProviders] = useState<GRProvider[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [secsLeft, setSecsLeft] = useState(REFRESH_INTERVAL);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [isLive, setIsLive] = useState(false);
-  const nextRefreshAt = useRef<number>(Date.now() + REFRESH_INTERVAL * 1000);
 
   const fetchFromApi = useCallback(async (force = false) => {
     setLoading(true);
@@ -99,41 +89,22 @@ export function useLiveBenchmark(): LiveBenchmarkState {
         .filter(Boolean) as GRProvider[];
       if (converted.length > 0) {
         setProviders(rerank(converted));
-        setIsLive(true);
-        setLastUpdated(new Date(json.last_updated));
       } else {
         throw new Error('No providers in API response');
       }
-    } catch {
-      // On failure: keep previous data unchanged — don't fake reliability numbers
-      setIsLive(false);
-      setLastUpdated(new Date());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch');
     } finally {
       setLoading(false);
     }
   }, []);
 
   const triggerRefresh = useCallback(() => {
-    nextRefreshAt.current = Date.now() + REFRESH_INTERVAL * 1000;
-    setSecsLeft(REFRESH_INTERVAL);
     fetchFromApi(true);
   }, [fetchFromApi]);
 
   // Initial load
   useEffect(() => { fetchFromApi(false); }, [fetchFromApi]);
 
-  // Countdown + auto-refresh
-  useEffect(() => {
-    const id = setInterval(() => {
-      const remaining = Math.max(0, Math.round((nextRefreshAt.current - Date.now()) / 1000));
-      setSecsLeft(remaining);
-      if (remaining === 0) {
-        nextRefreshAt.current = Date.now() + REFRESH_INTERVAL * 1000;
-        fetchFromApi(false);
-      }
-    }, 1000);
-    return () => clearInterval(id);
-  }, [fetchFromApi]);
-
-  return { providers, loading, error, secsLeft, lastUpdated, isLive, triggerRefresh };
+  return { providers, loading, error, triggerRefresh };
 }

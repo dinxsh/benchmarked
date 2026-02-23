@@ -9,7 +9,7 @@ import type { GRProvider } from '@/lib/benchmark/data';
 import { HeroBand }           from '@/components/goldrush/HeroBand';
 import { WinnerCards }        from '@/components/goldrush/WinnerCards';
 import { KeyMetricsStrip }    from '@/components/goldrush/KeyMetricsStrip';
-import { BenchmarkTabs }      from '@/components/goldrush/BenchmarkTabs';
+import { BenchmarkKanban }    from '@/components/goldrush/BenchmarkTabs';
 import { GRProviderTable }    from '@/components/goldrush/GRProviderTable';
 import { GRProviderDrawer }   from '@/components/goldrush/GRProviderDrawer';
 import { GRCapabilityMatrix } from '@/components/goldrush/GRCapabilityMatrix';
@@ -20,10 +20,9 @@ const C = GR_COLORS;
 // ─── Top navigation bar ───────────────────────────────────────────────────────
 
 function TopNav({
-  secsLeft, loading, isLive, onRefresh, providerCount,
+  loading, onRefresh, providerCount,
 }: {
-  secsLeft: number; loading: boolean; isLive: boolean;
-  onRefresh: () => void; providerCount: number;
+  loading: boolean; onRefresh: () => void; providerCount: number;
 }) {
   return (
     <div style={{
@@ -65,15 +64,6 @@ function TopNav({
           }}>
             LIVE
           </span>
-          {!isLive && (
-            <span style={{ fontSize: 11, color: C.amber, fontFamily: GR_FONTS.mono }}>
-              &nbsp;(sim)
-            </span>
-          )}
-        </span>
-
-        <span style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono }}>
-          next in {secsLeft}s
         </span>
 
         <button
@@ -144,9 +134,7 @@ function SectionLabel({ label }: { label: string }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function Home() {
-  const {
-    providers, loading, error, secsLeft, isLive, triggerRefresh,
-  } = useLiveBenchmark();
+  const { providers, loading, error, triggerRefresh } = useLiveBenchmark();
 
   const [selectedProvider, setSelectedProvider] = useState<GRProvider | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -166,16 +154,13 @@ export default function Home() {
       {/* Sticky nav on scroll */}
       <StickyNav
         providers={providers}
-        secsLeft={secsLeft}
         loading={loading}
         onRefresh={triggerRefresh}
       />
 
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 28px 72px' }}>
         <TopNav
-          secsLeft={secsLeft}
           loading={loading}
-          isLive={isLive}
           onRefresh={triggerRefresh}
           providerCount={providers.length}
         />
@@ -188,7 +173,7 @@ export default function Home() {
             borderRadius: 4, fontSize: 12, color: C.red,
             fontFamily: GR_FONTS.mono,
           }}>
-            {error} — showing simulated data
+            {error}
           </div>
         )}
 
@@ -224,10 +209,10 @@ export default function Home() {
               <KeyMetricsStrip providers={providers} />
             </Section>
 
-            {/* ── Chart analysis tabs ── */}
+            {/* ── Chart analysis kanban ── */}
             <Section id="analysis">
               <SectionLabel label="Benchmark Analysis" />
-              <BenchmarkTabs providers={providers} />
+              <BenchmarkKanban providers={providers} />
             </Section>
 
             {/* ── Full comparison table ── */}
@@ -256,11 +241,6 @@ export default function Home() {
               JSON-RPC via <code style={{ background: C.bgCard, padding: '1px 5px', borderRadius: 3 }}>getSlot</code>
               {' · '}REST / Data API via primary endpoint
               {' · '}5 samples per provider · no server-side caching
-              {!isLive && (
-                <span style={{ color: C.amber }}>
-                  {' · '}(sim) = simulated — configure API keys in .env.local for live data
-                </span>
-              )}
             </footer>
 
           </div>

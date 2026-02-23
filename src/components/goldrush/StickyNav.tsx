@@ -9,12 +9,11 @@ const C = GR_COLORS;
 
 interface Props {
   providers: GRProvider[];
-  secsLeft: number;
   loading: boolean;
   onRefresh: () => void;
 }
 
-export function StickyNav({ providers, secsLeft, loading, onRefresh }: Props) {
+export function StickyNav({ providers, loading, onRefresh }: Props) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -60,10 +59,6 @@ export function StickyNav({ providers, secsLeft, loading, onRefresh }: Props) {
       )}
 
       <div style={{ flex: 1 }} />
-
-      <span style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, flexShrink: 0 }}>
-        next in {secsLeft}s
-      </span>
 
       <button
         onClick={onRefresh}
