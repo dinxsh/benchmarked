@@ -12,7 +12,7 @@ const C = GR_COLORS;
 export function GRLatencySpread({ providers }: { providers: GRProvider[] }) {
   const { data, bestJitter } = useMemo(() => {
     const byJitter = [...providers].sort((a, b) => a.jitter - b.jitter);
-    const sorted   = [...providers].sort((a, b) => a.p50 - b.p50);
+    const sorted   = [...providers].sort((a, b) => (a.rank || 0) - (b.rank || 0));
     return {
       data: sorted.map((p) => ({
         name: p.name,
@@ -53,7 +53,10 @@ export function GRLatencySpread({ providers }: { providers: GRProvider[] }) {
           <XAxis dataKey="name" tick={{ fill: C.textSecondary, fontSize: 10, fontFamily: GR_FONTS.mono }} />
           <YAxis tick={{ fill: C.textSecondary, fontSize: 11, fontFamily: GR_FONTS.mono }}
             tickFormatter={(v) => `${v}ms`} />
-          <Tooltip contentStyle={{ background: C.bgCard, border: `1px solid ${C.borderBright}`, borderRadius: 2, fontFamily: GR_FONTS.mono, fontSize: 12 }}
+          <Tooltip
+            contentStyle={{ background: C.bgCard, border: `1px solid ${C.borderBright}`, borderRadius: 2, fontFamily: GR_FONTS.mono, fontSize: 12, color: C.textPrimary }}
+            labelStyle={{ color: C.textPrimary, fontWeight: 700 }}
+            itemStyle={{ color: C.textSecondary }}
             formatter={(v: any, name: string) => [`${v}ms`, name]} />
           <Bar dataKey="p50" stackId="s" name="P50" isAnimationActive>
             {data.map((d) => <Cell key={d.name} fill={C.blue} />)}

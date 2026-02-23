@@ -41,7 +41,10 @@ export function GRRadarChart({ providers }: { providers: GRProvider[] }) {
         <RadarChart data={series} cx="50%" cy="50%" outerRadius="75%">
           <PolarGrid stroke={C.border} />
           <PolarAngleAxis dataKey="axis" tick={{ fill: C.textSecondary, fontSize: 11, fontFamily: GR_FONTS.mono }} />
-          <Tooltip contentStyle={{ background: C.bgCard, border: `1px solid ${C.borderBright}`, borderRadius: 2, fontFamily: GR_FONTS.mono, fontSize: 12 }} />
+          <Tooltip
+            contentStyle={{ background: C.bgCard, border: `1px solid ${C.borderBright}`, borderRadius: 2, fontFamily: GR_FONTS.mono, fontSize: 12, color: C.textPrimary }}
+            labelStyle={{ color: C.textPrimary, fontWeight: 700 }}
+            itemStyle={{ color: C.textSecondary }} />
           {top5.map((p, i) => (
             <Radar
               key={p.id} name={p.name} dataKey={p.name}

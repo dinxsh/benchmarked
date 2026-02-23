@@ -7,7 +7,7 @@ import { GR_COLORS, GR_FONTS } from '@/lib/benchmark/data';
 const C = GR_COLORS;
 
 export function GRUptimeList({ providers }: { providers: GRProvider[] }) {
-  const sorted = useMemo(() => [...providers].sort((a, b) => b.uptime - a.uptime || a.errRate - b.errRate), [providers]);
+  const sorted = useMemo(() => [...providers].sort((a, b) => (a.rank || 0) - (b.rank || 0)), [providers]);
 
   function uptimeColor(pct: number): string {
     if (pct >= 99) return C.green;
@@ -22,7 +22,7 @@ export function GRUptimeList({ providers }: { providers: GRProvider[] }) {
           Uptime / Reliability
         </div>
         <div style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, marginTop: 2 }}>
-          Ranked best to worst · green ≥99% · amber ≥80%
+          Ranked by composite score · green ≥99% · amber ≥80%
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

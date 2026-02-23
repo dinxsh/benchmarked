@@ -45,7 +45,10 @@ export function GRScoreBreakdown({ providers }: { providers: GRProvider[] }) {
               const { x, y, payload } = props;
               return <text x={x} y={y} dy={4} textAnchor="end" fill={C.textSecondary} fontSize={11} fontFamily={GR_FONTS.mono}>{payload.value}</text>;
             }} />
-          <Tooltip contentStyle={{ background: C.bgCard, border: `1px solid ${C.borderBright}`, borderRadius: 2, fontFamily: GR_FONTS.mono, fontSize: 12 }} />
+          <Tooltip
+            contentStyle={{ background: C.bgCard, border: `1px solid ${C.borderBright}`, borderRadius: 2, fontFamily: GR_FONTS.mono, fontSize: 12, color: C.textPrimary }}
+            labelStyle={{ color: C.textPrimary, fontWeight: 700 }}
+            itemStyle={{ color: C.textSecondary }} />
           <Bar dataKey="latency"     stackId="s" name="Latency"     fill={C.blue}   isAnimationActive />
           <Bar dataKey="reliability" stackId="s" name="Reliability" fill={C.green}  isAnimationActive />
           <Bar dataKey="throughput"  stackId="s" name="Throughput"  fill={C.purple} isAnimationActive radius={[0, 2, 2, 0]}>

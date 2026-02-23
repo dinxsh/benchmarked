@@ -17,9 +17,10 @@ const CHART_STYLE = {
 
 export function GRLatencyChart({ providers }: { providers: GRProvider[] }) {
   const data = useMemo(() => {
-    const sorted = [...providers].sort((a, b) => a.p50 - b.p50);
-    const fastest = sorted[0];
-    return sorted.map((p) => ({
+    const byP50 = [...providers].sort((a, b) => a.p50 - b.p50);
+    const fastest = byP50[0];
+    // render in rank order (rank 1 at top) while keeping delta vs actual fastest
+    return [...providers].sort((a, b) => (a.rank || 0) - (b.rank || 0)).map((p) => ({
       name: p.name,
       type: p.type,
       p50: p.p50,
@@ -52,7 +53,7 @@ export function GRLatencyChart({ providers }: { providers: GRProvider[] }) {
           Latency Distribution
         </div>
         <div style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, marginTop: 2 }}>
-          P50 · P95 range · P99 tail — horizontal, fastest first
+          P50 · P95 range · P99 tail — ranked by composite score
         </div>
       </div>
       <ResponsiveContainer width="100%" height={320}>

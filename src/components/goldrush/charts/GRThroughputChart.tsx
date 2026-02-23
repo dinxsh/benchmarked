@@ -12,7 +12,7 @@ const C = GR_COLORS;
 
 export function GRThroughputChart({ providers }: { providers: GRProvider[] }) {
   const { data, median } = useMemo(() => {
-    const sorted = [...providers].sort((a, b) => b.rps - a.rps);
+    const sorted = [...providers].sort((a, b) => (a.rank || 0) - (b.rank || 0));
     const rpsVals = providers.map((p) => p.rps);
     const med = rpsVals.sort((a, b) => a - b)[Math.floor(rpsVals.length / 2)];
     return {
@@ -31,7 +31,7 @@ export function GRThroughputChart({ providers }: { providers: GRProvider[] }) {
           Throughput Ranking
         </div>
         <div style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, marginTop: 2 }}>
-          Requests per second — dashed = median
+          Requests per second · ranked by composite score · dashed = median
         </div>
       </div>
       <ResponsiveContainer width="100%" height={320}>
@@ -40,7 +40,10 @@ export function GRThroughputChart({ providers }: { providers: GRProvider[] }) {
           <XAxis type="number" tick={{ fill: C.textSecondary, fontSize: 11, fontFamily: GR_FONTS.mono }}
             tickFormatter={(v) => `${v} rps`} />
           <YAxis type="category" dataKey="name" width={84} tick={{ fill: C.textSecondary, fontSize: 11, fontFamily: GR_FONTS.mono }} />
-          <Tooltip contentStyle={{ background: C.bgCard, border: `1px solid ${C.borderBright}`, borderRadius: 2, fontFamily: GR_FONTS.mono, fontSize: 12 }}
+          <Tooltip
+            contentStyle={{ background: C.bgCard, border: `1px solid ${C.borderBright}`, borderRadius: 2, fontFamily: GR_FONTS.mono, fontSize: 12, color: C.textPrimary }}
+            labelStyle={{ color: C.textPrimary, fontWeight: 700 }}
+            itemStyle={{ color: C.textSecondary }}
             formatter={(v: any) => [`${v} rps`, 'Throughput']} />
           <ReferenceLine x={median} stroke={C.textMuted} strokeDasharray="4 3" label={{ value: 'median', fill: C.textMuted, fontSize: 10, fontFamily: GR_FONTS.mono }} />
           <Bar dataKey="rps" isAnimationActive radius={[0, 2, 2, 0]}>

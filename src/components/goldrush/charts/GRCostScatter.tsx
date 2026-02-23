@@ -60,7 +60,10 @@ export function GRCostScatter({ providers }: { providers: GRProvider[] }) {
             <Label value="Score" angle={-90} position="insideLeft"
               style={{ fill: C.textMuted, fontSize: 10, fontFamily: GR_FONTS.mono }} />
           </YAxis>
-          <Tooltip contentStyle={{ background: C.bgCard, border: `1px solid ${C.borderBright}`, borderRadius: 2, fontFamily: GR_FONTS.mono, fontSize: 12 }}
+          <Tooltip
+            contentStyle={{ background: C.bgCard, border: `1px solid ${C.borderBright}`, borderRadius: 2, fontFamily: GR_FONTS.mono, fontSize: 12, color: C.textPrimary }}
+            labelStyle={{ color: C.textPrimary, fontWeight: 700 }}
+            itemStyle={{ color: C.textSecondary }}
             formatter={(v: any, name: string) => [name === 'Cost/M' ? (v === 0 ? 'Free' : `$${v}`) : v.toFixed(1), name]} />
           <ReferenceLine x={0} stroke={C.green} strokeDasharray="4 3"
             label={{ value: 'Free', fill: C.green, fontSize: 10, fontFamily: GR_FONTS.mono }} />
