@@ -1,28 +1,52 @@
 'use client';
 
-import { useMemo } from 'react';
-import { motion } from 'motion/react';
+import { useEffect, useMemo } from 'react';
+import { motion, useMotionValue, useTransform, animate } from 'motion/react';
 import type { GRProvider } from '@/lib/benchmark/data';
 import { GR_COLORS, GR_FONTS } from '@/lib/benchmark/data';
 import { computeWinners } from '@/lib/benchmark/scoring';
 
 const C = GR_COLORS;
 
-const stripVariants = { animate: { transition: { staggerChildren: 0.06 } } };
+const stripVariants = { animate: { transition: { staggerChildren: 0.07 } } };
 const tileVariants = {
-  initial: { opacity: 0, y: 10 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.38, ease: 'easeOut' } },
 };
+
+// Animated number counter — counts from 0 to target when mounted
+function AnimatedValue({
+  value, decimals = 0, suffix = '',
+}: {
+  value: number; decimals?: number; suffix?: string;
+}) {
+  const count = useMotionValue(0);
+  const display = useTransform(count, (v: number) => v.toFixed(decimals) + suffix);
+
+  useEffect(() => {
+    const controls = animate(count, value, { duration: 1.1, ease: 'easeOut' });
+    return () => controls.stop();
+  }, [value, count]);
+
+  return (
+    <motion.span style={{ fontVariantNumeric: 'tabular-nums' }}>
+      {display}
+    </motion.span>
+  );
+}
 
 interface TileProps {
   label: string;
-  value: string;
+  rawValue: number;
+  decimals?: number;
+  suffix?: string;
   sub?: string;
   highlight?: boolean;
   valueColor?: string;
+  freeText?: string; // when value is "Free" instead of a number
 }
 
-function MetricTile({ label, value, sub, highlight, valueColor }: TileProps) {
+function MetricTile({ label, rawValue, decimals, suffix, sub, highlight, valueColor, freeText }: TileProps) {
   return (
     <motion.div
       variants={tileVariants}
@@ -33,13 +57,21 @@ function MetricTile({ label, value, sub, highlight, valueColor }: TileProps) {
         borderRadius: 2, padding: '12px 14px', minWidth: 120, flex: 1,
       }}
     >
-      <div style={{ fontSize: 9, color: C.textMuted, fontWeight: 700, letterSpacing: '0.1em',
-        textTransform: 'uppercase', fontFamily: GR_FONTS.mono, marginBottom: 6 }}>
+      <div style={{
+        fontSize: 9, color: C.textMuted, fontWeight: 700, letterSpacing: '0.1em',
+        textTransform: 'uppercase', fontFamily: GR_FONTS.mono, marginBottom: 6,
+      }}>
         {label}
       </div>
-      <div style={{ fontSize: 20, fontWeight: 800, color: valueColor ?? C.textPrimary,
-        fontFamily: GR_FONTS.mono, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
-        {value}
+      <div style={{
+        fontSize: 20, fontWeight: 800, color: valueColor ?? C.textPrimary,
+        fontFamily: GR_FONTS.mono, lineHeight: 1,
+      }}>
+        {freeText ? (
+          <span style={{ fontVariantNumeric: 'tabular-nums' }}>{freeText}</span>
+        ) : (
+          <AnimatedValue value={rawValue} decimals={decimals} suffix={suffix} />
+        )}
       </div>
       {sub && (
         <div style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, marginTop: 4 }}>
@@ -66,50 +98,60 @@ export function KeyMetricsStrip({ providers }: { providers: GRProvider[] }) {
     >
       <MetricTile
         label="FASTEST P50"
-        value={`${Math.round(w.speed?.p50 ?? 0)}ms`}
+        rawValue={Math.round(w.speed?.p50 ?? 0)}
+        suffix="ms"
         sub={w.speed?.name}
         valueColor={C.green}
       />
       <MetricTile
         label="BEST UPTIME"
-        value={`${w.reliability?.uptime ?? 0}%`}
+        rawValue={w.reliability?.uptime ?? 0}
+        suffix="%"
         sub={w.reliability?.name}
         valueColor={C.green}
       />
       <MetricTile
         label="PEAK THROUGHPUT"
-        value={`${Math.round(w.throughput?.rps ?? 0)} rps`}
+        rawValue={Math.round(w.throughput?.rps ?? 0)}
+        suffix=" rps"
         sub={w.throughput?.name}
         valueColor={C.blue}
       />
       <MetricTile
         label="TOP SCORE"
-        value={`${byScore[0]?.score.toFixed(1) ?? '—'}`}
+        rawValue={byScore[0]?.score ?? 0}
+        decimals={1}
         sub={byScore[0]?.name}
         valueColor={C.amber}
       />
       <MetricTile
         label="MOST CONSISTENT"
-        value={`${Math.round(byJitter[0]?.jitter ?? 0)}ms`}
+        rawValue={Math.round(byJitter[0]?.jitter ?? 0)}
+        suffix="ms"
         sub={byJitter[0]?.name}
         valueColor={C.purple}
       />
       <MetricTile
         label="LOWEST ERROR"
-        value={`${allPerfect.length > 0 ? '0%' : '—'}`}
+        rawValue={0}
+        suffix="%"
+        freeText={allPerfect.length === 0 ? '—' : undefined}
         sub={`${allPerfect.length} provider${allPerfect.length !== 1 ? 's' : ''}`}
         valueColor={C.green}
       />
       <MetricTile
         label="BEST VALUE"
-        value={w.value?.costPerM === 0 ? 'Free' : `$${w.value?.costPerM}/M`}
+        rawValue={w.value?.costPerM ?? 0}
+        decimals={1}
+        freeText={w.value?.costPerM === 0 ? 'Free' : undefined}
+        suffix={w.value?.costPerM !== 0 ? '/M' : undefined}
         sub={w.value?.name}
         highlight
         valueColor={C.blue}
       />
       <MetricTile
         label="FREE PROVIDERS"
-        value={`${freeProviders.length}`}
+        rawValue={freeProviders.length}
         sub={freeProviders.map((p) => p.name).join(' · ')}
         valueColor={C.green}
       />

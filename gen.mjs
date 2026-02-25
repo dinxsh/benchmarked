@@ -1,0 +1,12 @@
+﻿import { writeFileSync, mkdirSync } from 'fs';
+const base = 'C:/Users/hp/Desktop/code/startups/covalenthq/assignment/next-shadcn-dashboard-starter/src/components/goldrush';
+mkdirSync(base, { recursive: true });
+const q = String.fromCharCode(39);
+const bt = String.fromCharCode(96);
+const ds = String.fromCharCode(36);
+const em = '\u2014';
+const en = '\u2013';
+const bull = '\u25CF';
+const trophy = '\uD83C\uDFC6';
+writeFileSync(base + '/test_from_ps.ts', 'ok from ps', 'utf8');
+console.log('test ok');

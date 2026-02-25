@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { SolanaGoldRushAdapter } from '@/lib/adapters/solana-goldrush';
 import { SolanaBirdeyeAdapter } from '@/lib/adapters/solana-birdeye';
 import { SolanaMobulaAdapter } from '@/lib/adapters/solana-mobula';
+import { SolanaCodexAdapter } from '@/lib/adapters/solana-codex';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,6 +51,7 @@ export async function GET(request: Request) {
     new SolanaGoldRushAdapter(),
     new SolanaBirdeyeAdapter(),
     new SolanaMobulaAdapter(),
+    new SolanaCodexAdapter(),
   ];
 
   // Single provider detail

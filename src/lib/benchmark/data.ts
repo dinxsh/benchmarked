@@ -47,6 +47,7 @@ export const CAPABILITIES: Record<string, GRCapabilities> = {
   GoldRush: { transactions: true,  eventLogs: true,  tokenBalances: true,  nftMetadata: true,  customIndexing: true,  traces: false, historyDepth: 'full', costPerM: '$0.5', rateLimit: '50 req/s',   capScore: 83 },
   Birdeye:  { transactions: true,  eventLogs: false, tokenBalances: true,  nftMetadata: false, customIndexing: false, traces: false, historyDepth: '90d',  costPerM: '$2.0', rateLimit: '100 req/s',  capScore: 33 },
   Mobula:   { transactions: false, eventLogs: false, tokenBalances: true,  nftMetadata: false, customIndexing: false, traces: false, historyDepth: '30d',  costPerM: '$1.0', rateLimit: '60 req/s',   capScore: 17 },
+  Codex:    { transactions: true,  eventLogs: true,  tokenBalances: false, nftMetadata: false, customIndexing: false, traces: false, historyDepth: 'full', costPerM: '$2.0', rateLimit: '300/min',    capScore: 50 },
 };
 
 /** Colour palette — Grafana dark theme accurate values */
