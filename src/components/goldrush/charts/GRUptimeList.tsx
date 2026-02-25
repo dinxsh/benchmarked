@@ -33,9 +33,6 @@ export function GRUptimeList({ providers }: { providers: GRProvider[] }) {
           <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, fontFamily: GR_FONTS.mono }}>
             Uptime &amp; Error Rate
           </div>
-          <div style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, marginTop: 2 }}>
-            Sorted best → worst · green ≥99% · amber ≥95%
-          </div>
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <div style={{ fontSize: 10, color: C.textMuted, fontFamily: GR_FONTS.mono, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Best</div>

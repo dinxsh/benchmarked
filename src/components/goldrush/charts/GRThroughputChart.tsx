@@ -79,9 +79,6 @@ export function GRThroughputChart({ providers }: { providers: GRProvider[] }) {
           <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, fontFamily: GR_FONTS.mono }}>
             Throughput Ranking
           </div>
-          <div style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, marginTop: 2 }}>
-            Requests per second — sorted best → worst · dashed = median
-          </div>
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <div style={{ fontSize: 10, color: C.textMuted, fontFamily: GR_FONTS.mono, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Best RPS</div>

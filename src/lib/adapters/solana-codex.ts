@@ -2,7 +2,7 @@ import { BaseAdapter } from './base';
 
 const SOL_ADDRESS = 'So11111111111111111111111111111111111111112';
 const SOLANA_NETWORK_ID = 1399811149;
-const CODEX_ENDPOINT = 'https://api.codex.io/graphql';
+const CODEX_ENDPOINT = 'https://graph.codex.io/graphql';
 
 const PRICE_QUERY = JSON.stringify({
   query: `{

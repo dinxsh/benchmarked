@@ -44,16 +44,16 @@ export class SolanaBirdeyeAdapter extends BaseAdapter {
   }
 
   protected async testCall(): Promise<number> {
+    if (!this.apiKey) throw new Error('Birdeye: BIRDEYE_API_KEY not set');
     const startTime = performance.now();
-    const headers: Record<string, string> = {};
-    if (this.apiKey) headers['X-API-KEY'] = this.apiKey;
+    const headers: Record<string, string> = { 'X-API-KEY': this.apiKey };
     const response = await fetch(this.endpoint, {
       method: 'GET',
       headers,
       cache: 'no-store',
       signal: AbortSignal.timeout(8000),
     });
-    if (response.status >= 500) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     await response.text();
     return Math.round(performance.now() - startTime);
   }
@@ -85,11 +85,12 @@ export class SolanaBirdeyeAdapter extends BaseAdapter {
   }
 
   async measureWithThroughput() {
+    if (!this.apiKey) throw new Error('Birdeye: BIRDEYE_API_KEY not set');
     const [metrics, throughput_rps] = await Promise.all([
       this.measure(),
       this.measureThroughput()
     ]);
-    if (metrics.error_rate === 100) throw new Error('Birdeye: all requests failed');
+    if (metrics.error_rate === 100) throw new Error('Birdeye: all requests failed — check BIRDEYE_API_KEY');
     return { ...metrics, throughput_rps, slot_height: 0, is_mock: false };
   }
 }

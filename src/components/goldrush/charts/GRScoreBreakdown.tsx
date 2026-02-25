@@ -85,11 +85,8 @@ export function GRScoreBreakdown({ providers }: { providers: GRProvider[] }) {
   return (
     <div>
       <div style={{ marginBottom: 12 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, fontFamily: GR_FONTS.mono }}>
+        <div style={{ fontSize: 13, fontWeight: 800, color: C.textPrimary, fontFamily: GR_FONTS.mono }}>
           Score Breakdown
-        </div>
-        <div style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, marginTop: 2 }}>
-          Latency 40% · Reliability 35% · Throughput 25% — sorted best → worst
         </div>
       </div>
 

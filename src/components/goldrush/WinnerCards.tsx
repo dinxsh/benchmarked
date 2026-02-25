@@ -52,8 +52,8 @@ function WinnerCard({ icon, label, provider, value, accent }: WinnerCardProps) {
           {label}
         </div>
       </div>
-      <div style={{ fontSize: 22, fontWeight: 800, color: C.textPrimary,
-        fontFamily: GR_FONTS.mono, lineHeight: 1.1 }}>
+      <div style={{ fontSize: 30, fontWeight: 900, color: C.textPrimary,
+        fontFamily: GR_FONTS.mono, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </div>
       <div style={{ fontSize: 12, color: C.textSecondary, fontFamily: GR_FONTS.mono, marginTop: 4 }}>

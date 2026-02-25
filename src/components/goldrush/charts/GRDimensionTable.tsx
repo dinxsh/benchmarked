@@ -56,11 +56,8 @@ export function GRDimensionTable({ providers }: { providers: GRProvider[] }) {
   return (
     <div>
       <div style={{ marginBottom: 12 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, fontFamily: GR_FONTS.mono }}>
+        <div style={{ fontSize: 13, fontWeight: 800, color: C.textPrimary, fontFamily: GR_FONTS.mono }}>
           Dimension Comparison
-        </div>
-        <div style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, marginTop: 2 }}>
-          All dimensions normalized 0–100 · sorted by composite score · gold/silver/bronze borders
         </div>
       </div>
 

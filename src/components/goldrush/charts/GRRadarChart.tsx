@@ -51,9 +51,6 @@ export function GRRadarChart({ providers }: { providers: GRProvider[] }) {
         <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, fontFamily: GR_FONTS.mono }}>
           Multi-Axis Radar
         </div>
-        <div style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, marginTop: 2 }}>
-          Top {top5.length} providers — Speed · Uptime · Throughput · Reliability · Coverage (0–100)
-        </div>
       </div>
 
       <ResponsiveContainer width="100%" height={280}>
