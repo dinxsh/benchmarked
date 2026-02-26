@@ -42,6 +42,14 @@ export const navItems: NavItem[] = [
     items: []
   },
   {
+    title: 'Chart Race',
+    url: '/dashboard/chart-race',
+    icon: 'arrowRight',
+    isActive: false,
+    shortcut: ['c', 'r'],
+    items: []
+  },
+  {
     title: 'Storage',
     url: '/dashboard/storage',
     icon: 'product',
