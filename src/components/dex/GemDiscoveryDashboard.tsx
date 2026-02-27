@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { TrendingUp, TrendingDown, Zap, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { TradingPair, LivePairUpdate } from '@/lib/dex-types';
+import { PairDetailDrawer } from './PairDetailDrawer';
 
 interface MomentumPair {
   pair: TradingPair;
@@ -35,6 +36,7 @@ type TabType = 'momentum' | 'gainers' | 'losers' | 'spikes' | 'new';
 export function GemDiscoveryDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('momentum');
   const [timeWindow, setTimeWindow] = useState<'1h' | '24h'>('1h');
+  const [drawerPair, setDrawerPair] = useState<string | null>(null);
 
   // Momentum query
   const { data: momentumData } = useQuery({
@@ -163,30 +165,36 @@ export function GemDiscoveryDashboard() {
       {/* Content */}
       <div className="flex-1 overflow-auto">
         {activeTab === 'momentum' && (
-          <MomentumTable data={momentumData?.pairs || []} formatNumber={formatNumber} getScoreColor={getScoreColor} />
+          <MomentumTable data={momentumData?.pairs || []} formatNumber={formatNumber} getScoreColor={getScoreColor} onPairSelect={setDrawerPair} />
         )}
         {activeTab === 'gainers' && (
-          <GainersTable data={gainersData?.pairs || []} formatNumber={formatNumber} getScoreColor={getScoreColor} />
+          <GainersTable data={gainersData?.pairs || []} formatNumber={formatNumber} getScoreColor={getScoreColor} onPairSelect={setDrawerPair} />
         )}
         {activeTab === 'losers' && (
-          <LosersTable data={losersData?.pairs || []} formatNumber={formatNumber} getScoreColor={getScoreColor} />
+          <LosersTable data={losersData?.pairs || []} formatNumber={formatNumber} getScoreColor={getScoreColor} onPairSelect={setDrawerPair} />
         )}
         {activeTab === 'spikes' && (
-          <SpikesTable data={spikesData?.spikes || []} formatNumber={formatNumber} getScoreColor={getScoreColor} />
+          <SpikesTable data={spikesData?.spikes || []} formatNumber={formatNumber} getScoreColor={getScoreColor} onPairSelect={setDrawerPair} />
         )}
         {activeTab === 'new' && (
-          <NewPairsTable data={newPairsData?.pairs || []} formatTime={formatTime} />
+          <NewPairsTable data={newPairsData?.pairs || []} formatTime={formatTime} onPairSelect={setDrawerPair} />
         )}
       </div>
+
+      <PairDetailDrawer
+        pairAddress={drawerPair}
+        onClose={() => setDrawerPair(null)}
+      />
     </div>
   );
 }
 
 // Momentum Table Component
-function MomentumTable({ data, formatNumber, getScoreColor }: {
+function MomentumTable({ data, formatNumber, getScoreColor, onPairSelect }: {
   data: MomentumPair[];
   formatNumber: (n: number) => string;
   getScoreColor: (n: number) => string;
+  onPairSelect?: (addr: string) => void;
 }) {
   if (data.length === 0) {
     return (
@@ -215,6 +223,7 @@ function MomentumTable({ data, formatNumber, getScoreColor }: {
             className={`border-b border-muted ${
               idx % 2 === 0 ? 'bg-background' : 'bg-muted/10'
             } hover:bg-muted/30 transition-colors cursor-pointer`}
+            onClick={() => onPairSelect?.(item.pair.pairAddress)}
           >
             <td className="py-1.5 px-2 font-bold text-muted-foreground">
               #{idx + 1}
@@ -246,10 +255,11 @@ function MomentumTable({ data, formatNumber, getScoreColor }: {
 }
 
 // Gainers/Losers Table Component
-function GainersTable({ data, formatNumber, getScoreColor }: {
+function GainersTable({ data, formatNumber, getScoreColor, onPairSelect }: {
   data: GainerPair[];
   formatNumber: (n: number) => string;
   getScoreColor: (n: number) => string;
+  onPairSelect?: (addr: string) => void;
 }) {
   if (data.length === 0) {
     return (
@@ -278,6 +288,7 @@ function GainersTable({ data, formatNumber, getScoreColor }: {
             className={`border-b border-muted ${
               idx % 2 === 0 ? 'bg-background' : 'bg-muted/10'
             } hover:bg-muted/30 transition-colors cursor-pointer`}
+            onClick={() => onPairSelect?.(item.pair.pairAddress)}
           >
             <td className="py-1.5 px-2 font-bold text-muted-foreground">
               #{idx + 1}
@@ -308,19 +319,21 @@ function GainersTable({ data, formatNumber, getScoreColor }: {
   );
 }
 
-function LosersTable({ data, formatNumber, getScoreColor }: {
+function LosersTable({ data, formatNumber, getScoreColor, onPairSelect }: {
   data: GainerPair[];
   formatNumber: (n: number) => string;
   getScoreColor: (n: number) => string;
+  onPairSelect?: (addr: string) => void;
 }) {
-  return <GainersTable data={data} formatNumber={formatNumber} getScoreColor={getScoreColor} />;
+  return <GainersTable data={data} formatNumber={formatNumber} getScoreColor={getScoreColor} onPairSelect={onPairSelect} />;
 }
 
 // Spikes Table Component
-function SpikesTable({ data, formatNumber, getScoreColor }: {
+function SpikesTable({ data, formatNumber, getScoreColor, onPairSelect }: {
   data: SpikePair[];
   formatNumber: (n: number) => string;
   getScoreColor: (n: number) => string;
+  onPairSelect?: (addr: string) => void;
 }) {
   if (data.length === 0) {
     return (
@@ -349,6 +362,7 @@ function SpikesTable({ data, formatNumber, getScoreColor }: {
             className={`border-b border-muted ${
               idx % 2 === 0 ? 'bg-background' : 'bg-muted/10'
             } hover:bg-muted/30 transition-colors cursor-pointer`}
+            onClick={() => onPairSelect?.(item.pair.pairAddress)}
           >
             <td className="py-1.5 px-2 font-bold text-muted-foreground">
               #{idx + 1}
@@ -377,9 +391,10 @@ function SpikesTable({ data, formatNumber, getScoreColor }: {
 }
 
 // New Pairs Table Component
-function NewPairsTable({ data, formatTime }: {
+function NewPairsTable({ data, formatTime, onPairSelect }: {
   data: TradingPair[];
   formatTime: (t: number) => string;
+  onPairSelect?: (addr: string) => void;
 }) {
   if (data.length === 0) {
     return (
@@ -406,6 +421,7 @@ function NewPairsTable({ data, formatTime }: {
             className={`border-b border-muted ${
               idx % 2 === 0 ? 'bg-background' : 'bg-muted/10'
             } hover:bg-muted/30 transition-colors cursor-pointer`}
+            onClick={() => onPairSelect?.(pair.pairAddress)}
           >
             <td className="py-1.5 px-2">
               <div className="font-semibold">{pair.token0.symbol}/{pair.token1.symbol}</div>
