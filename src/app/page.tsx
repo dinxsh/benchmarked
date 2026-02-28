@@ -1,254 +1,310 @@
 'use client';
 
-import { useEffect } from 'react';
-import { RefreshCw, Loader2, Activity } from 'lucide-react';
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'motion/react';
-import { useLiveBenchmark } from '@/lib/benchmark/simulate';
-import { GR_COLORS, GR_FONTS } from '@/lib/benchmark/data';
-import type { GRProvider } from '@/lib/benchmark/data';
+import React, { useEffect, useMemo, useState } from 'react';
+import { CandlestickChart, OHLCVCandle } from '@/components/charts/CandlestickChart';
 
-import { HeroBand }        from '@/components/goldrush/HeroBand';
-import { WinnerCards }     from '@/components/goldrush/WinnerCards';
-import { KeyMetricsStrip } from '@/components/goldrush/KeyMetricsStrip';
-import { BenchmarkKanban } from '@/components/goldrush/BenchmarkTabs';
-import { GRProviderTable } from '@/components/goldrush/GRProviderTable';
-import { StickyNav }       from '@/components/goldrush/StickyNav';
+// ─── DexWorks design tokens ────────────────────────────────────────────────────
+const DX = {
+  bg:          '#1a1a1a',
+  bgDeep:      '#111111',
+  surface:     '#222222',
+  fg:          '#f2f2f2',
+  fgMuted:     '#888888',
+  border:      '#444444',
+  borderLight: '#333333',
+  accent:      '#00d084',
+  accentDim:   'rgba(0,208,132,0.15)',
+  destructive: '#e74c3c',
+  warning:     '#f59e0b',
+  mono:        '"JetBrains Mono","Fira Code","Consolas",monospace',
+} as const;
 
-const C = GR_COLORS;
+// ─── Types ────────────────────────────────────────────────────────────────────
+type CellStatus = 'idle' | 'loading' | 'success' | 'error';
 
-// ─── Animated counter ─────────────────────────────────────────────────────────
-
-function Counter({ to, decimals = 0 }: { to: number; decimals?: number }) {
-  const count   = useMotionValue(0);
-  const display = useTransform(count, (v: number) => v.toFixed(decimals));
-  useEffect(() => {
-    const ctrl = animate(count, to, { duration: 1.4, ease: 'easeOut' });
-    return () => ctrl.stop();
-  }, [to, count]);
-  return <motion.span style={{ fontVariantNumeric: 'tabular-nums' }}>{display}</motion.span>;
+interface CellState {
+  status: CellStatus;
+  candles: OHLCVCandle[];
+  latency: number | null;
+  dataType: 'ohlcv' | 'synthetic' | null;
+  error: string | null;
 }
 
-// ─── Word reveal ──────────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
+const PROVIDERS = [
+  { id: 'coingecko', name: 'CoinGecko', type: 'REST', free: true  },
+  { id: 'goldrush',  name: 'GoldRush',  type: 'REST', free: false },
+  { id: 'moralis',   name: 'Moralis',   type: 'REST', free: false },
+  { id: 'bitquery',  name: 'Bitquery',  type: 'GQL',  free: false },
+] as const;
 
-function WordReveal({ text, delay = 0, style }: { text: string; delay?: number; style?: React.CSSProperties }) {
+const TIMEFRAMES = [
+  { label: '1D',  days: 1,  interval: '~30m/c' },
+  { label: '7D',  days: 7,  interval: '~4h/c'  },
+  { label: '30D', days: 30, interval: '~1d/c'  },
+  { label: '90D', days: 90, interval: '~1d/c'  },
+] as const;
+
+const INIT_CELL: CellState = {
+  status: 'idle', candles: [], latency: null, dataType: null, error: null,
+};
+
+// ─── Chart cell ───────────────────────────────────────────────────────────────
+function ChartCell({ cell }: { cell: CellState }) {
   return (
-    <span style={style}>
-      {text.split(' ').map((word, i) => (
-        <motion.span
-          key={i}
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: delay + i * 0.055, duration: 0.38, ease: 'easeOut' }}
-          style={{ display: 'inline-block', marginRight: '0.26em' }}
-        >
-          {word}
-        </motion.span>
-      ))}
-    </span>
-  );
-}
-
-// ─── Chapter divider ──────────────────────────────────────────────────────────
-
-function Chapter({ n, title }: { n: string; title: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -8 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.45, ease: 'easeOut' }}
-      style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '40px 0 18px' }}
+    <div
+      style={{
+        position: 'relative',
+        borderRight:  `1px solid ${DX.borderLight}`,
+        borderBottom: `1px solid ${DX.borderLight}`,
+        background:   DX.bgDeep,
+        overflow:     'hidden',
+        minHeight:    0,
+      }}
     >
-      <span style={{ fontSize: 10, color: C.textMuted, fontFamily: GR_FONTS.mono, letterSpacing: '0.14em', fontWeight: 700, flexShrink: 0 }}>
-        {n}
-      </span>
-      <div style={{ flex: 1, height: 1, background: C.border }} />
-      <span style={{ fontSize: 13, fontWeight: 800, color: C.textPrimary, fontFamily: GR_FONTS.ui, letterSpacing: '-0.01em', flexShrink: 0, textTransform: 'uppercase' }}>
-        {title}
-      </span>
-    </motion.div>
-  );
-}
+      {/* ── loading overlay ── */}
+      {cell.status === 'loading' && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 10,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(17,17,17,0.82)',
+          backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+        }}>
+          <div style={{
+            width: 28, height: 28,
+            border: '3px solid rgba(255,255,255,0.1)',
+            borderTopColor: 'rgba(255,255,255,0.45)',
+            borderRadius: '50%',
+            animation: 'dx-spin 0.7s linear infinite',
+          }} />
+        </div>
+      )}
 
-// ─── Opening statement ────────────────────────────────────────────────────────
+      {/* ── chart ── */}
+      {cell.status === 'success' && cell.candles.length > 0 && (
+        <div style={{ position: 'relative', width: '100%', height: '100%', padding: '0 2px' }}>
+          <CandlestickChart candles={cell.candles} showVolume={false} />
+          {/* config badge */}
+          <div style={{
+            position: 'absolute', top: 8, right: 8, zIndex: 5,
+            background: DX.surface, border: `1px solid ${DX.border}`,
+            padding: '2px 7px', borderRadius: 5,
+            fontSize: 10, color: DX.accent,
+            fontFamily: DX.mono, fontWeight: 600, letterSpacing: '0.5px',
+          }}>
+            {cell.latency}ms{cell.dataType === 'synthetic' ? ' ~' : ''}
+          </div>
+        </div>
+      )}
 
-function OpeningStatement({ providers, loading }: { providers: GRProvider[]; loading: boolean }) {
-  const winner = providers[0];
-  const ready  = providers.length > 0 && !loading;
+      {/* ── error ── */}
+      {cell.status === 'error' && (
+        <div style={{
+          width: '100%', height: '100%',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          gap: 6, padding: '0 14px', textAlign: 'center',
+        }}>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={DX.destructive} strokeWidth="1.5" opacity={0.35}>
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span style={{
+            fontSize: 9, color: DX.destructive, fontFamily: DX.mono,
+            textTransform: 'uppercase', letterSpacing: '0.05em',
+            wordBreak: 'break-all', maxWidth: 180, lineHeight: 1.5,
+          }}>
+            {(cell.error ?? 'error').slice(0, 80)}
+          </span>
+        </div>
+      )}
 
-  return (
-    <div style={{ paddingTop: 52, paddingBottom: 44, borderBottom: `1px solid ${C.border}` }}>
-      {/* Live eyebrow */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24, fontSize: 10, color: C.textMuted, fontFamily: GR_FONTS.mono, letterSpacing: '0.12em', textTransform: 'uppercase' }}
-      >
-        <motion.span
-          animate={{ opacity: [1, 0.2, 1] }}
-          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-          style={{ width: 5, height: 5, borderRadius: '50%', background: C.green, display: 'inline-block', flexShrink: 0 }}
-        />
-        Live · Solana Mainnet · {providers.length || '—'} providers{loading && ' · measuring…'}
-      </motion.div>
-
-      {/* Main headline — very bold */}
-      <h1 style={{
-        fontSize: 'clamp(56px, 7vw, 96px)', fontWeight: 900,
-        color: C.textPrimary, fontFamily: GR_FONTS.ui,
-        lineHeight: 1.0, margin: '0 0 8px', letterSpacing: '-0.035em',
-        maxWidth: 820,
-      }}>
-        <WordReveal text="We benchmarked every" delay={0.15} />
-        <br />
-        <WordReveal text="major Solana data API." delay={0.55} style={{ color: C.gold }} />
-      </h1>
-
-      {/* One-line verdict */}
-      <AnimatePresence>
-        {ready && winner && (
-          <motion.p
-            key="verdict"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ delay: 0.2, duration: 0.55, ease: 'easeOut' }}
-            style={{ margin: '20px 0 0', fontSize: 16, color: C.textSecondary, fontFamily: GR_FONTS.ui, lineHeight: 1.5, maxWidth: 540 }}
-          >
-            <strong style={{ color: C.textPrimary }}>{winner.name}</strong>
-            {' leads — '}
-            <strong style={{ color: C.gold, fontFamily: GR_FONTS.mono }}><Counter to={winner.p50} />ms P50</strong>
-            {' · '}
-            <strong style={{ color: C.amber, fontFamily: GR_FONTS.mono }}><Counter to={winner.score} decimals={1} />/100</strong>
-            {' composite'}
-          </motion.p>
-        )}
-      </AnimatePresence>
+      {/* ── idle ── */}
+      {cell.status === 'idle' && (
+        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: 10, color: '#2a2a2a', fontFamily: DX.mono }}>—</span>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Top nav ──────────────────────────────────────────────────────────────────
-
-function TopNav({ loading, onRefresh }: { loading: boolean; onRefresh: () => void }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-        <Activity size={12} style={{ color: C.textMuted }} />
-        <span style={{ fontSize: 11, color: C.textMuted, fontFamily: GR_FONTS.mono, letterSpacing: '0.05em' }}>
-          goldrush / benchmark
-        </span>
-      </div>
-      <button
-        onClick={onRefresh}
-        disabled={loading}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 5,
-          padding: '5px 12px', borderRadius: 3,
-          cursor: loading ? 'not-allowed' : 'pointer',
-          border: `1px solid ${C.border}`, background: 'transparent',
-          color: loading ? C.textMuted : C.textSecondary,
-          fontSize: 11, fontFamily: GR_FONTS.mono, transition: 'border-color 150ms, color 150ms',
-        }}
-        onMouseEnter={(e) => { if (!loading) (e.currentTarget as HTMLButtonElement).style.borderColor = C.borderBright; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = C.border; }}
-      >
-        {loading ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={11} />}
-        {loading ? 'running…' : 're-run'}
-      </button>
-    </div>
-  );
-}
-
-// ─── Section wrapper ──────────────────────────────────────────────────────────
-
-function Section({ id, children }: { id: string; children: React.ReactNode }) {
-  return <section id={id} style={{ scrollMarginTop: 56 }}>{children}</section>;
-}
-
-// ─── Main page ────────────────────────────────────────────────────────────────
-
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function Home() {
-  const { providers, loading, error, triggerRefresh } = useLiveBenchmark();
+  const [grid, setGrid] = useState<Record<string, CellState>>({});
+
+  function updateCell(key: string, update: Partial<CellState>) {
+    setGrid(prev => ({ ...prev, [key]: { ...(prev[key] ?? INIT_CELL), ...update } }));
+  }
+
+  async function fetchCell(provider: string, days: number) {
+    const key = `${provider}-${days}`;
+    try {
+      const res  = await fetch(`/api/chart-race?provider=${provider}&days=${days}`);
+      const data = await res.json();
+      if (data.status === 'success') {
+        updateCell(key, {
+          status: 'success', candles: data.candles,
+          latency: data.latency, dataType: data.dataType, error: null,
+        });
+      } else {
+        updateCell(key, {
+          status: 'error', candles: [], latency: data.latency ?? null,
+          error: data.error ?? 'Unknown error', dataType: null,
+        });
+      }
+    } catch (err) {
+      updateCell(key, {
+        status: 'error', candles: [], latency: null,
+        error: err instanceof Error ? err.message : 'Network error', dataType: null,
+      });
+    }
+  }
+
+  // Fire all 16 fetches on mount
+  useEffect(() => {
+    const init: Record<string, CellState> = {};
+    for (const p of PROVIDERS) {
+      for (const tf of TIMEFRAMES) {
+        init[`${p.id}-${tf.days}`] = {
+          status: 'loading', candles: [], latency: null, dataType: null, error: null,
+        };
+      }
+    }
+    setGrid(init);
+    for (const p of PROVIDERS) {
+      for (const tf of TIMEFRAMES) {
+        void fetchCell(p.id, tf.days);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const summary = useMemo(() => {
+    const cells = Object.values(grid);
+    return {
+      success: cells.filter(c => c.status === 'success').length,
+      loading: cells.filter(c => c.status === 'loading').length,
+      error:   cells.filter(c => c.status === 'error').length,
+      total:   PROVIDERS.length * TIMEFRAMES.length,
+    };
+  }, [grid]);
+
+  const isLive = summary.loading > 0;
 
   return (
-    <div style={{ minHeight: '100vh', background: C.bgBase, color: C.textPrimary, fontFamily: GR_FONTS.ui }}>
-      <StickyNav providers={providers} loading={loading} onRefresh={triggerRefresh} />
+    <>
+      {/* ── keyframes + candlestick-svg sizing ── */}
+      <style>{`
+        @keyframes dx-spin  { to { transform: rotate(360deg) } }
+        @keyframes dx-pulse { 0%,100% { opacity:1 } 50% { opacity:0.25 } }
+        .candlestick-svg { width: 100%; height: auto; display: block; }
+      `}</style>
 
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px 96px' }}>
-        <TopNav loading={loading} onRefresh={triggerRefresh} />
+      <div style={{
+        height: '100dvh', overflow: 'hidden',
+        display: 'flex', flexDirection: 'column',
+        background: DX.bg, color: DX.fg, fontFamily: DX.mono,
+      }}>
+        {/* ── Header ───────────────────────────────────────────────────────── */}
+        <div style={{
+          height: 44, flexShrink: 0,
+          borderBottom: `1px solid ${DX.border}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 16px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {/* live dot */}
+            <span style={{
+              width: 7, height: 7, borderRadius: '50%',
+              background: isLive ? DX.warning : DX.accent,
+              display: 'inline-block', flexShrink: 0,
+              animation: isLive ? 'dx-pulse 1.5s ease-in-out infinite' : 'none',
+            }} />
+            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: DX.fg }}>
+              ETH/USD OHLCV GRID
+            </span>
+            <span style={{ fontSize: 9, color: DX.fgMuted, letterSpacing: '0.04em' }}>
+              4 providers · 4 timeframes · 16 charts
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 10 }}>
+            {summary.loading > 0 && (
+              <span style={{ color: DX.warning }}>⟳ {summary.loading} fetching</span>
+            )}
+            <span style={{ color: summary.success === summary.total ? DX.accent : DX.fgMuted }}>
+              ✓ {summary.success} / {summary.total}
+            </span>
+            {summary.error > 0 && (
+              <span style={{ color: DX.destructive }}>✗ {summary.error}</span>
+            )}
+          </div>
+        </div>
 
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{ marginTop: 10, padding: '9px 14px', background: 'rgba(242,73,92,0.07)', border: `1px solid rgba(242,73,92,0.2)`, borderRadius: 3, fontSize: 11, color: C.red, fontFamily: GR_FONTS.mono }}
-          >
-            {error}
-          </motion.div>
-        )}
+        {/* ── Grid ─────────────────────────────────────────────────────────── */}
+        <div
+          style={{
+            flex: 1, minHeight: 0,
+            display: 'grid',
+            gridTemplateColumns: '56px repeat(4, 1fr)',
+            gridTemplateRows:    '48px repeat(4, 1fr)',
+            overflow: 'hidden',
+          }}
+        >
+          {/* corner */}
+          <div style={{ borderRight: `1px solid ${DX.border}`, borderBottom: `1px solid ${DX.border}`, background: DX.bg }} />
 
-        <OpeningStatement providers={providers} loading={loading} />
+          {/* provider column headers */}
+          {PROVIDERS.map(p => (
+            <div key={p.id} style={{
+              borderRight: `1px solid ${DX.border}`,
+              borderBottom: `1px solid ${DX.border}`,
+              background: DX.bg,
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'flex-start', justifyContent: 'center',
+              padding: '0 12px', gap: 3,
+            }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: DX.fg, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                {p.name}
+              </span>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <span style={{ fontSize: 9, color: DX.fgMuted, background: DX.surface, padding: '1px 5px', borderRadius: 3 }}>
+                  {p.type}
+                </span>
+                {p.free
+                  ? <span style={{ fontSize: 9, color: DX.accent }}>free</span>
+                  : <span style={{ fontSize: 9, color: '#555' }}>★ key</span>
+                }
+              </div>
+            </div>
+          ))}
 
-        <AnimatePresence mode="wait">
-          {loading && providers.length === 0 && (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, height: 260, color: C.textMuted, fontFamily: GR_FONTS.mono, fontSize: 12 }}
-            >
-              <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-              Measuring {providers.length || '4'} providers…
-            </motion.div>
-          )}
+          {/* timeframe rows */}
+          {TIMEFRAMES.map(tf => (
+            <React.Fragment key={tf.days}>
+              {/* timeframe label cell */}
+              <div style={{
+                borderRight:  `1px solid ${DX.border}`,
+                borderBottom: `1px solid ${DX.borderLight}`,
+                background: DX.bg,
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', gap: 3,
+              }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: DX.fg }}>{tf.label}</span>
+                <span style={{ fontSize: 8, color: '#404040', fontFamily: DX.mono }}>{tf.interval}</span>
+              </div>
 
-          {providers.length > 0 && (
-            <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }}>
-
-              <Chapter n="01" title="The Verdict" />
-              <Section id="hero"><HeroBand providers={providers} /></Section>
-
-              <Chapter n="02" title="Category Leaders" />
-              <Section id="winners"><WinnerCards providers={providers} /></Section>
-
-              <Chapter n="03" title="Live Numbers" />
-              <Section id="metrics"><KeyMetricsStrip providers={providers} /></Section>
-
-              <Chapter n="04" title="Deep Analysis" />
-              <Section id="analysis"><BenchmarkKanban providers={providers} /></Section>
-
-              <Chapter n="05" title="All Providers" />
-              <Section id="table">
-                <GRProviderTable providers={providers} onSelect={() => {}} />
-              </Section>
-
-              {/* Measurement context footer */}
-              <motion.footer
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                style={{ borderTop: `1px solid ${C.border}`, paddingTop: 22, marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: '6px 40px' }}
-              >
-                {[
-                  'Server-to-server · benchmarked from US-East (Vercel origin) · not browser RTT',
-                  '5 sequential HTTP requests per provider · 100ms between calls · cache: no-store',
-                  'Composite score: latency 40% + reliability 35% + throughput 25%',
-                ].map((line, i) => (
-                  <span key={i} style={{ fontSize: 10, color: C.textMuted, fontFamily: GR_FONTS.mono, lineHeight: 1.6 }}>
-                    {line}
-                  </span>
-                ))}
-              </motion.footer>
-
-            </motion.div>
-          )}
-        </AnimatePresence>
+              {/* chart cells — one per provider */}
+              {PROVIDERS.map(p => (
+                <ChartCell
+                  key={`${p.id}-${tf.days}`}
+                  cell={grid[`${p.id}-${tf.days}`] ?? INIT_CELL}
+                />
+              ))}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
-
-      <style>{`@keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
-    </div>
+    </>
   );
 }
