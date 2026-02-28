@@ -234,6 +234,60 @@ async function fetchBitquery(days: number): Promise<Omit<ChartRaceResponse, 'pro
   }
 }
 
+// ── Moralis ───────────────────────────────────────────────────────────────────
+// Uniswap V3 WETH/USDC 0.05% pair OHLCV via Moralis Deep Index
+async function fetchMoralis(days: number): Promise<Omit<ChartRaceResponse, 'provider' | 'days' | 'candleInterval'>> {
+  const start = performance.now();
+  try {
+    const apiKey = process.env.MORALIS_API_KEY;
+    if (!apiKey) throw new Error('MORALIS_API_KEY not configured');
+
+    const timeframe = days <= 1 ? '1h' : '1d';
+    const limit     = days <= 1 ? 24 : Math.min(days, 200);
+    const pair      = '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640'; // WETH/USDC Uniswap V3
+
+    const url = `https://deep-index.moralis.io/api/v2.2/pairs/${pair}/ohlcv?chain=eth&timeframe=${timeframe}&limit=${limit}`;
+    const res = await fetch(url, {
+      headers: { 'X-API-Key': apiKey, 'accept': 'application/json' },
+      signal: AbortSignal.timeout(10000),
+      next: { revalidate: 0 },
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) throw new Error('Invalid Moralis API key');
+      throw new Error(await readErrorBody(res));
+    }
+
+    const data    = await res.json();
+    const latency = Math.round(performance.now() - start);
+    const result: unknown[] = data?.result;
+    if (!Array.isArray(result) || result.length === 0) throw new Error('No OHLCV data from Moralis');
+
+    const candles: OHLCVCandle[] = result
+      .map((r: unknown) => {
+        const row = r as Record<string, unknown>;
+        return {
+          timestamp: new Date(String(row.timestamp ?? row.open_time ?? '')).toISOString(),
+          open:   parseFloat(String(row.open   ?? '0')),
+          high:   parseFloat(String(row.high   ?? '0')),
+          low:    parseFloat(String(row.low    ?? '0')),
+          close:  parseFloat(String(row.close  ?? '0')),
+          volume: parseFloat(String(row.volume ?? '0')),
+        };
+      })
+      .filter(c => c.high > 0 && !isNaN(c.open));
+
+    if (candles.length === 0) throw new Error('No valid candles from Moralis');
+    return { status: 'success', latency, candles, dataType: 'ohlcv' };
+  } catch (err) {
+    return {
+      status: 'error', latency: Math.round(performance.now() - start),
+      candles: [], dataType: 'ohlcv',
+      error: err instanceof Error ? err.message : 'Unknown error',
+    };
+  }
+}
+
 // ── Route handler ─────────────────────────────────────────────────────────────
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -251,6 +305,7 @@ export async function GET(request: Request) {
 
   const candleInterval =
     provider === 'coingecko' ? (days <= 1 ? '~30m' : days <= 90 ? '~4h' : '~1d') :
+    provider === 'moralis'   ? (days <= 1 ? '~1h'  : '~1d') :
     provider === 'bitquery'  ? (days <= 1 ? '~1h'  : '~1d') :
     days <= 1 ? '~30m' : days <= 7 ? '~4h' : '~1d';
 
@@ -259,6 +314,7 @@ export async function GET(request: Request) {
   switch (provider) {
     case 'coingecko': result = await fetchCoinGecko(days); break;
     case 'goldrush':  result = await fetchGoldRush(days);  break;
+    case 'moralis':   result = await fetchMoralis(days);   break;
     case 'bitquery':  result = await fetchBitquery(days);  break;
     default:
       return NextResponse.json({ error: `Unknown provider: ${provider}` }, { status: 400 });

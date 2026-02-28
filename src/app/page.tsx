@@ -1,10 +1,17 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { CandlestickChart, OHLCVCandle } from '@/components/charts/CandlestickChart';
-import { useGoldRushOHLCVStream } from '@/hooks/useGoldRushOHLCVStream';
+import React from 'react';
+import { CandlestickChart } from '@/components/charts/CandlestickChart';
+import {
+  useCoinGeckoStream,
+  useGoldRushStream,
+  useMoralisStream,
+  useBitqueryStream,
+  type ProviderStreamState,
+  type ConnType,
+} from '@/hooks/useProviderStream';
 
-// ─── DexWorks tokens ──────────────────────────────────────────────────────────
+// ─── Design tokens ────────────────────────────────────────────────────────────
 const DX = {
   bg:          '#1a1a1a',
   bgDeep:      '#111111',
@@ -14,53 +21,20 @@ const DX = {
   border:      '#444444',
   borderLight: '#2a2a2a',
   accent:      '#00d084',
-  accentDim:   'rgba(0,208,132,0.12)',
   destructive: '#e74c3c',
   warning:     '#f59e0b',
   mono:        '"JetBrains Mono","Fira Code","Consolas",monospace',
 } as const;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-type CellStatus = 'idle' | 'loading' | 'success' | 'error';
-
-interface ProviderInfo {
-  id:   string;
-  name: string;
-  type: string;
-  free: boolean;
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function formatUptime(s: number): string {
+  const h   = Math.floor(s / 3600);
+  const m   = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 }
 
-interface ProviderState {
-  status:    CellStatus;
-  candles:   OHLCVCandle[];
-  latency:   number | null;
-  dataType:  'ohlcv' | 'synthetic' | null;
-  interval:  string | null;
-  error:     string | null;
-  fetchedAt: number | null;
-}
-
-// ─── Config ───────────────────────────────────────────────────────────────────
-const REST_PROVIDERS: ProviderInfo[] = [
-  { id: 'coingecko', name: 'CoinGecko', type: 'REST', free: true  },
-  { id: 'goldrush',  name: 'GoldRush',  type: 'REST', free: false },
-  { id: 'bitquery',  name: 'Bitquery',  type: 'GQL',  free: false },
-];
-
-const STREAM_PROVIDER: ProviderInfo = {
-  id: 'goldrush-stream', name: 'GoldRush Stream', type: 'WSS', free: false,
-};
-
-const DAYS       = 1;
-const REFRESH_MS = 15_000;   // 15 s polling for REST panels
-const TICK_MS    = 1_000;
-
-const INIT: ProviderState = {
-  status: 'idle', candles: [], latency: null,
-  dataType: null, interval: null, error: null, fetchedAt: null,
-};
-
-// ─── Spinner overlay ──────────────────────────────────────────────────────────
+// ─── Sub-components ───────────────────────────────────────────────────────────
 function Spinner() {
   return (
     <div style={{
@@ -80,7 +54,6 @@ function Spinner() {
   );
 }
 
-// ─── Error body ───────────────────────────────────────────────────────────────
 function ErrorBody({ message }: { message: string }) {
   return (
     <div style={{
@@ -90,14 +63,14 @@ function ErrorBody({ message }: { message: string }) {
     }}>
       <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
         stroke={DX.destructive} strokeWidth="1.2" opacity={0.4}>
-        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-        <line x1="12" y1="9"  x2="12"   y2="13"/>
-        <line x1="12" y1="17" x2="12.01" y2="17"/>
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        <line x1="12" y1="9"  x2="12"   y2="13" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
       </svg>
       <span style={{
         fontSize: 10, color: DX.destructive, fontFamily: DX.mono,
         textTransform: 'uppercase', letterSpacing: '0.05em',
-        lineHeight: 1.5, maxWidth: 200, wordBreak: 'break-word',
+        lineHeight: 1.5, maxWidth: 220, wordBreak: 'break-word',
       }}>
         {message}
       </span>
@@ -105,95 +78,38 @@ function ErrorBody({ message }: { message: string }) {
   );
 }
 
-// ─── REST provider panel ──────────────────────────────────────────────────────
-function ProviderPanel({ provider, state }: { provider: ProviderInfo; state: ProviderState }) {
-  const { status, candles, latency, dataType, interval, error, fetchedAt } = state;
-  const isLoading = status === 'loading';
-
-  return (
-    <div style={{
-      position: 'relative', display: 'flex', flexDirection: 'column',
-      background: DX.bgDeep, border: `1px solid ${DX.border}`,
-      overflow: 'hidden', minHeight: 0,
-    }}>
-      {/* header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '7px 12px', borderBottom: `1px solid ${DX.borderLight}`,
-        background: DX.bg, flexShrink: 0,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: DX.fg, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-            {provider.name}
-          </span>
-          <span style={{ fontSize: 9, color: DX.fgMuted, background: DX.surface, padding: '1px 5px', borderRadius: 3 }}>
-            {provider.type}
-          </span>
-          {provider.free
-            ? <span style={{ fontSize: 9, color: DX.accent }}>free</span>
-            : <span style={{ fontSize: 9, color: '#4a4a4a' }}>★ key</span>
-          }
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {interval && status === 'success' && (
-            <span style={{ fontSize: 9, color: DX.fgMuted, background: DX.surface, padding: '1px 5px', borderRadius: 3 }}>
-              {interval}{dataType === 'synthetic' ? ' ~synth' : ''}
-            </span>
-          )}
-          {latency !== null && status === 'success' && (
-            <span style={{
-              fontSize: 10, fontFamily: DX.mono, fontWeight: 600,
-              color: latency < 400 ? DX.accent : latency < 900 ? DX.warning : DX.destructive,
-            }}>
-              {latency}ms
-            </span>
-          )}
-          <span style={{
-            width: 6, height: 6, borderRadius: '50%', flexShrink: 0, display: 'inline-block',
-            background: isLoading ? DX.warning : status === 'success' ? DX.accent : status === 'error' ? DX.destructive : '#333',
-            animation: isLoading ? 'dx-pulse 1.2s ease-in-out infinite' : 'none',
-          }} />
-        </div>
-      </div>
-
-      {/* body */}
-      <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-        {isLoading && <Spinner />}
-
-        {status === 'success' && candles.length > 0 && (
-          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-            <CandlestickChart candles={candles} showVolume />
-            {fetchedAt && (
-              <div style={{ position: 'absolute', bottom: 8, right: 8, fontSize: 8, color: '#3a3a3a', fontFamily: DX.mono }}>
-                {new Date(fetchedAt).toLocaleTimeString()}
-              </div>
-            )}
-          </div>
-        )}
-
-        {status === 'error' && <ErrorBody message={error ?? 'Unknown error'} />}
-
-        {status === 'idle' && (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 11, color: '#2a2a2a', fontFamily: DX.mono }}>—</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+// ─── Panel config ─────────────────────────────────────────────────────────────
+interface PanelConfig {
+  name:        string;
+  connType:    ConnType;
+  requiresKey: boolean;
 }
 
-// ─── GoldRush Stream panel (WebSocket real-time) ──────────────────────────────
-function GoldRushStreamPanel() {
-  const { candles, status, label, error, updateAt } = useGoldRushOHLCVStream();
+const PANEL_CONFIGS: PanelConfig[] = [
+  { name: 'CoinGecko', connType: 'REST', requiresKey: false },
+  { name: 'GoldRush',  connType: 'WSS',  requiresKey: true  },
+  { name: 'Moralis',   connType: 'REST', requiresKey: true  },
+  { name: 'Bitquery',  connType: 'WSS',  requiresKey: true  },
+];
+
+// ─── StreamPanel ──────────────────────────────────────────────────────────────
+function StreamPanel({ config, state }: { config: PanelConfig; state: ProviderStreamState }) {
+  const { candles, status, metrics, label, error } = state;
+  const { firstLatency, updatesPerMin, uptimeSeconds, totalUpdates } = metrics;
 
   const isConnecting = status === 'connecting';
   const isStreaming  = status === 'streaming';
   const isError      = status === 'error';
-  const showSpinner  = isConnecting && candles.length === 0;
+  const showSpinner  = (status === 'idle' || isConnecting) && candles.length === 0;
 
   const dotBg   = isConnecting ? DX.warning : isStreaming ? DX.accent : isError ? DX.destructive : '#333';
   const dotAnim = isConnecting || isStreaming ? 'dx-pulse 1.2s ease-in-out infinite' : 'none';
+
+  const latColor =
+    firstLatency === null      ? DX.fgMuted :
+    firstLatency < 400         ? DX.accent  :
+    firstLatency < 900         ? DX.warning :
+    DX.destructive;
 
   return (
     <div style={{
@@ -201,34 +117,54 @@ function GoldRushStreamPanel() {
       background: DX.bgDeep, border: `1px solid ${DX.border}`,
       overflow: 'hidden', minHeight: 0,
     }}>
-      {/* header */}
+
+      {/* ── Header ── */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '7px 12px', borderBottom: `1px solid ${DX.borderLight}`,
+        padding: '6px 12px', borderBottom: `1px solid ${DX.borderLight}`,
         background: DX.bg, flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: DX.fg, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-            {STREAM_PROVIDER.name}
+          <span style={{
+            fontSize: 11, fontWeight: 700, color: DX.fg,
+            letterSpacing: '0.06em', textTransform: 'uppercase',
+          }}>
+            {config.name}
           </span>
-          <span style={{ fontSize: 9, color: DX.fgMuted, background: DX.surface, padding: '1px 5px', borderRadius: 3 }}>
-            {STREAM_PROVIDER.type}
+          <span style={{
+            fontSize: 9,
+            color: config.connType === 'WSS' ? DX.accent : DX.fgMuted,
+            background: DX.surface, padding: '1px 5px', borderRadius: 3,
+          }}>
+            {config.connType}
           </span>
-          <span style={{ fontSize: 9, color: '#4a4a4a' }}>★ key</span>
+          {config.requiresKey
+            ? <span style={{ fontSize: 9, color: '#4a4a4a' }}>★ key</span>
+            : <span style={{ fontSize: 9, color: DX.accent }}>free</span>
+          }
         </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {label && isStreaming && (
-            <span style={{ fontSize: 9, color: DX.fgMuted, background: DX.surface, padding: '1px 5px', borderRadius: 3 }}>
+          {label && (
+            <span style={{
+              fontSize: 9, color: DX.fgMuted,
+              background: DX.surface, padding: '1px 5px', borderRadius: 3,
+            }}>
               {label}
             </span>
           )}
           {isStreaming && (
-            <span style={{ fontSize: 9, color: DX.accent, fontFamily: DX.mono, fontWeight: 700, letterSpacing: '0.06em' }}>
+            <span style={{
+              fontSize: 9, color: DX.accent, fontFamily: DX.mono,
+              fontWeight: 700, letterSpacing: '0.06em',
+            }}>
               LIVE
             </span>
           )}
           {isConnecting && (
-            <span style={{ fontSize: 9, color: DX.warning, fontFamily: DX.mono }}>connecting…</span>
+            <span style={{ fontSize: 9, color: DX.warning, fontFamily: DX.mono }}>
+              connecting…
+            </span>
           )}
           <span style={{
             width: 6, height: 6, borderRadius: '50%', flexShrink: 0, display: 'inline-block',
@@ -237,101 +173,62 @@ function GoldRushStreamPanel() {
         </div>
       </div>
 
-      {/* body */}
+      {/* ── Metrics bar ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 14,
+        padding: '3px 12px', borderBottom: `1px solid ${DX.borderLight}`,
+        background: DX.surface, flexShrink: 0, flexWrap: 'wrap',
+      }}>
+        <span style={{ fontSize: 9, color: DX.fgMuted, fontFamily: DX.mono }}>
+          {config.connType}
+        </span>
+        <span style={{ fontSize: 9, fontFamily: DX.mono, color: latColor }}>
+          ⚡{firstLatency !== null ? `${firstLatency}ms` : '—'}
+        </span>
+        <span style={{ fontSize: 9, fontFamily: DX.mono, color: DX.fgMuted }}>
+          ↑{updatesPerMin}/m
+        </span>
+        <span style={{ fontSize: 9, fontFamily: DX.mono, color: DX.fgMuted }}>
+          ⏱{formatUptime(uptimeSeconds)}
+        </span>
+        <span style={{ fontSize: 9, fontFamily: DX.mono, color: DX.fgMuted }}>
+          {totalUpdates}× total
+        </span>
+      </div>
+
+      {/* ── Chart body ── */}
       <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
         {showSpinner && <Spinner />}
 
         {candles.length > 0 && (
-          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-            <CandlestickChart candles={candles} showVolume />
-            {updateAt && (
-              <div style={{ position: 'absolute', bottom: 8, right: 8, fontSize: 8, color: '#3a3a3a', fontFamily: DX.mono }}>
-                {new Date(updateAt).toLocaleTimeString()}
-              </div>
-            )}
-          </div>
+          <CandlestickChart candles={candles} showVolume={false} />
         )}
 
-        {isError && candles.length === 0 && <ErrorBody message={error ?? 'Stream error'} />}
-
-        {status === 'idle' && (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 11, color: '#2a2a2a', fontFamily: DX.mono }}>—</span>
-          </div>
+        {isError && candles.length === 0 && (
+          <ErrorBody message={error ?? 'Stream error'} />
         )}
       </div>
+
     </div>
   );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function Home() {
-  const [states, setStates] = useState<Record<string, ProviderState>>(
-    Object.fromEntries(REST_PROVIDERS.map(p => [p.id, INIT]))
-  );
-  const [countdown, setCountdown] = useState(REFRESH_MS / 1000);
-  const countdownRef = useRef(REFRESH_MS / 1000);
+  const cgState = useCoinGeckoStream();
+  const grState = useGoldRushStream();
+  const mlState = useMoralisStream();
+  const bqState = useBitqueryStream();
 
-  function updateProvider(id: string, patch: Partial<ProviderState>) {
-    setStates(prev => ({ ...prev, [id]: { ...prev[id], ...patch } }));
-  }
-
-  const fetchProvider = useCallback(async (id: string) => {
-    updateProvider(id, { status: 'loading' });
-    try {
-      const res  = await fetch(`/api/chart-race?provider=${id}&days=${DAYS}`);
-      const data = await res.json();
-      if (data.status === 'success') {
-        updateProvider(id, {
-          status: 'success', candles: data.candles, latency: data.latency,
-          dataType: data.dataType, interval: data.candleInterval,
-          error: null, fetchedAt: Date.now(),
-        });
-      } else {
-        updateProvider(id, {
-          status: 'error', candles: [], latency: null,
-          error: data.error ?? 'Request failed', fetchedAt: null,
-        });
-      }
-    } catch (err) {
-      updateProvider(id, {
-        status: 'error', candles: [], latency: null,
-        error: err instanceof Error ? err.message : 'Network error', fetchedAt: null,
-      });
-    }
-  }, []);
-
-  const fetchAll = useCallback(() => {
-    countdownRef.current = REFRESH_MS / 1000;
-    setCountdown(REFRESH_MS / 1000);
-    for (const p of REST_PROVIDERS) void fetchProvider(p.id);
-  }, [fetchProvider]);
-
-  useEffect(() => {
-    fetchAll();
-    const refresh = setInterval(fetchAll, REFRESH_MS);
-    return () => clearInterval(refresh);
-  }, [fetchAll]);
-
-  useEffect(() => {
-    const tick = setInterval(() => {
-      countdownRef.current = Math.max(0, countdownRef.current - 1);
-      setCountdown(countdownRef.current);
-    }, TICK_MS);
-    return () => clearInterval(tick);
-  }, []);
-
-  const values       = Object.values(states);
-  const successCount = values.filter(s => s.status === 'success').length;
-  const loadingCount = values.filter(s => s.status === 'loading').length;
-  const isLive       = loadingCount > 0;
+  const allStates      = [cgState, grState, mlState, bqState];
+  const streamingCount = allStates.filter(s => s.status === 'streaming').length;
+  const anyConnecting  = allStates.some(s => s.status === 'connecting');
 
   return (
     <>
       <style>{`
         @keyframes dx-spin  { to { transform: rotate(360deg) } }
         @keyframes dx-pulse { 0%,100% { opacity:1 } 50% { opacity:0.2 } }
-        .candlestick-svg { width:100%; height:auto; display:block; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
       `}</style>
 
@@ -340,6 +237,7 @@ export default function Home() {
         background: DX.bg, color: DX.fg, fontFamily: DX.mono,
         overflow: 'hidden',
       }}>
+
         {/* ── Header ── */}
         <div style={{
           height: 44, flexShrink: 0,
@@ -347,61 +245,37 @@ export default function Home() {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 16px',
         }}>
-          {/* left */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{
               width: 7, height: 7, borderRadius: '50%',
-              background: isLive ? DX.warning : DX.accent,
+              background: streamingCount > 0 ? DX.accent : DX.warning,
               display: 'inline-block', flexShrink: 0,
-              animation: isLive ? 'dx-pulse 1.5s ease-in-out infinite' : 'none',
+              animation: anyConnecting ? 'dx-pulse 1.5s ease-in-out infinite' : 'none',
             }} />
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            <span style={{
+              fontSize: 11, fontWeight: 700,
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+            }}>
               ETH / USD
             </span>
             <span style={{ fontSize: 9, color: DX.fgMuted, letterSpacing: '0.04em' }}>
-              OHLCV · 3 REST + 1 WebSocket · 1-day range
+              OHLCV · 2 WSS + 2 REST · 1-day range
             </span>
           </div>
 
-          {/* right */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 10 }}>
-            {loadingCount > 0 && (
-              <span style={{ color: DX.warning }}>⟳ {loadingCount} fetching</span>
-            )}
-            <span style={{ color: successCount === REST_PROVIDERS.length ? DX.accent : DX.fgMuted }}>
-              {successCount} / {REST_PROVIDERS.length} REST ready
-            </span>
-            {/* countdown pill */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              background: DX.surface, border: `1px solid ${DX.borderLight}`,
-              padding: '2px 8px', borderRadius: 4,
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10 }}>
+            <span style={{
+              color: streamingCount === 4 ? DX.accent : DX.fgMuted,
+              fontFamily: DX.mono,
             }}>
-              <span style={{ color: DX.fgMuted }}>REST refresh in</span>
-              <span style={{
-                color: countdown <= 5 ? DX.warning : DX.fg,
-                fontWeight: 700, minWidth: 18, textAlign: 'right',
-              }}>
-                {countdown}s
-              </span>
-            </div>
-            <button
-              onClick={fetchAll}
-              style={{
-                background: DX.accentDim, border: `1px solid ${DX.accent}`,
-                color: DX.accent, padding: '3px 10px', borderRadius: 4,
-                fontSize: 10, cursor: 'pointer', fontFamily: DX.mono,
-                fontWeight: 700, letterSpacing: '0.06em',
-              }}
-            >
-              ⟳ NOW
-            </button>
+              {streamingCount} / 4 live
+            </span>
           </div>
         </div>
 
         {/* ── 2×2 chart grid ──
-              [CoinGecko]       [GoldRush REST]
-              [GoldRush Stream] [Bitquery]
+              [CoinGecko  REST]   [GoldRush  WSS]
+              [Moralis    REST]   [Bitquery  WSS]
         ── */}
         <div style={{
           flex: 1, minHeight: 0,
@@ -412,11 +286,12 @@ export default function Home() {
           background: DX.borderLight,
           padding: 1,
         }}>
-          <ProviderPanel provider={REST_PROVIDERS[0]} state={states['coingecko'] ?? INIT} />
-          <ProviderPanel provider={REST_PROVIDERS[1]} state={states['goldrush']  ?? INIT} />
-          <GoldRushStreamPanel />
-          <ProviderPanel provider={REST_PROVIDERS[2]} state={states['bitquery']  ?? INIT} />
+          <StreamPanel config={PANEL_CONFIGS[0]} state={cgState} />
+          <StreamPanel config={PANEL_CONFIGS[1]} state={grState} />
+          <StreamPanel config={PANEL_CONFIGS[2]} state={mlState} />
+          <StreamPanel config={PANEL_CONFIGS[3]} state={bqState} />
         </div>
+
       </div>
     </>
   );
