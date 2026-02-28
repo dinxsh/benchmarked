@@ -56,7 +56,7 @@ function synthesizeOHLCV(prices: { date: string; price: number }[]): OHLCVCandle
 }
 
 // ── CoinGecko ─────────────────────────────────────────────────────────────────
-async function fetchCoinGecko(days: number): Promise<Omit<ChartRaceResponse, 'provider' | 'days' | 'candleInterval'>> {
+async function fetchCoinGecko(days: number, coinId = 'ethereum'): Promise<Omit<ChartRaceResponse, 'provider' | 'days' | 'candleInterval'>> {
   const start = performance.now();
   try {
     const apiKey     = process.env.COINGECKO_API_KEY ?? process.env.COINGECKO_DEMO_API_KEY ?? '';
@@ -65,7 +65,7 @@ async function fetchCoinGecko(days: number): Promise<Omit<ChartRaceResponse, 'pr
 
     // Try /ohlc first (real OHLCV)
     const ohlcRes = await fetch(
-      `https://api.coingecko.com/api/v3/coins/ethereum/ohlc?vs_currency=usd&days=${days}${keyParam}`,
+      `https://api.coingecko.com/api/v3/coins/${coinId}/ohlc?vs_currency=usd&days=${days}${keyParam}`,
       { headers: keyHeaders, signal: AbortSignal.timeout(10000), next: { revalidate: 0 } }
     );
     if (ohlcRes.ok) {
@@ -84,7 +84,7 @@ async function fetchCoinGecko(days: number): Promise<Omit<ChartRaceResponse, 'pr
 
     // Fallback: /market_chart → synthetic OHLCV
     const chartRes = await fetch(
-      `https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=${days}&interval=hourly${keyParam}`,
+      `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=hourly${keyParam}`,
       { headers: keyHeaders, signal: AbortSignal.timeout(10000), next: { revalidate: 0 } }
     );
     if (!chartRes.ok) throw new Error(await readErrorBody(chartRes));
@@ -236,7 +236,10 @@ async function fetchBitquery(days: number): Promise<Omit<ChartRaceResponse, 'pro
 
 // ── Moralis ───────────────────────────────────────────────────────────────────
 // Uniswap V3 WETH/USDC 0.05% pair OHLCV via Moralis Deep Index
-async function fetchMoralis(days: number): Promise<Omit<ChartRaceResponse, 'provider' | 'days' | 'candleInterval'>> {
+async function fetchMoralis(
+  days: number,
+  pairAddress = '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+): Promise<Omit<ChartRaceResponse, 'provider' | 'days' | 'candleInterval'>> {
   const start = performance.now();
   try {
     const apiKey = process.env.MORALIS_API_KEY;
@@ -244,12 +247,11 @@ async function fetchMoralis(days: number): Promise<Omit<ChartRaceResponse, 'prov
 
     const timeframe = days <= 1 ? '1h' : '1d';
     const limit     = days <= 1 ? 24 : Math.min(days, 200);
-    const pair      = '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640'; // WETH/USDC Uniswap V3
 
     const toDate   = new Date().toISOString();
     const fromDate = new Date(Date.now() - days * 86_400_000).toISOString();
 
-    const url = `https://deep-index.moralis.io/api/v2.2/pairs/${pair}/ohlcv?chain=eth&timeframe=${timeframe}&limit=${limit}&fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`;
+    const url = `https://deep-index.moralis.io/api/v2.2/pairs/${pairAddress}/ohlcv?chain=eth&timeframe=${timeframe}&limit=${limit}&fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`;
     const res = await fetch(url, {
       headers: { 'X-API-Key': apiKey, 'accept': 'application/json' },
       signal: AbortSignal.timeout(10000),
@@ -294,8 +296,11 @@ async function fetchMoralis(days: number): Promise<Omit<ChartRaceResponse, 'prov
 // ── Route handler ─────────────────────────────────────────────────────────────
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const provider  = searchParams.get('provider');
-  const daysParam = searchParams.get('days');
+  const provider    = searchParams.get('provider');
+  const daysParam   = searchParams.get('days');
+  // Optional pair-specific overrides from the client
+  const coinId      = searchParams.get('coinId')      ?? 'ethereum';
+  const pairAddress = searchParams.get('pairAddress') ?? '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640';
 
   if (!provider || !daysParam) {
     return NextResponse.json({ error: 'Missing required params: provider, days' }, { status: 400 });
@@ -315,10 +320,10 @@ export async function GET(request: Request) {
   let result: Omit<ChartRaceResponse, 'provider' | 'days' | 'candleInterval'>;
 
   switch (provider) {
-    case 'coingecko': result = await fetchCoinGecko(days); break;
-    case 'goldrush':  result = await fetchGoldRush(days);  break;
-    case 'moralis':   result = await fetchMoralis(days);   break;
-    case 'bitquery':  result = await fetchBitquery(days);  break;
+    case 'coingecko': result = await fetchCoinGecko(days, coinId);           break;
+    case 'goldrush':  result = await fetchGoldRush(days);                    break;
+    case 'moralis':   result = await fetchMoralis(days, pairAddress);        break;
+    case 'bitquery':  result = await fetchBitquery(days);                    break;
     default:
       return NextResponse.json({ error: `Unknown provider: ${provider}` }, { status: 400 });
   }

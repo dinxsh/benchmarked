@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CandlestickChart } from '@/components/charts/CandlestickChart';
 import {
   useCoinGeckoStream,
@@ -10,12 +10,14 @@ import {
   type ProviderStreamState,
   type ConnType,
 } from '@/hooks/useProviderStream';
+import { TOKEN_PAIRS, DEFAULT_PAIR, type TokenPair } from '@/lib/pairs';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const DX = {
   bg:          '#1a1a1a',
   bgDeep:      '#111111',
   surface:     '#222222',
+  surfaceHover:'#2a2a2a',
   fg:          '#f2f2f2',
   fgMuted:     '#888888',
   border:      '#444444',
@@ -61,8 +63,8 @@ function ErrorBody({ message }: { message: string }) {
       alignItems: 'center', justifyContent: 'center',
       gap: 8, padding: '0 16px', textAlign: 'center',
     }}>
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
-        stroke={DX.destructive} strokeWidth="1.2" opacity={0.4}>
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+        stroke={DX.destructive} strokeWidth="1.2" opacity={0.5}>
         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
         <line x1="12" y1="9"  x2="12"   y2="13" />
         <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -70,7 +72,7 @@ function ErrorBody({ message }: { message: string }) {
       <span style={{
         fontSize: 10, color: DX.destructive, fontFamily: DX.mono,
         textTransform: 'uppercase', letterSpacing: '0.05em',
-        lineHeight: 1.5, maxWidth: 220, wordBreak: 'break-word',
+        lineHeight: 1.6, maxWidth: 240, wordBreak: 'break-word',
       }}>
         {message}
       </span>
@@ -104,12 +106,10 @@ function StreamPanel({ config, state }: { config: PanelConfig; state: ProviderSt
 
   const dotBg   = isConnecting ? DX.warning : isStreaming ? DX.accent : isError ? DX.destructive : '#333';
   const dotAnim = isConnecting || isStreaming ? 'dx-pulse 1.2s ease-in-out infinite' : 'none';
-
   const latColor =
-    firstLatency === null      ? DX.fgMuted :
-    firstLatency < 400         ? DX.accent  :
-    firstLatency < 900         ? DX.warning :
-    DX.destructive;
+    firstLatency === null ? DX.fgMuted :
+    firstLatency < 400   ? DX.accent  :
+    firstLatency < 900   ? DX.warning : DX.destructive;
 
   return (
     <div style={{
@@ -199,26 +199,69 @@ function StreamPanel({ config, state }: { config: PanelConfig; state: ProviderSt
       {/* ── Chart body ── */}
       <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
         {showSpinner && <Spinner />}
-
-        {candles.length > 0 && (
-          <CandlestickChart candles={candles} showVolume={false} />
-        )}
-
-        {isError && candles.length === 0 && (
-          <ErrorBody message={error ?? 'Stream error'} />
-        )}
+        {candles.length > 0 && <CandlestickChart candles={candles} showVolume={false} />}
+        {isError && candles.length === 0 && <ErrorBody message={error ?? 'Stream error'} />}
       </div>
 
     </div>
   );
 }
 
+// ─── Pair dropdown ────────────────────────────────────────────────────────────
+function PairDropdown({
+  selected, onChange,
+}: { selected: TokenPair; onChange: (p: TokenPair) => void }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <span style={{ fontSize: 9, color: DX.fgMuted, fontFamily: DX.mono, letterSpacing: '0.06em' }}>
+        PAIR
+      </span>
+      <select
+        value={selected.id}
+        onChange={e => {
+          const p = TOKEN_PAIRS.find(x => x.id === e.target.value);
+          if (p) onChange(p);
+        }}
+        style={{
+          background:  DX.surface,
+          border:      `1px solid ${DX.border}`,
+          color:       DX.fg,
+          fontFamily:  DX.mono,
+          fontSize:    10,
+          fontWeight:  700,
+          padding:     '3px 8px',
+          borderRadius: 4,
+          cursor:      'pointer',
+          outline:     'none',
+          appearance:  'none',
+          WebkitAppearance: 'none',
+          letterSpacing: '0.04em',
+          minWidth: 110,
+        }}
+      >
+        {TOKEN_PAIRS.map(p => (
+          <option key={p.id} value={p.id} style={{ background: DX.surface, color: DX.fg }}>
+            {p.label}
+          </option>
+        ))}
+      </select>
+      {/* custom caret */}
+      <span style={{
+        position: 'relative', left: -22, pointerEvents: 'none',
+        fontSize: 8, color: DX.fgMuted,
+      }}>▾</span>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function Home() {
-  const cgState = useCoinGeckoStream();
-  const grState = useGoldRushStream();
-  const mlState = useMoralisStream();
-  const bqState = useBitqueryStream();
+  const [pair, setPair] = useState<TokenPair>(DEFAULT_PAIR);
+
+  const cgState = useCoinGeckoStream(pair);
+  const grState = useGoldRushStream(pair);
+  const mlState = useMoralisStream(pair);
+  const bqState = useBitqueryStream(pair);
 
   const allStates      = [cgState, grState, mlState, bqState];
   const streamingCount = allStates.filter(s => s.status === 'streaming').length;
@@ -230,6 +273,7 @@ export default function Home() {
         @keyframes dx-spin  { to { transform: rotate(360deg) } }
         @keyframes dx-pulse { 0%,100% { opacity:1 } 50% { opacity:0.2 } }
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        select option { background: #222; color: #f2f2f2; }
       `}</style>
 
       <div style={{
@@ -245,6 +289,7 @@ export default function Home() {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 16px',
         }}>
+          {/* left — live indicator + pair label + subtitle */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{
               width: 7, height: 7, borderRadius: '50%',
@@ -256,20 +301,22 @@ export default function Home() {
               fontSize: 11, fontWeight: 700,
               letterSpacing: '0.08em', textTransform: 'uppercase',
             }}>
-              ETH / USD
+              {pair.baseSymbol} / {pair.quoteSymbol}
             </span>
             <span style={{ fontSize: 9, color: DX.fgMuted, letterSpacing: '0.04em' }}>
               OHLCV · 2 WSS + 2 REST · 1-day range
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10 }}>
+          {/* right — live count + pair selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <span style={{
+              fontSize: 10, fontFamily: DX.mono,
               color: streamingCount === 4 ? DX.accent : DX.fgMuted,
-              fontFamily: DX.mono,
             }}>
               {streamingCount} / 4 live
             </span>
+            <PairDropdown selected={pair} onChange={p => setPair(p)} />
           </div>
         </div>
 
@@ -282,9 +329,7 @@ export default function Home() {
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
           gridTemplateRows:    '1fr 1fr',
-          gap: 1,
-          background: DX.borderLight,
-          padding: 1,
+          gap: 1, background: DX.borderLight, padding: 1,
         }}>
           <StreamPanel config={PANEL_CONFIGS[0]} state={cgState} />
           <StreamPanel config={PANEL_CONFIGS[1]} state={grState} />
