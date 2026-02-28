@@ -3,6 +3,14 @@ import { withSentryConfig } from '@sentry/nextjs';
 
 // Define the base Next.js configuration
 const baseConfig: NextConfig = {
+  // Expose server-side API keys to client bundles (needed for WebSocket auth in hooks).
+  // These values are inlined at build time; a dev-server restart is required after
+  // adding new keys to .env.local.
+  env: {
+    NEXT_PUBLIC_GOLDRUSH_API_KEY:    process.env.GOLDRUSH_API_KEY    ?? process.env.NEXT_PUBLIC_GOLDRUSH_API_KEY    ?? '',
+    NEXT_PUBLIC_GOLDRUSH_STREAM_URL: process.env.GOLDRUSH_STREAM_URL ?? process.env.NEXT_PUBLIC_GOLDRUSH_STREAM_URL ?? 'wss://gr-staging-v2.streaming.covalenthq.com/graphql',
+    NEXT_PUBLIC_BITQUERY_API_KEY:    process.env.BITQUERY_API_KEY    ?? process.env.NEXT_PUBLIC_BITQUERY_API_KEY    ?? '',
+  },
   images: {
     remotePatterns: [
       {

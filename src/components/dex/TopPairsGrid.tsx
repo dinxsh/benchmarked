@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { LivePairUpdate } from '@/lib/dex-types';
 import { useRealtimePairs } from '@/hooks/use-realtime-pairs';
+import { PairDetailDrawer } from './PairDetailDrawer';
 
 interface TopPairsGridProps {
   onPairSelect?: (pairAddress: string) => void;
@@ -10,6 +11,8 @@ interface TopPairsGridProps {
 
 export function TopPairsGrid({ onPairSelect }: TopPairsGridProps) {
   const [flashStates, setFlashStates] = useState<Map<string, 'green' | 'red' | null>>(new Map());
+  const [selectedPair, setSelectedPair] = useState<string | null>(null);
+  const [selectedLiveData, setSelectedLiveData] = useState<LivePairUpdate | undefined>(undefined);
   const previousPricesRef = useRef<Map<string, number>>(new Map());
 
   // Memoize the price update callback with slower pulse animation
@@ -135,7 +138,11 @@ export function TopPairsGrid({ onPairSelect }: TopPairsGridProps) {
               <tr
                 key={pair.pair.pairAddress}
                 className={`border-b border-border cursor-pointer ${pulseClass}`}
-                onClick={() => onPairSelect?.(pair.pair.pairAddress)}
+                onClick={() => {
+                  setSelectedPair(pair.pair.pairAddress);
+                  setSelectedLiveData(pair);
+                  onPairSelect?.(pair.pair.pairAddress);
+                }}
               >
                 <td className="py-3 px-4">
                   <div className="font-medium text-foreground">
@@ -165,6 +172,15 @@ export function TopPairsGrid({ onPairSelect }: TopPairsGridProps) {
           })}
         </tbody>
       </table>
+
+      <PairDetailDrawer
+        pairAddress={selectedPair}
+        liveData={selectedLiveData}
+        onClose={() => {
+          setSelectedPair(null);
+          setSelectedLiveData(undefined);
+        }}
+      />
     </div>
   );
 }
