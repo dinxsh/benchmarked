@@ -235,7 +235,8 @@ async function fetchBitquery(days: number): Promise<Omit<ChartRaceResponse, 'pro
 }
 
 // ── Moralis ───────────────────────────────────────────────────────────────────
-// Uniswap V3 WETH/USDC 0.05% pair OHLCV via Moralis Deep Index
+// Uniswap V3 pair OHLCV via Moralis Deep Index.
+// Tries finest available timeframe first (1min → 5min → 1h → 1d).
 async function fetchMoralis(
   days: number,
   pairAddress = '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
@@ -245,45 +246,61 @@ async function fetchMoralis(
     const apiKey = process.env.MORALIS_API_KEY;
     if (!apiKey) throw new Error('MORALIS_API_KEY not configured');
 
-    const timeframe = days <= 1 ? '1h' : '1d';
-    const limit     = days <= 1 ? 24 : Math.min(days, 200);
-
     const toDate   = new Date().toISOString();
     const fromDate = new Date(Date.now() - days * 86_400_000).toISOString();
 
-    const url = `https://deep-index.moralis.io/api/v2.2/pairs/${pairAddress}/ohlcv?chain=eth&timeframe=${timeframe}&limit=${limit}&fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`;
-    const res = await fetch(url, {
-      headers: { 'X-API-Key': apiKey, 'accept': 'application/json' },
-      signal: AbortSignal.timeout(10000),
-      next: { revalidate: 0 },
-    });
+    // Ordered from finest to coarsest — stop at first success
+    const attempts = days <= 1
+      ? [{ tf: '1min', limit: 60 }, { tf: '5min', limit: 60 }, { tf: '1h', limit: 24 }]
+      : [{ tf: '1h', limit: 24 }, { tf: '1d', limit: Math.min(days, 200) }];
 
-    if (!res.ok) {
-      if (res.status === 401) throw new Error('Invalid Moralis API key');
-      throw new Error(await readErrorBody(res));
+    let lastError = 'No data returned';
+
+    for (const { tf, limit } of attempts) {
+      const url =
+        `https://deep-index.moralis.io/api/v2.2/pairs/${pairAddress}/ohlcv` +
+        `?chain=eth&timeframe=${tf}&limit=${limit}` +
+        `&fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`;
+
+      const res = await fetch(url, {
+        headers: { 'X-API-Key': apiKey, 'accept': 'application/json' },
+        signal: AbortSignal.timeout(10000),
+        next: { revalidate: 0 },
+      });
+
+      // Auth failure — won't change with a different timeframe
+      if (res.status === 401 || res.status === 403) {
+        const body = await readErrorBody(res);
+        throw new Error(`Moralis ${res.status}${body ? `: ${body}` : ' — check MORALIS_API_KEY / plan access'}`);
+      }
+
+      if (!res.ok) { lastError = await readErrorBody(res); continue; }
+
+      const data    = await res.json();
+      const latency = Math.round(performance.now() - start);
+      // Moralis may return { result: [] } or { data: [] } or a bare array
+      const rows: unknown[] = data?.result ?? data?.data ?? (Array.isArray(data) ? data : []);
+      if (!Array.isArray(rows) || rows.length === 0) { lastError = `No rows (tf=${tf})`; continue; }
+
+      const candles: OHLCVCandle[] = rows
+        .map((r: unknown) => {
+          const row = r as Record<string, unknown>;
+          return {
+            timestamp: new Date(String(row.timestamp ?? row.open_time ?? '')).toISOString(),
+            open:   parseFloat(String(row.open   ?? '0')),
+            high:   parseFloat(String(row.high   ?? '0')),
+            low:    parseFloat(String(row.low    ?? '0')),
+            close:  parseFloat(String(row.close  ?? '0')),
+            volume: parseFloat(String(row.volume ?? '0')),
+          };
+        })
+        .filter(c => c.high > 0 && !isNaN(c.open));
+
+      if (candles.length === 0) { lastError = `No valid candles (tf=${tf})`; continue; }
+      return { status: 'success', latency, candles, dataType: 'ohlcv' };
     }
 
-    const data    = await res.json();
-    const latency = Math.round(performance.now() - start);
-    const result: unknown[] = data?.result;
-    if (!Array.isArray(result) || result.length === 0) throw new Error('No OHLCV data from Moralis');
-
-    const candles: OHLCVCandle[] = result
-      .map((r: unknown) => {
-        const row = r as Record<string, unknown>;
-        return {
-          timestamp: new Date(String(row.timestamp ?? row.open_time ?? '')).toISOString(),
-          open:   parseFloat(String(row.open   ?? '0')),
-          high:   parseFloat(String(row.high   ?? '0')),
-          low:    parseFloat(String(row.low    ?? '0')),
-          close:  parseFloat(String(row.close  ?? '0')),
-          volume: parseFloat(String(row.volume ?? '0')),
-        };
-      })
-      .filter(c => c.high > 0 && !isNaN(c.open));
-
-    if (candles.length === 0) throw new Error('No valid candles from Moralis');
-    return { status: 'success', latency, candles, dataType: 'ohlcv' };
+    throw new Error(lastError);
   } catch (err) {
     return {
       status: 'error', latency: Math.round(performance.now() - start),
@@ -312,9 +329,9 @@ export async function GET(request: Request) {
   }
 
   const candleInterval =
-    provider === 'coingecko' ? (days <= 1 ? '~30m' : days <= 90 ? '~4h' : '~1d') :
-    provider === 'moralis'   ? (days <= 1 ? '~1h'  : '~1d') :
-    provider === 'bitquery'  ? (days <= 1 ? '~1h'  : '~1d') :
+    provider === 'coingecko' ? (days <= 1 ? '~30m'  : days <= 90 ? '~4h' : '~1d') :
+    provider === 'moralis'   ? (days <= 1 ? '~1min' : '~1h') :
+    provider === 'bitquery'  ? (days <= 1 ? '~1h'   : '~1d') :
     days <= 1 ? '~30m' : days <= 7 ? '~4h' : '~1d';
 
   let result: Omit<ChartRaceResponse, 'provider' | 'days' | 'candleInterval'>;

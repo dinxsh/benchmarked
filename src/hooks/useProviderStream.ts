@@ -258,9 +258,6 @@ function aggregateToCandles(events: TradeEvent[]): OHLCVCandle[] {
     }));
 }
 
-// How long to wait for first WS data before declaring an error
-const BQ_TIMEOUT_MS = 20_000;
-
 export function useBitqueryStream(pair: TokenPair): ProviderStreamState {
   const apiKey = process.env.NEXT_PUBLIC_BITQUERY_API_KEY ?? '';
 
@@ -268,48 +265,75 @@ export function useBitqueryStream(pair: TokenPair): ProviderStreamState {
   const [state, setState] = useState<Omit<ProviderStreamState, 'metrics'>>({
     candles: [], status: 'idle', connType: 'WSS', label: '1d OHLCV', error: null,
   });
-  const eventsRef   = useRef<TradeEvent[]>([]);
+  const eventsRef = useRef<TradeEvent[]>([]);
 
   useEffect(() => {
+    reset();
+    eventsRef.current = [];
+    let aborted = false;
+    let restTimer: ReturnType<typeof setInterval> | null = null;
+
+    // ── REST fallback ──────────────────────────────────────────────────────
+    // wss://streaming.bitquery.io/eap refuses the WS handshake when the
+    // ory_at_ OAuth token is expired (typically 1 h TTL).  Fall back to the
+    // working Bitquery HTTP endpoint which shares the same API key format.
+    const startRestFallback = (reason: string) => {
+      if (aborted) return;
+      setState({ candles: [], status: 'connecting', connType: 'REST', label: '~1h REST', error: null });
+
+      const pollRest = async () => {
+        if (aborted) return;
+        try {
+          const res  = await fetch(`/api/chart-race?provider=bitquery&days=1`);
+          const data = await res.json() as {
+            status: string; candles?: OHLCVCandle[]; candleInterval?: string; error?: string;
+          };
+          if (aborted) return;
+          if (data.status === 'success' && Array.isArray(data.candles) && data.candles.length > 0) {
+            onData();
+            setState({
+              candles: data.candles, status: 'streaming', connType: 'REST',
+              label: data.candleInterval ?? '~1h REST', error: null,
+            });
+          } else {
+            setState(s => ({ ...s, status: 'error', error: data.error ?? 'Bitquery REST failed' }));
+          }
+        } catch { /* silent — retry on next tick */ }
+      };
+
+      void pollRest();
+      restTimer = setInterval(pollRest, 30_000);
+      void reason; // for devtools — "WS connection failed" | "timeout"
+    };
+
     if (!apiKey) {
-      setState(s => ({ ...s, status: 'error', error: 'NEXT_PUBLIC_BITQUERY_API_KEY not set' }));
-      return;
+      startRestFallback('no api key');
+      return () => { aborted = true; if (restTimer) clearInterval(restTimer); };
     }
 
-    reset();
+    // ── WS attempt ────────────────────────────────────────────────────────
     setState({ candles: [], status: 'connecting', connType: 'WSS', label: '1d OHLCV', error: null });
-    eventsRef.current = [];
 
     const client = createClient({
       url: 'wss://streaming.bitquery.io/eap',
-      connectionParams: () => ({
-        Authorization: `Bearer ${apiKey}`,
-        'X-API-KEY':   apiKey,
-      }),
-      keepAlive: 15_000, retryAttempts: 3, shouldRetry: () => true,
+      connectionParams: () => ({ Authorization: `Bearer ${apiKey}`, 'X-API-KEY': apiKey }),
+      keepAlive: 10_000,
+      retryAttempts: 0,       // fail fast — don't retry, go straight to REST
+      shouldRetry: () => false,
     });
 
-    // If no data arrives within BQ_TIMEOUT_MS, surface an error instead of
-    // spinning forever (expired token, wrong subscription format, etc.)
-    const noDataTimer = setTimeout(() => {
-      setState(s => {
-        if (s.status === 'connecting') {
-          return {
-            ...s, status: 'error',
-            error: `No stream data after ${BQ_TIMEOUT_MS / 1000}s — API key may be expired or subscription rejected`,
-          };
-        }
-        return s;
-      });
-    }, BQ_TIMEOUT_MS);
+    // If WS doesn't deliver data within 10 s → REST fallback
+    const wsTimer = setTimeout(() => {
+      if (!aborted) { client.dispose(); startRestFallback('timeout'); }
+    }, 10_000);
 
     const query = buildBQSubscription(pair.bqBaseAddress, pair.bqQuoteAddress);
-
-    const unsub = client.subscribe(
+    client.subscribe(
       { query },
       {
         next: (result) => {
-          clearTimeout(noDataTimer);
+          if (aborted) return;
+          clearTimeout(wsTimer);
 
           type BQRow = { Block: { Time: string }; Trade: { PriceInUSD: number } };
           const evm  = (result.data as Record<string, unknown>)?.EVM as
@@ -319,12 +343,9 @@ export function useBitqueryStream(pair: TokenPair): ProviderStreamState {
 
           for (const row of rows) {
             const t = new Date(row.Block.Time).getTime();
-            if (!isNaN(t) && row.Trade.PriceInUSD > 0) {
+            if (!isNaN(t) && row.Trade.PriceInUSD > 0)
               eventsRef.current.push({ time: t, price: row.Trade.PriceInUSD, volume: 0 });
-            }
           }
-
-          // Rolling 24-hour window
           const cutoff = Date.now() - 86_400_000;
           eventsRef.current = eventsRef.current.filter(e => e.time > cutoff);
 
@@ -334,21 +355,18 @@ export function useBitqueryStream(pair: TokenPair): ProviderStreamState {
             setState({ candles, status: 'streaming', connType: 'WSS', label: '1d OHLCV', error: null });
           }
         },
-        error: (err) => {
-          clearTimeout(noDataTimer);
-          const msg =
-            err instanceof Error ? err.message
-            : Array.isArray(err)  ? ((err[0] as { message?: string })?.message ?? JSON.stringify(err))
-            : String(err);
-          setState(s => ({ ...s, status: 'error', error: msg.slice(0, 220) }));
+        error: () => {
+          // WS handshake rejected (expired token, CORS, wrong endpoint) → REST
+          if (!aborted) { clearTimeout(wsTimer); startRestFallback('WS connection failed'); }
         },
         complete: () => {},
       }
     );
 
     return () => {
-      clearTimeout(noDataTimer);
-      unsub();
+      aborted = true;
+      clearTimeout(wsTimer);
+      if (restTimer) clearInterval(restTimer);
       client.dispose();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
