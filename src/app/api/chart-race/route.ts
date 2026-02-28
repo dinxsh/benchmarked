@@ -246,7 +246,10 @@ async function fetchMoralis(days: number): Promise<Omit<ChartRaceResponse, 'prov
     const limit     = days <= 1 ? 24 : Math.min(days, 200);
     const pair      = '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640'; // WETH/USDC Uniswap V3
 
-    const url = `https://deep-index.moralis.io/api/v2.2/pairs/${pair}/ohlcv?chain=eth&timeframe=${timeframe}&limit=${limit}`;
+    const toDate   = new Date().toISOString();
+    const fromDate = new Date(Date.now() - days * 86_400_000).toISOString();
+
+    const url = `https://deep-index.moralis.io/api/v2.2/pairs/${pair}/ohlcv?chain=eth&timeframe=${timeframe}&limit=${limit}&fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`;
     const res = await fetch(url, {
       headers: { 'X-API-Key': apiKey, 'accept': 'application/json' },
       signal: AbortSignal.timeout(10000),
